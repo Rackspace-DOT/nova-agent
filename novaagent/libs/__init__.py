@@ -13,6 +13,11 @@ class DefaultOS(object):
         ret = p.password_cmd(value)
         return ret
 
+    def injectfile(self, name, value):
+        f = FileInject()
+        ret = f.fileinject_cmd(value)
+        return ret
+
 
 if __name__ == '__main__':
     main()
