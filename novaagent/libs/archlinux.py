@@ -3,7 +3,7 @@ from novaagent import utils
 from subprocess import Popen, PIPE
 
 def _setup_interface(ifname, iface):
-    with open('/etc/netctl/{0}.new'.format(ifname), 'w') as iffile:
+    with open('/etc/netctl/{0}'.format(ifname), 'w') as iffile:
         print('# Label {0}'.format(iface['label']), file=iffile)
         print('Connection=ethernet', file=iffile)
         print('Interface={0}'.format(ifname), file=iffile)
