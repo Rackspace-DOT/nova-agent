@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import
 from novaagent import utils
+from novaagent import common
 from subprocess import Popen, PIPE
 
 def _setup_interface(ifname, iface):
@@ -24,7 +25,7 @@ def _setup_interface(ifname, iface):
         if 'dns' in iface and iface['dns']:
             print("DNS=('{0}')".format("' '".join(iface['dns'])), file=iffile)
 
-def resetnetwork():
+def resetnetwork(name, value):
     ifaces = {}
     xen_macs = utils.list_xenstore_macaddrs()
     for iface in utils.list_hw_interfaces():
@@ -49,6 +50,16 @@ def resetnetwork():
             return str(p.returncode)
 
     return '0'
+
+def keyinit(name, value):
+    p = PasswordCommands()
+    ret = p.keyinit_cmd(value)
+    return ret
+
+def password(name, value):
+    p = PasswordCommands()
+    ret = p.password_cmd(value)
+    return ret
 
 
 if __name__ == '__main__':
