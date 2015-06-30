@@ -4,7 +4,8 @@ import json
 import os
 from novaagent import utils
 from novaagent.libs import (
-    archlinux
+    archlinux,
+    freebsd,
 )
 
 
@@ -37,7 +38,9 @@ def action(serveros):
 
 def main():
     if os.path.exists('/etc/arch-release'):
-        serveros = archlinux
+        serveros = archlinux.ServerOS
+    elif os.path.exists('/etc/rc.conf'):
+        serveros = freebsd.ServerOS
 
     while True:
         action(serveros)
