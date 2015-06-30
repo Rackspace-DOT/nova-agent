@@ -1,6 +1,7 @@
 from __future__ import print_function, absolute_import
 import time
 import json
+import os
 from novaagent import utils
 from novaagent.libs import (
     archlinux
@@ -30,7 +31,7 @@ def action(serveros):
         else:
             utils.remove_xenhost_event(uuid)
             utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
-        action()
+        action(serveros)
 
 
 def main():

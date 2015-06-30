@@ -29,7 +29,7 @@ def resetnetwork():
     xen_macs = utils.list_xenstore_macaddrs()
     for iface in utils.list_hw_interfaces():
         mac = utils.get_hw_addr(iface)
-        if not mac and mac not in xen_macs:
+        if not mac or mac not in xen_macs:
             continue
         ifaces[iface] = utils.get_interface(mac)
 
@@ -37,16 +37,16 @@ def resetnetwork():
     hostname = utils.get_hostname()
     p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stdin=PIPE)
     out, err = p.communicate()
-    if p.retcode != 0:
-        return str(p.retcode)
+    if p.returncode != 0:
+        return str(p.returncode)
 
     # setup interface files
     for ifname, iface in ifaces.items():
         _setup_interface(ifname, iface)
-        p = Popen(['netctl', 'restart', iface], stdout=PIPE, stdin=PIPE)
+        p = Popen(['netctl', 'restart', ifname], stdout=PIPE, stdin=PIPE)
         out, err = p.communicate()
-        if p.retcode != 0:
-            return str(p.retcode)
+        if p.returncode != 0:
+            return str(p.returncode)
 
     return '0'
 
