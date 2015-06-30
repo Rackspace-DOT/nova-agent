@@ -3,12 +3,19 @@ import fcntl, socket, struct
 import os
 import json
 
+try:
+    import netifaces
+    HAS_NETIFACES = True
+except ImportError as exc:
+    HAS_NETIFACES = False
+
 
 def get_interface(mac):
-    p = Popen(['xenstore-read', 'vm-data/networking/{0}'.format(mac)], stdout=PIPE)
+    p = Popen(['xenstore-read', 'vm-data/networking/{0}'.format(mac)], stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
-    ret = json.loads(out.decode('utf-8').strip())
-    return ret
+    if p.returncode == 0:
+        return json.loads(out.decode('utf-8').strip())
+    return False
 
 
 def list_xenstore_macaddrs():
@@ -27,10 +34,20 @@ def get_hw_addr(ifname):
     except TypeError as exc:
         info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', bytes(ifname[:15], 'utf-8')))
         return ''.join(['%02x' % char for char in info[18:24]]).upper()
+    except IOError as exc:
+        if HAS_NETIFACES is False:
+            return False
+        iface = netifaces.ifaddresses(ifname)
+        if netifaces.AF_LINK in iface:
+            mac = iface[netifaces.AF_LINK][0]['addr']
+            return mac.replace(':', '').upper()
+        return False
 
 
 def list_hw_interfaces():
-    return os.listdir('/sys/class/net')
+    if os.path.exists('/sys/class/net'):
+        return os.listdir('/sys/class/net')
+    return netifaces.interfaces()
 
 
 def get_hostname():

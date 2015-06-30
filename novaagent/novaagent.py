@@ -7,7 +7,7 @@ def _main():
     xen_macs = utils.list_xenstore_macaddrs()
     for iface in utils.list_hw_interfaces():
         mac = utils.get_hw_addr(iface)
-        if mac not in xen_macs:
+        if not mac and mac not in xen_macs:
             continue
         print(utils.get_interface(mac))
 
