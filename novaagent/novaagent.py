@@ -2,6 +2,9 @@ from __future__ import print_function, absolute_import
 import time
 import json
 from novaagent import utils
+from novaagent.libs import (
+    archlinux
+)
 
 
 def _main():
@@ -13,11 +16,14 @@ def _main():
         print(utils.get_interface(mac))
 
 
-def action():
+def action(serveros):
     for uuid in utils.list_xen_events():
         event = utils.get_xen_event(uuid)
-        print(event)
-        print(uuid)
+        returncode = '0'
+        if hasattr(serveros, event['name']):
+            cmd = getattr(serveros, event['name'])
+            returncode = cmd()
+
         if event['name'] == 'version':
             utils.remove_xenhost_event(uuid)
             utils.update_xenguest_event(uuid, {'message': '1.39.1', 'returncode': '0'})
@@ -28,8 +34,11 @@ def action():
 
 
 def main():
+    if os.path.exists('/etc/arch-release'):
+        serveros = archlinux
+
     while True:
-        action()
+        action(serveros)
         time.sleep(1)
 
 
