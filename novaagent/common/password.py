@@ -23,16 +23,20 @@ JSON password reset handling plugin
 import base64
 import binascii
 import logging
+import sys
 import os
 import subprocess
 import time
 
 from Crypto.Cipher import AES
 
+if sys.version_info > (3,):
+    long = int
+
 # This is to support older python versions that don't have hashlib
 try:
     import hashlib
-except ImportError:
+except ImportError as exc:
     import md5
 
     class hashlib(object):
@@ -108,13 +112,13 @@ class PasswordCommands(object):
         """
 
         m = hashlib.md5()
-        m.update(key)
+        m.update(key.encode('utf-8'))
 
         aes_key = m.digest()
 
         m = hashlib.md5()
         m.update(aes_key)
-        m.update(key)
+        m.update(key.encode('utf-8'))
 
         aes_iv = m.digest()
 
@@ -137,20 +141,20 @@ class PasswordCommands(object):
 
         try:
             real_data = base64.b64decode(data)
-        except Exception:
+        except Exception as exc:
             raise PasswordError((500, "Couldn't decode base64 data"))
 
         try:
             aes_key = self.aes_key
-        except AttributeError:
+        except AttributeError as exc:
             raise PasswordError((500, "Password without key exchange"))
 
         try:
             passwd = self._decrypt_password(aes_key, real_data)
-        except PasswordError, e:
-            raise e
-        except Exception, e:
-            raise PasswordError((500, str(e)))
+        except PasswordError as exc:
+            raise exc
+        except Exception as exc:
+            raise PasswordError((500, str(exc)))
 
         return passwd
 
@@ -169,7 +173,7 @@ class PasswordCommands(object):
 
         try:
             del self.aes_key
-        except AttributeError:
+        except AttributeError as exc:
             pass
 
     def keyinit_cmd(self, data):
@@ -197,8 +201,8 @@ class PasswordCommands(object):
         try:
             passwd = self._decode_password(data)
             self._change_password(passwd)
-        except PasswordError, e:
-            return e.get_response()
+        except PasswordError as exc:
+            return exc.get_response()
 
         self._wipe_key()
 
@@ -248,7 +252,7 @@ def _create_temp_password_file(user, password, filename):
                 continue
             try:
                 (s_user, s_password, s_rest) = line.split(':', 2)
-            except ValueError:
+            except ValueError as exc:
                 f.write(line)
                 continue
             if s_user != user:
@@ -269,7 +273,7 @@ def _create_temp_password_file(user, password, filename):
         f.close()
         f = None
         success = True
-    except Exception, e:
+    except Exception as exc:
         logging.error("Couldn't create temporary password file: %s" % str(e))
         raise
     finally:
@@ -278,12 +282,12 @@ def _create_temp_password_file(user, password, filename):
             if f:
                 try:
                     os.unlink(tmpfile)
-                except Exception:
+                except Exception as exc:
                     pass
             # Make sure to unlink the tmpfile
             try:
                 os.unlink(tmpfile)
-            except Exception:
+            except Exception as exc:
                 pass
 
     return tmpfile
@@ -322,7 +326,7 @@ def set_password(user, password):
                 logging.error("pwd_mkdb failed: %s" % stderrdata)
                 try:
                     os.unlink(tmpfile)
-                except Exception:
+                except Exception as exc:
                     pass
                 raise PasswordError(
                         (500, "Rebuilding the passwd database failed"))

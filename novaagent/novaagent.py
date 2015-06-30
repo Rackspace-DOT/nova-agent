@@ -23,13 +23,14 @@ def action(serveros):
         returncode = '0'
         if hasattr(serveros, event['name']):
             cmd = getattr(serveros, event['name'])
-            returncode = cmd()
+            returncode = cmd(event['name'], event['value'])
 
+        utils.remove_xenhost_event(uuid)
         if event['name'] == 'version':
-            utils.remove_xenhost_event(uuid)
             utils.update_xenguest_event(uuid, {'message': '1.39.1', 'returncode': '0'})
+        elif event['name'] == 'keyinit':
+            utils.update_xenguest_event(uuid, {'message': returncode[1], 'returncode': returncode[0]})
         else:
-            utils.remove_xenhost_event(uuid)
             utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
         action(serveros)
 

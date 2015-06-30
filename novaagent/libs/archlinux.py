@@ -1,6 +1,6 @@
 from __future__ import print_function, absolute_import
 from novaagent import utils
-from novaagent import common
+from novaagent.common.password import PasswordCommands
 from subprocess import Popen, PIPE
 
 def _setup_interface(ifname, iface):
