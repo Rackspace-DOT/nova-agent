@@ -83,8 +83,7 @@ def remove_xenhost_event(uuid):
 
 
 def update_xenguest_event(uuid, data):
-    print('xenstore-write data/guest/{0} "{1}"'.format(uuid, json.dumps(data)))
-    p = Popen('xenstore-write data/guest/{0} "{1}"'.format(uuid, json.dumps(data)), stdout=PIPE, shell=True)
+    p = Popen('xenstore-write data/guest/{0} \'{1}\''.format(uuid, json.dumps(data)), stdout=PIPE, shell=True)
     out, err = p.communicate()
     if p.returncode == 0:
         return True
