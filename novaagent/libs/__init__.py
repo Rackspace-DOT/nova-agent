@@ -3,12 +3,12 @@ from novaagent.common.password import PasswordCommands
 
 
 class DefaultOS(object):
-    def keyinit(name, value):
+    def keyinit(self, name, value):
         p = PasswordCommands()
         ret = p.keyinit_cmd(value)
         return ret
 
-    def password(name, value):
+    def password(self, name, value):
         p = PasswordCommands()
         ret = p.password_cmd(value)
         return ret

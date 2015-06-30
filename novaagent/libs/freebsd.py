@@ -16,11 +16,14 @@ class ServerOS(DefaultOS):
         with open('/etc/rc.conf.local', 'a') as iffile:
             print('# Label {0}'.format(iface['label']), file=iffile)
             for num, info in enumerate(iface['ips']):
-                print('ifconfig_{0}_alias{1}="{2} netmask {3} up"'.format(ifname, num, info['ip'], info['netmask']), file=iffile)
-                n = num + 1
+                n = num
+                if num == 0:
+                    print('ifconfig_{0}="{1} netmask {2} up"'.format(ifname, info['ip'], info['netmask']), file=iffile)
+                    continue
+                print('ifconfig_{0}_alias{1}="inet {2} netmask {3} up"'.format(ifname, num - 1, info['ip'], info['netmask']), file=iffile)
             if 'ip6s' in iface:
                 for num, info in enumerate(iface['ip6s']):
-                    print('ifconfig_{0}_alias{1}="inet6 {2} netmask {3} up"'.format(ifname, n + num, info['ip'], info['netmask']), file=iffile)
+                    print('ifconfig_{0}_alias{1}="inet6 {2}/{3}"'.format(ifname, n + num, info['ip'], info['netmask']), file=iffile)
                 print('ipv6_enable="YES"', file=iffile)
                 print('ipv6_network_interfaces="{0}"'.format(ifname), file=iffile)
             if 'gateway' in iface and iface['gateway']:
@@ -58,7 +61,8 @@ class ServerOS(DefaultOS):
             self._setup_interface(ifname, iface)
         return '0'
         p = Popen(['service', 'netif', 'restart'], stdout=PIPE, stdin=PIPE)
-        p = Popen(['service', 'routing', 'restart'], stdout=PIPE, stdin=PIPE)
+        out, err = p.communicate()
+        p = Popen(['service', 'routing', 'start'], stdout=PIPE, stdin=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
             return str(p.returncode)
