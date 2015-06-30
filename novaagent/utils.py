@@ -1,6 +1,7 @@
 from subprocess import PIPE, Popen
 import fcntl, socket, struct
 import os
+import re
 import json
 
 try:
@@ -75,7 +76,7 @@ def list_xen_events():
     p = Popen('xenstore-ls data/host', stdout=PIPE, shell=True)
     out, err = p.communicate()
     out = out.decode('utf-8').split('\n')
-    out = [x.split(' = ')[0] for x in out if value_uuid(x)]
+    out = [x.split(' = ')[0] for x in out if valid_uuid(x)]
     return out
 
 
