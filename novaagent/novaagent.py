@@ -52,13 +52,9 @@ def main():
         serveros = freebsd.ServerOS()
 
     while True:
-        if args.fork:
-            pid = os.fork()
-            if pid:
-                if args.pid:
-                    with open(args.pid, 'w') as pidfile:
-                        print(pid, file=pidfile)
-                sys.exit()
+        if args.pid:
+            with open(args.pid, 'w') as pidfile:
+                print(pid, file=pidfile)
         action(serveros)
         time.sleep(1)
 
