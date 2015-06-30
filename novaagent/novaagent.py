@@ -41,8 +41,8 @@ def action(serveros):
 
 def main():
     parser = argparse.ArgumentParser(description='Args for novaagent')
-    parser.add_argument('-f', action='store_true', help='fork into background')
-    parser.add_argument('-p', type=str, help='pid file')
+    parser.add_argument('-f', dest='fork', action='store_true', help='fork into background')
+    parser.add_argument('-p', dest='pid', type=str, help='pid file')
     args = parser.parse_args()
 
     if os.path.exists('/etc/arch-release'):
@@ -51,6 +51,8 @@ def main():
         serveros = freebsd.ServerOS()
 
     while True:
+        if args.fork:
+            os.fork()
         action(serveros)
         time.sleep(1)
 
