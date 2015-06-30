@@ -1,4 +1,5 @@
 from __future__ import print_function, absolute_import
+import argparse
 import time
 import json
 import os
@@ -7,6 +8,8 @@ from novaagent.libs import (
     archlinux,
     freebsd,
 )
+
+import argparse
 
 
 def _main():
@@ -37,6 +40,11 @@ def action(serveros):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Args for novaagent')
+    parser.add_argument('-f', action='store_true', help='fork into background')
+    parser.add_argument('-p', type=str, help='pid file')
+    args = parser.parse_args()
+
     if os.path.exists('/etc/arch-release'):
         serveros = archlinux.ServerOS()
     elif os.path.exists('/etc/rc.conf'):
