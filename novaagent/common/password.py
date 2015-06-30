@@ -28,6 +28,8 @@ import os
 import subprocess
 import time
 
+from nova.libs.utils import encrypt_password
+
 from Crypto.Cipher import AES
 
 if sys.version_info > (3,):
@@ -272,7 +274,7 @@ def _create_temp_password_file(user, password, filename):
             else:
                 # Default to MD5 as a minimum level of compatibility
                 salt = '$1$%s$' % _make_salt(8)
-            enc_pass = agentlib.encrypt_password(password, salt)
+            enc_pass = encrypt_password(password, salt)
             f.write("%s:%s:%s" % (s_user, enc_pass, s_rest))
         f.close()
         f = None
