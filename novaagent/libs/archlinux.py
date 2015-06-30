@@ -39,7 +39,7 @@ class ServerOS(DefaultOS):
 
         # set hostname
         hostname = utils.get_hostname()
-        p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stdin=PIPE, shell=True)
+        p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stdin=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
             return str(p.returncode)
@@ -47,7 +47,7 @@ class ServerOS(DefaultOS):
         # setup interface files
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
-            p = Popen(['netctl', 'restart', ifname], stdout=PIPE, stdin=PIPE, shell=True)
+            p = Popen(['netctl', 'restart', ifname], stdout=PIPE, stdin=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:
                 return str(p.returncode)
