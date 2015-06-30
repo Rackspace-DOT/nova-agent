@@ -19,7 +19,6 @@ class ServerOS(DefaultOS):
                 print('Gateway={0}'.format(iface['gateway']), file=iffile)
             if 'routes' in iface and iface['routes']:
                 routes = ['{route}/{netmask} via {gateway}'.format(**x) for x in iface['routes']]
-                print(routes)
                 print("Routes=('{0}')".format("' '".join(routes)), file=iffile)
             if 'ip6s' in iface and iface['ip6s']:
                 print('IP6=static', file=iffile)

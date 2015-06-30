@@ -3,6 +3,7 @@ import argparse
 import time
 import json
 import os
+import sys
 from novaagent import utils
 from novaagent.libs import (
     archlinux,
@@ -52,7 +53,8 @@ def main():
 
     while True:
         if args.fork:
-            os.fork()
+            if os.fork():
+                sys.exit()
         action(serveros)
         time.sleep(1)
 
