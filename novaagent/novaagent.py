@@ -54,7 +54,7 @@ def main():
     while True:
         if args.pid:
             with open(args.pid, 'w') as pidfile:
-                print(pid, file=pidfile)
+                print(os.getpid(), file=pidfile)
         action(serveros)
         time.sleep(1)
 
