@@ -57,7 +57,7 @@ def _write_file(filename, data):
     os.rename(tempfilename, filename)
 
 
-class FileInject(object)
+class FileInject(object):
 
     def __init__(self, *args, **kwargs):
         pass

@@ -8,7 +8,7 @@ setuptools.setup(
     name='novaagent',
     version=novaagent.__version__,
     description=('Rackspace utility for reading xenstore and writing'
-                 'out information on bootup')
+                 'out information on bootup'),
     author='Daniel Wallace',
     author_email='daniel.wallace@rackspace.com',
     entry_points={
@@ -16,7 +16,7 @@ setuptools.setup(
             'nova-agent=novaagent.novaagent:main'
         ]
     },
-    packages=['novaagent'],
+    packages=['novaagent', 'novaagent.libs', 'novaagent.common'],
     install_requires=[
         'pycrypto',
         'netifaces'
