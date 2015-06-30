@@ -8,11 +8,18 @@ from subprocess import Popen, PIPE
 from novaagent.libs import DefaultOS
 
 class ServerOS(DefaultOS):
+    def _setup_dns(self, dns):
+        with open('/etc/resolvconf/resolv.conf.d/base', 'a') as iffile:
+            for d in dns:
+                print('nameserver {0}'.format(d), file=iffile)
+
     def _setup_hostname(self, hostname):
         with open('/etc/rc.conf.local', 'a') as iffile:
             print('hostname={0}'.format(hostname), file=iffile)
 
     def _setup_interface(self, ifname, iface):
+        if 'dns' in iface:
+            self._setup_dns(iface['dns'])
         with open('/etc/rc.conf.local', 'a') as iffile:
             print('# Label {0}'.format(iface['label']), file=iffile)
             for num, info in enumerate(iface['ips']):
@@ -40,6 +47,8 @@ class ServerOS(DefaultOS):
     def resetnetwork(self, name, value):
         if os.path.exists('/etc/rc.conf.local'):
             os.rename('/etc/rc.conf.local', '/etc/rc.conf.local.bak')
+        if os.path.exists('/etc/resolvconf/resolv.conf.d/base'):
+            os.rename('/etc/resolvconf/resolv.conf.d/base', '/etc/resolvconf/resolv.conf.d/base.bak')
         ifaces = {}
         xen_macs = utils.list_xenstore_macaddrs()
         for iface in utils.list_hw_interfaces():
@@ -60,6 +69,8 @@ class ServerOS(DefaultOS):
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
         return '0'
+        p = Popen(['service', 'resolv', 'restart'], stdout=PIPE, stdin=PIPE)
+        out, err = p.communicate()
         p = Popen(['service', 'netif', 'restart'], stdout=PIPE, stdin=PIPE)
         out, err = p.communicate()
         p = Popen(['service', 'routing', 'start'], stdout=PIPE, stdin=PIPE)
