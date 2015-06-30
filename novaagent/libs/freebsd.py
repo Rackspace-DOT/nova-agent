@@ -1,5 +1,6 @@
 from __future__ import print_function, absolute_import
 import os
+import shutil
 
 from novaagent import utils
 from novaagent.common.password import PasswordCommands
@@ -12,6 +13,11 @@ class ServerOS(DefaultOS):
         with open('/etc/resolvconf/resolv.conf.d/base', 'a') as iffile:
             for d in dns:
                 print('nameserver {0}'.format(d), file=iffile)
+        if not os.path.exists('/run/resolvconf'):
+            os.mkdir('/run/resolvconf')
+        shutil.copy('/etc/resolvconf/resolv.conf.d/base', '/run/resolvconf/resolv.conf')
+        if not os.path.exists('/etc/resolv.conf') or os.readlink('/etc/resolv.conf') != '/run/resolvconf/resolv.conf':
+            os.symlink('/run/resolvconf/resolv.conf', '/etc/resolv.conf')
 
     def _setup_hostname(self, hostname):
         with open('/etc/rc.conf.local', 'a') as iffile:
