@@ -74,7 +74,6 @@ class ServerOS(DefaultOS):
         # setup interface files
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
-        return '0'
         p = Popen(['service', 'resolv', 'restart'], stdout=PIPE, stdin=PIPE)
         out, err = p.communicate()
         p = Popen(['service', 'netif', 'restart'], stdout=PIPE, stdin=PIPE)
