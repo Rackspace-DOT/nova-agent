@@ -13,10 +13,12 @@ def _main():
 
 
 def main():
-    for uuid in utils.list_xen_events():
-        event = utils.get_xen_event(uuid)
-        if utils.update_xenguest_event(uuid, {'message': 'Completed', 'returncode': '0'}):
+    while True:
+        time.sleep(1)
+        for uuid in utils.list_xen_events():
+            event = utils.get_xen_event(uuid)
             utils.remove_xenhost_event(uuid)
+            utils.update_xenguest_event(uuid, {'message': json.dumps(event), 'returncode': '0'}):
 
 if __name__ == '__main__':
     main()
