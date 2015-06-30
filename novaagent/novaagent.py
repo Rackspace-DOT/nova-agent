@@ -13,16 +13,25 @@ def _main():
         print(utils.get_interface(mac))
 
 
+def action():
+    for uuid in utils.list_xen_events():
+        event = utils.get_xen_event(uuid)
+        print(event)
+        print(uuid)
+        if event['name'] == 'version':
+            utils.remove_xenhost_event(uuid)
+            utils.update_xenguest_event(uuid, {'message': '1.39.1', 'returncode': '0'})
+        else:
+            utils.remove_xenhost_event(uuid)
+            utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
+        action()
+
+
 def main():
     while True:
+        action()
         time.sleep(1)
-        for uuid in utils.list_xen_events():
-            event = utils.get_xen_event(uuid)
-            print(event)
-            print(uuid)
-            if event['name'] == 'version'
-                utils.remove_xenhost_event(uuid)
-                utils.update_xenguest_event(uuid, {'message': '1.39.1', 'returncode': '0'})
+
 
 if __name__ == '__main__':
     main()
