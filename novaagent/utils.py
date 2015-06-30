@@ -60,7 +60,7 @@ def get_hostname():
 
 
 def list_xen_events():
-    p = Popen('xenstore-ls data/host', stdout=PIPE, shell=True)
+    p = Popen('xenstore-ls data/host', stdout=PIPE, stderr=Pipe, shell=True)
     out, err = p.communicate()
     out = out.decode('utf-8').split('\n')
     out = [x.split(' = ')[0] for x in out if x]
@@ -68,14 +68,14 @@ def list_xen_events():
 
 
 def get_xen_event(uuid):
-    p = Popen('xenstore-read data/host/{0}'.format(uuid), stdout=PIPE, shell=True)
+    p = Popen('xenstore-read data/host/{0}'.format(uuid), stdout=PIPE, stderr=Pipe, shell=True)
     out, err = p.communicate()
     ret = json.loads(out.decode('utf-8').strip())
     return ret
 
 
 def remove_xenhost_event(uuid):
-    p = Popen('xenstore-rm data/host/{0}'.format(uuid), stdout=PIPE, shell=True)
+    p = Popen('xenstore-rm data/host/{0}'.format(uuid), stdout=PIPE, stderr=Pipe, shell=True)
     out, err = p.communicate()
     if p.returncode == 0:
         return True
@@ -83,7 +83,7 @@ def remove_xenhost_event(uuid):
 
 
 def update_xenguest_event(uuid, data):
-    p = Popen('xenstore-write data/guest/{0} \'{1}\''.format(uuid, json.dumps(data)), stdout=PIPE, shell=True)
+    p = Popen('xenstore-write data/guest/{0} \'{1}\''.format(uuid, json.dumps(data)), stdout=PIPE, stderr=Pipe, shell=True)
     out, err = p.communicate()
     if p.returncode == 0:
         return True
