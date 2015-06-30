@@ -316,7 +316,7 @@ def set_password(user, password):
         if ftype == PWD_MKDB:
             pipe = subprocess.PIPE
             p = subprocess.Popen(['/usr/sbin/pwd_mkdb', tmpfile],
-                    stdin=pipe, stdout=pipe, stderr=pipe)
+                    stdin=pipe, stdout=pipe, stderr=pipe, shell=True)
             (stdoutdata, stderrdata) = p.communicate()
             if p.returncode != 0:
                 if stderrdata:

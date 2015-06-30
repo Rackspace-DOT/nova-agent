@@ -65,7 +65,7 @@ class ServerOS(DefaultOS):
 
         # set hostname
         hostname = utils.get_hostname()
-        p = Popen(['hostname', hostname], stdout=PIPE, stdin=PIPE)
+        p = Popen(['hostname', hostname], stdout=PIPE, stdin=PIPE, shell=True)
         out, err = p.communicate()
         if p.returncode != 0:
             return str(p.returncode)
@@ -74,11 +74,11 @@ class ServerOS(DefaultOS):
         # setup interface files
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
-        p = Popen(['service', 'resolv', 'restart'], stdout=PIPE, stdin=PIPE)
+        p = Popen(['service', 'resolv', 'restart'], stdout=PIPE, stdin=PIPE, shell=True)
         out, err = p.communicate()
-        p = Popen(['service', 'netif', 'restart'], stdout=PIPE, stdin=PIPE)
+        p = Popen(['service', 'netif', 'restart'], stdout=PIPE, stdin=PIPE, shell=True)
         out, err = p.communicate()
-        p = Popen(['service', 'routing', 'start'], stdout=PIPE, stdin=PIPE)
+        p = Popen(['service', 'routing', 'start'], stdout=PIPE, stdin=PIPE, shell=True)
         out, err = p.communicate()
         if p.returncode != 0:
             return str(p.returncode)
