@@ -7,7 +7,7 @@ from novaagent.libs import DefaultOS
 
 
 class ServerOS(DefaultOS):
-    def _setup_interface(ifname, iface):
+    def _setup_interface(self, ifname, iface):
         with open('/etc/netctl/{0}'.format(ifname), 'w') as iffile:
             print('# Label {0}'.format(iface['label']), file=iffile)
             print('Connection=ethernet', file=iffile)
@@ -29,7 +29,7 @@ class ServerOS(DefaultOS):
             if 'dns' in iface and iface['dns']:
                 print("DNS=('{0}')".format("' '".join(iface['dns'])), file=iffile)
 
-    def resetnetwork(name, value):
+    def resetnetwork(self, name, value):
         ifaces = {}
         xen_macs = utils.list_xenstore_macaddrs()
         for iface in utils.list_hw_interfaces():
@@ -47,7 +47,7 @@ class ServerOS(DefaultOS):
 
         # setup interface files
         for ifname, iface in ifaces.items():
-            _setup_interface(ifname, iface)
+            self._setup_interface(ifname, iface)
             p = Popen(['netctl', 'restart', ifname], stdout=PIPE, stdin=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:

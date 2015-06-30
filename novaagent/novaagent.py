@@ -38,9 +38,9 @@ def action(serveros):
 
 def main():
     if os.path.exists('/etc/arch-release'):
-        serveros = archlinux.ServerOS
+        serveros = archlinux.ServerOS()
     elif os.path.exists('/etc/rc.conf'):
-        serveros = freebsd.ServerOS
+        serveros = freebsd.ServerOS()
 
     while True:
         action(serveros)
