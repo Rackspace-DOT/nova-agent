@@ -18,7 +18,7 @@ def main():
         for uuid in utils.list_xen_events():
             event = utils.get_xen_event(uuid)
             utils.remove_xenhost_event(uuid)
-            utils.update_xenguest_event(uuid, {'message': json.dumps(event), 'returncode': '0'}):
+            utils.update_xenguest_event(uuid, {'message': json.dumps(event), 'returncode': '0'})
 
 if __name__ == '__main__':
     main()
