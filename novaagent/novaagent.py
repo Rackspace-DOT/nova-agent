@@ -25,14 +25,11 @@ def _main():
 def action(serveros):
     for uuid in utils.list_xen_events():
         event = utils.get_xen_event(uuid)
-        print(uuid)
-        print(event)
         returncode = '0'
         if hasattr(serveros, event['name']):
             cmd = getattr(serveros, event['name'])
             returncode = cmd(event['name'], event['value'])
 
-        print(returncode)
         utils.remove_xenhost_event(uuid)
         if event['name'] == 'version':
             utils.update_xenguest_event(uuid, {'message': '1.39.1', 'returncode': '0'})

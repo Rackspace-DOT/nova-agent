@@ -128,9 +128,7 @@ class PasswordCommands(object):
     def _decrypt_password(self, aes_key, data):
 
         aes = AES.new(aes_key[0], AES.MODE_CBC, aes_key[1])
-        print(aes)
         passwd = aes.decrypt(data)
-        print(passwd)
 
         cut_off_sz = ord(passwd[len(passwd) - 1])
         if cut_off_sz > 16 or len(passwd) < 16:
@@ -180,7 +178,6 @@ class PasswordCommands(object):
             pass
 
     def keyinit_cmd(self, data):
-        print(self.__dict__)
 
         # Remote pubkey comes in as large number
 
@@ -201,7 +198,6 @@ class PasswordCommands(object):
         return ("D0", str(my_public_key))
 
     def password_cmd(self, data):
-        print(self.__dict__)
 
         try:
             passwd = self._decode_password(data)
