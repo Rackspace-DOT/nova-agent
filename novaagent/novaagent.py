@@ -53,7 +53,11 @@ def main():
 
     while True:
         if args.fork:
-            if os.fork():
+            pid = os.fork()
+            if pid:
+                if args.pid:
+                    with open(args.pid, 'w') as pidfile:
+                        print(pid, file=pidfile)
                 sys.exit()
         action(serveros)
         time.sleep(1)
