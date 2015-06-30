@@ -51,7 +51,7 @@ def list_hw_interfaces():
 
 
 def get_hostname():
-    p = Popen(['xenstore-read', 'vm-data/hostname1'], stdout=PIPE, stderr=PIPE)
+    p = Popen(['xenstore-read', 'vm-data/hostname'], stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     xen_hostname = out.decode('utf-8').split('\n')[0]
     if p.returncode == 0:
