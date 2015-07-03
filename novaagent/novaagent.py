@@ -9,6 +9,7 @@ from novaagent.libs import (
     archlinux,
     centos,
     freebsd,
+    redhat,
 )
 
 import argparse
@@ -57,6 +58,8 @@ def main():
         serveros = freebsd.ServerOS()
     elif os.path.exists('/etc/centos-release'):
         serveros = centos.ServerOS()
+    elif os.path.exists('/etc/redhat-release'):
+        serveros = redhat.ServerOS()
 
     while True:
         if args.pid:
