@@ -78,7 +78,8 @@ class ServerOS(DefaultOS):
             self._setup_interface(ifname, iface)
             if 'routes' in iface:
                 self._setup_routes(ifname, iface)
-        p = Popen(['service', 'network', 'restart'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        p = Popen(['service', 'network', 'stop'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        p = Popen(['service', 'network', 'start'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
             return (str(p.returncode), 'Error restarting network')
