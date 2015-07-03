@@ -12,37 +12,37 @@ class ServerOS(DefaultOS):
             print('# Label {0}'.format(iface['label']), file=iffile)
             print('BOOTPROTO=static', file=iffile)
             print('DEVICE={0}'.format(ifname), file=iffile)
-            count = 0
-            for x in iface['ips']:
+            for count, x in enumerate(iface['ips']):
                 if count == 0:
                     print('IPADDR={0}'.format(x['ip']), file=iffile)
                     print('NETMASK={0}'.format(x['netmask']), file=iffile)
                 else:
                     print('IPADDR{0}={1}'.format(count, x['ip']), file=iffile)
                     print('NETMASK{0}={1}'.format(count, x['netmask']), file=iffile)
-                count += 1
             if 'gateway' in iface and iface['gateway']:
                 print('GATEWAY={0}'.format(iface['gateway']), file=iffile)
             if 'ip6s' in iface and iface['ip6s']:
                 print('IPV6INIT=yes', file=iffile)
-                count = 0
-                for x in iface['ip6s']:
+                for count, x in enumerate(iface['ip6s']):
                     if count == 0:
                         print('IPV6ADDR={ip}/{netmask}'.format(**x), file=iffile)
                     else:
                         print('IPV6ADDR{0}={ip}/{netmask}'.format(count, **x), file=iffile)
-                    count += 1
                 print('IPV6_DEFAULTGW={0}%{1}'.format(iface['gateway_v6'], ifname), file=iffile)
             if 'dns' in iface and iface['dns']:
-                count = 1
-                for dns in iface['dns']:
-                    print("DNS{0}={1}".format(count, dns), file=iffile)
-                    count += 1
+                for count, dns in enumerate(iface['dns']):
+                    print("DNS{0}={1}".format(count + 1, dns), file=iffile)
             print('ONBOOT=yes', file=iffile)
             print('NM_CONTROLLED=no', file=iffile)
-        if 'routes' in iface and iface['routes']:
-            routes = ['{route}/{netmask} via {gateway}'.format(**x) for x in iface['routes']]
-            print("Routes=('{0}')".format("' '".join(routes)), file=iffile)
+
+    def _setup_routes(self, ifname, iface):
+        with open('/etc/sysconfig/network-scripts/route-{0}'.format(ifname), 'w') as routefile:
+            for count, route in enumerate(iface['routes']):
+                print((
+                    'ADDRESS{0}={route}\n'
+                    'NETMASK{0}={netmask}\n'
+                    'GATEWAY{0}={gateway}\n'
+                ).format(count, **route), file=routefile)
 
     def resetnetwork(self, name, value):
         ifaces = {}
@@ -74,6 +74,8 @@ class ServerOS(DefaultOS):
         # setup interface files
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
+            if 'routes' in iface:
+                self._setup_routes(ifname, iface)
         p = Popen(['service', 'network', 'restart'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
