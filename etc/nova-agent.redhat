@@ -47,7 +47,7 @@ then
   . /etc/rc.d/init.d/functions
 fi
 
-PROG=/usr/local/bin/nova-agent
+PROG=/usr/bin/nova-agent
 pid_file=/var/run/nova-agent.pid
 LOCK=/var/lock/subsys/$PROG
 
