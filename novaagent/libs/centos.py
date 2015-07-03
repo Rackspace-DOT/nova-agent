@@ -1,4 +1,6 @@
 from __future__ import print_function, absolute_import
+import os
+
 from novaagent import utils
 from novaagent.common.password import PasswordCommands
 from subprocess import Popen, PIPE

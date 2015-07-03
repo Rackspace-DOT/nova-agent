@@ -7,6 +7,7 @@ import sys
 from novaagent import utils
 from novaagent.libs import (
     archlinux,
+    centos,
     freebsd,
 )
 
@@ -54,6 +55,8 @@ def main():
         serveros = archlinux.ServerOS()
     elif os.path.exists('/etc/rc.conf'):
         serveros = freebsd.ServerOS()
+    elif os.path.exists('/etc/centos-release'):
+        serveros = centos.ServerOS()
 
     while True:
         if args.pid:
