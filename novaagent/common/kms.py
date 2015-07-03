@@ -24,8 +24,6 @@ import os
 import subprocess
 import logging
 
-import commands.network
-
 RHN_PATH = '/etc/sysconfig/rhn'
 SYSTEMID_PATH = os.path.join(RHN_PATH, 'systemid')
 UP2DATE_PATH = os.path.join(RHN_PATH, 'up2date')
@@ -122,7 +120,6 @@ def kms_activate(data):
     domains = data['domains']
 
     update_files = configure_up2date(domains)
-    commands.network.update_files(update_files)
 
     ret = register_with_rhn(activation_key, profile)
     if ret:
