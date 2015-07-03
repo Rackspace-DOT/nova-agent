@@ -29,6 +29,7 @@ def action(serveros):
             print('uuids')
             print(uuid, file=retfile)
             print(event, file=retfile)
+        returncode = ()
         if hasattr(serveros, event['name']):
             cmd = getattr(serveros, event['name'])
             returncode = cmd(event['name'], event['value'])
@@ -36,9 +37,7 @@ def action(serveros):
         with open('/root/retcode', 'a') as retfile:
             print(returncode, file=retfile)
         utils.remove_xenhost_event(uuid)
-        if event['name'] == 'version':
-            utils.update_xenguest_event(uuid, {'message': '1.39.1', 'returncode': '0'})
-        elif event['name'] == 'keyinit':
+        if returncode:
             utils.update_xenguest_event(uuid, {'message': returncode[1], 'returncode': returncode[0]})
         else:
             utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
