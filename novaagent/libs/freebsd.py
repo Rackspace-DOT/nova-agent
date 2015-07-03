@@ -80,10 +80,8 @@ class ServerOS(DefaultOS):
         out, err = p.communicate()
         p = Popen(['service', 'routing', 'start'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
         out, err = p.communicate()
-        if p.returncode != 0:
-            return str(p.returncode)
 
-        return '0'
+        return ('0', '')
 
 
 if __name__ == '__main__':

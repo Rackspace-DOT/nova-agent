@@ -42,7 +42,7 @@ class ServerOS(DefaultOS):
         p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
-            return str(p.returncode)
+            return (str(p.returncode), 'Error setting hostname')
 
         # setup interface files
         for ifname, iface in ifaces.items():
@@ -50,9 +50,9 @@ class ServerOS(DefaultOS):
             p = Popen(['netctl', 'restart', ifname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:
-                return str(p.returncode)
+                return (str(p.returncode), 'Error restarting network')
 
-        return '0'
+        return ('0', '')
 
 
 if __name__ == '__main__':
