@@ -63,22 +63,13 @@ class FileInject(object):
         pass
 
     def injectfile_cmd(self, data):
-        with open('/root/retcode', 'a') as retfile:
-            print('injectfile_cmd', file=retfile)
-            print(data, file=retfile)
-
         try:
             b64_decoded = base64.b64decode(data)
         except:
             return (500, "Error doing base64 decoding of data")
-        with open('/root/retcode', 'a') as retfile:
-            print(b64_decoded, file=retfile)
 
         (filename, data) = b64_decoded.split(',', 1)
 
         _write_file(filename, data)
-        with open('/root/retcode', 'a') as retfile:
-            print(filename, file=retfile)
-            print(data, file=retfile)
 
         return (0, "")
