@@ -28,11 +28,11 @@ class ServerOS(DefaultOS):
                     if 'gateway' in iface and iface['gateway']:
                         print('\tgateway {0}'.format(iface['gateway']), file=iffile)
                     if 'dns' in iface and iface['dns']:
-                        print("\tdns-nameservers {0}".format(' '.join(dns)), file=iffile)
+                        print("\tdns-nameservers {0}".format(' '.join(iface['dns'])), file=iffile)
                     if 'routes' in iface:
                         for route in iface['routes']:
                             print((
-                                '\tpost-up route add -net {route} netmask {netmask} gw {gateway} || true'
+                                '\tpost-up route add -net {route} netmask {netmask} gw {gateway} || true\n'
                                 '\tpost-down route add -net {route} netmask {netmask} gw {gateway} || true'
                             ).format(**route), file=iffile)
                 else:
@@ -54,6 +54,7 @@ class ServerOS(DefaultOS):
                         print('iface {0}:{1} inet6 static'.format(ifname, count), file=iffile)
                         print('\taddress {0}'.format(x['ip']), file=iffile)
                         print('\tnetmask {0}'.format(x['netmask']), file=iffile)
+            print('\n\n', file=iffile)
 
     def resetnetwork(self, name, value):
         ifaces = {}
@@ -68,20 +69,14 @@ class ServerOS(DefaultOS):
         hostname = utils.get_hostname()
         with open('/etc/hostname', 'w') as hostnamefile:
             print(hostname, file=hostnamefile)
-        if os.path.exists('/usr/bin/hostnamectl'):
-            p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
-            out, err = p.communicate()
-            if p.returncode != 0:
-                return (str(p.returncode), 'Error setting hostname')
-        else:
-            p = Popen(['hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
-            out, err = p.communicate()
-            if p.returncode != 0:
-                return (str(p.returncode), 'Error setting hostname')
+        p = Popen(['hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            return (str(p.returncode), 'Error setting hostname: hostname')
 
         # setup interface files
+        self._setup_loopback()
         for ifname, iface in ifaces.items():
-            self._setup_loopback()
             self._setup_interface(ifname, iface)
         p = Popen(['service', 'networking', 'restart'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
         out, err = p.communicate()

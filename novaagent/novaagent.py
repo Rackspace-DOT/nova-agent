@@ -57,7 +57,7 @@ def main():
         serveros = centos.ServerOS()
     elif os.path.exists('/etc/redhat-release'):
         serveros = redhat.ServerOS()
-    elif os.path.exists('/etc/debian_release'):
+    elif os.path.exists('/etc/debian_version'):
         serveros = debian.ServerOS()
 
     while True:
