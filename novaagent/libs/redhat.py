@@ -3,7 +3,7 @@ import os
 
 from novaagent import utils
 from novaagent.common import kms
-import novaagent.libs import centos
+from novaagent.libs import centos
 from subprocess import Popen, PIPE
 
 from novaagent.libs import DefaultOS
