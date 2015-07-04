@@ -46,8 +46,8 @@ class ServerOS(DefaultOS):
                         print('iface {0} inet6 static'.format(ifname), file=iffile)
                         print('\taddress {0}'.format(x['ip']), file=iffile)
                         print('\tnetmask {0}'.format(x['netmask']), file=iffile)
-                        if 'gateway' in iface and iface['gateway']:
-                            print('\tgateway {0}'.format(iface['gateway']), file=iffile)
+                        if 'gateway_v6' in iface and iface['gateway_v6']:
+                            print('\tgateway {0}'.format(iface['gateway_v6']), file=iffile)
                     else:
                         print('iface {0}:{1} inet6 static'.format(ifname, count), file=iffile)
                         print('\taddress {0}'.format(x['ip']), file=iffile)

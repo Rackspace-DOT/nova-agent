@@ -10,6 +10,7 @@ from novaagent.libs import (
     centos,
     debian,
     freebsd,
+    gentoo,
     redhat,
 )
 
@@ -49,8 +50,6 @@ def main():
 
     if os.path.exists('/etc/arch-release'):
         serveros = archlinux.ServerOS()
-    elif os.path.exists('/etc/rc.conf'):
-        serveros = freebsd.ServerOS()
     elif os.path.exists('/etc/centos-release') \
             or os.path.exists('/etc/fedora-release') \
             or os.path.exists('/etc/sl-release'):
@@ -59,6 +58,10 @@ def main():
         serveros = redhat.ServerOS()
     elif os.path.exists('/etc/debian_version'):
         serveros = debian.ServerOS()
+    elif os.path.exists('/etc/gentoo-release'):
+        serveros = gentoo.ServerOS()
+    elif os.path.exists('/etc/rc.conf'):
+        serveros = freebsd.ServerOS()
 
     while True:
         if args.pid:

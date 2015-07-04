@@ -10,6 +10,11 @@ except ImportError as exc:
     HAS_NETIFACES = False
 
 
+
+def netmask_to_prefix(netmask):
+    return sum([bin(int(x)).count('1') for x in netmask.split('.')])
+
+
 def get_interface(mac):
     p = Popen('xenstore-read vm-data/networking/{0}'.format(mac), stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
