@@ -78,8 +78,10 @@ class ServerOS(DefaultOS):
         self._setup_loopback()
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
-        p = Popen(['service', 'networking', 'restart'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
-        out, err = p.communicate()
+            p = Popen(['ifdown', ifname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+            out, err = p.communicate()
+            p = Popen(['ifup', ifname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+            out, err = p.communicate()
         if p.returncode != 0:
             return (str(p.returncode), 'Error restarting network')
 
