@@ -50,7 +50,7 @@ def main():
         serveros = archlinux.ServerOS()
     elif os.path.exists('/etc/rc.conf'):
         serveros = freebsd.ServerOS()
-    elif os.path.exists('/etc/centos-release'):
+    elif os.path.exists('/etc/centos-release') or os.path.exists('/etc/fedora-release'):
         serveros = centos.ServerOS()
     elif os.path.exists('/etc/redhat-release'):
         serveros = redhat.ServerOS()
