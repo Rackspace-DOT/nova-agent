@@ -57,17 +57,17 @@ class ServerOS(DefaultOS):
 
         # set hostname
         hostname = utils.get_hostname()
+        with open('/etc/sysconfig/network') as netfile:
+            print('NETWORKING=yes', file=netfile)
+            print('NOZEROCONF=yes', file=netfile)
+            print('NETWORKING_IPV6=yes', file=netfile)
+            print('HOSTNAME={0}'.format(hostname), file=netfile)
         if os.path.exists('/usr/bin/hostnamectl'):
             p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:
                 return (str(p.returncode), 'Error setting hostname')
         else:
-            with open('/etc/sysconfig/network') as netfile:
-                print('NETWORKING=yes', file=netfile)
-                print('NOZEROCONF=yes', file=netfile)
-                print('NETWORKING_IPV6=yes', file=netfile)
-                print('HOSTNAME={0}'.format(hostname), file=netfile)
             p = Popen(['hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:
