@@ -43,14 +43,12 @@ class ServerOS(DefaultOS):
             if 'ip6s' in iface and iface['ip6s']:
                 for count, x in enumerate(iface['ip6s']):
                     if count == 0:
-                        print('auto {0}'.format(ifname), file=iffile)
                         print('iface {0} inet6 static'.format(ifname), file=iffile)
                         print('\taddress {0}'.format(x['ip']), file=iffile)
                         print('\tnetmask {0}'.format(x['netmask']), file=iffile)
                         if 'gateway' in iface and iface['gateway']:
                             print('\tgateway {0}'.format(iface['gateway']), file=iffile)
                     else:
-                        print('auto {0}:{1}'.format(ifname, count), file=iffile)
                         print('iface {0}:{1} inet6 static'.format(ifname, count), file=iffile)
                         print('\taddress {0}'.format(x['ip']), file=iffile)
                         print('\tnetmask {0}'.format(x['netmask']), file=iffile)
