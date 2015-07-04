@@ -3,10 +3,10 @@ import os
 
 from novaagent import utils
 from novaagent.common import kms
-from novaagent.libs import centos
 from subprocess import Popen, PIPE
 
 from novaagent.libs import DefaultOS
+from novaagent.libs import centos
 
 
 class ServerOS(centos.ServerOS):
