@@ -56,7 +56,7 @@ class ServerOS(DefaultOS):
 
         # set hostname
         hostname = utils.get_hostname()
-        with open('/etc/sysconfig/network') as netfile:
+        with open('/etc/sysconfig/network', 'w') as netfile:
             print('NETWORKING=yes', file=netfile)
             print('NOZEROCONF=yes', file=netfile)
             print('NETWORKING_IPV6=yes', file=netfile)
