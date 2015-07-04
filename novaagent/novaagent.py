@@ -8,6 +8,7 @@ from novaagent import utils
 from novaagent.libs import (
     archlinux,
     centos,
+    debian,
     freebsd,
     redhat,
 )
@@ -56,6 +57,8 @@ def main():
         serveros = centos.ServerOS()
     elif os.path.exists('/etc/redhat-release'):
         serveros = redhat.ServerOS()
+    elif os.path.exists('/etc/debian_release'):
+        serveros = debian.ServerOS()
 
     while True:
         if args.pid:
