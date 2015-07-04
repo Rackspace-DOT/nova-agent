@@ -12,6 +12,7 @@ from novaagent.libs import (
     freebsd,
     gentoo,
     redhat,
+    suse,
 )
 
 import argparse
@@ -60,6 +61,8 @@ def main():
         serveros = debian.ServerOS()
     elif os.path.exists('/etc/gentoo-release'):
         serveros = gentoo.ServerOS()
+    elif os.path.exists('/etc/susehelp.d/'):
+        serveros = suse.ServerOS()
     elif os.path.exists('/etc/rc.conf'):
         serveros = freebsd.ServerOS()
 
