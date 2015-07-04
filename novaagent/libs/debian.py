@@ -36,7 +36,6 @@ class ServerOS(DefaultOS):
                                 '\tpost-down route add -net {route} netmask {netmask} gw {gateway} || true'
                             ).format(**route), file=iffile)
                 else:
-                    print('auto {0}:{1}'.format(ifname, count), file=iffile)
                     print('iface {0}:{1} inet static'.format(ifname, count), file=iffile)
                     print('\taddress {0}'.format(x['ip']), file=iffile)
                     print('\tnetmask {0}'.format(x['netmask']), file=iffile)
