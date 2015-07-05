@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 def action(serveros):
     for uuid in utils.list_xen_events():
         event = utils.get_xen_event(uuid)
+        log.info('Event: {0} -> {1}'.format(uuid, event['name']))
         returncode = ()
         if hasattr(serveros, event['name']):
             cmd = getattr(serveros, event['name'])
@@ -32,8 +33,10 @@ def action(serveros):
         utils.remove_xenhost_event(uuid)
         if returncode:
             utils.update_xenguest_event(uuid, {'message': returncode[1], 'returncode': returncode[0]})
+            log.info('Returning {{"message": "{1}", "returncode": "{0}"}}'.format(*returncode))
         else:
             utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
+            log.info('Returning {"message": "", "returncode": ""}')
         action(serveros)
 
 
@@ -69,7 +72,7 @@ def main():
         servertype = freebsd
 
     log.info('Starting actions for {0}...'.format(servertype.__name__))
-    serveros = servertype.ServerOS
+    serveros = servertype.ServerOS()
     while True:
         if args.pid:
             with open(args.pid, 'w') as pidfile:
