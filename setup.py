@@ -17,9 +17,5 @@ setuptools.setup(
         ]
     },
     packages=['novaagent', 'novaagent.libs', 'novaagent.common'],
-    install_requires=[
-        'pycrypto',
-        'netifaces'
-    ],
     zip_safe=False
 )

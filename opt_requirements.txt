@@ -1,0 +1,2 @@
+# required for freebsd
+netifaces
