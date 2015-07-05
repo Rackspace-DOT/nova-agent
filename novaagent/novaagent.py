@@ -4,6 +4,8 @@ import time
 import json
 import os
 import sys
+import argparse
+
 from novaagent import utils
 from novaagent.libs import (
     archlinux,
@@ -15,16 +17,8 @@ from novaagent.libs import (
     suse,
 )
 
-import argparse
-
-
-def _main():
-    xen_macs = utils.list_xenstore_macaddrs()
-    for iface in utils.list_hw_interfaces():
-        mac = utils.get_hw_addr(iface)
-        if not mac and mac not in xen_macs:
-            continue
-        print(utils.get_interface(mac))
+import logging
+log = logging.getLogger(__name__)
 
 
 def action(serveros):
@@ -45,27 +39,37 @@ def action(serveros):
 
 def main():
     parser = argparse.ArgumentParser(description='Args for novaagent')
-    parser.add_argument('-f', dest='fork', action='store_true', help='fork into background')
     parser.add_argument('-p', dest='pid', type=str, help='pid file')
+    parser.add_argument('-l', dest='loglevel', type=str, default='info', choices=('warning', 'info', 'debug'), help='log level')
+    parser.add_argument('-o', dest='logfile', default='-', type=str, help='path to log file')
     args = parser.parse_args()
 
+    loglevel = getattr(logging, args.loglevel.upper())
+    
+    if args.logfile == '-':
+        logging.basicConfig(stream=sys.stdout, level=loglevel)
+    else:
+        logging.basicConfig(stream=args.logfile, level=loglevel)
+
     if os.path.exists('/etc/arch-release'):
-        serveros = archlinux.ServerOS()
+        servertype = archlinux
     elif os.path.exists('/etc/centos-release') \
             or os.path.exists('/etc/fedora-release') \
             or os.path.exists('/etc/sl-release'):
-        serveros = centos.ServerOS()
+        servertype = centos
     elif os.path.exists('/etc/redhat-release'):
-        serveros = redhat.ServerOS()
+        servertype = redhat
     elif os.path.exists('/etc/debian_version'):
-        serveros = debian.ServerOS()
+        servertype = debian
     elif os.path.exists('/etc/gentoo-release'):
-        serveros = gentoo.ServerOS()
+        servertype = gentoo
     elif os.path.exists('/etc/susehelp.d/'):
-        serveros = suse.ServerOS()
+        servertype = suse
     elif os.path.exists('/etc/rc.conf'):
-        serveros = freebsd.ServerOS()
+        servertype = freebsd
 
+    log.info('Starting actions for {0}...'.format(servertype.__name__))
+    serveros = servertype.ServerOS
     while True:
         if args.pid:
             with open(args.pid, 'w') as pidfile:
