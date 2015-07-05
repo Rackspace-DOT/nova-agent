@@ -5,6 +5,9 @@ import shutil
 import json
 import time
 
+import logging
+log = logging.getLogger(__name__)
+
 try:
     import netifaces
     HAS_NETIFACES = True
@@ -13,8 +16,10 @@ except ImportError as exc:
 
 
 def backup_file(config):
-    backfile = '{0}.{1}.bak'.format(config, time.time())
-    shutil.copyfile(config, backfile)
+    bakfile_suffix = '{0}.bak'.format(time.time())
+    bakfile = '{0}.{1}'.format(config, bakfile_suffix)
+    log.info('Backing up -> {0} ({1})'.format(config, bakfile_suffix))
+    shutil.copyfile(config, bakfile)
 
 
 def netmask_to_prefix(netmask):
@@ -25,7 +30,9 @@ def get_interface(mac):
     p = Popen('xenstore-read vm-data/networking/{0}'.format(mac), stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
     if p.returncode == 0:
-        return json.loads(out.decode('utf-8').strip())
+        ret = json.loads(out.decode('utf-8').strip())
+        log.info('interface {0}: {1}'.format(mac, ret))
+        return ret
     return False
 
 
@@ -66,8 +73,11 @@ def get_hostname():
     out, err = p.communicate()
     xen_hostname = out.decode('utf-8').split('\n')[0]
     if p.returncode == 0:
-        return xen_hostname
-    return socket.gethostname()
+        ret = xen_hostname
+    else:
+        ret = socket.gethostname()
+    log.info('hostname: {0}'.format(ret))
+    return ret
 
 
 def list_xen_events():
