@@ -10,7 +10,7 @@ from novaagent.libs import (
     centos,
     debian,
     freebsd,
-    #gentoo,
+    gentoo,
     redhat,
     suse,
 )
@@ -59,8 +59,8 @@ def main():
         serveros = redhat.ServerOS()
     elif os.path.exists('/etc/debian_version'):
         serveros = debian.ServerOS()
-    #elif os.path.exists('/etc/gentoo-release'):
-    #    serveros = gentoo.ServerOS()
+    elif os.path.exists('/etc/gentoo-release'):
+        serveros = gentoo.ServerOS()
     elif os.path.exists('/etc/susehelp.d/'):
         serveros = suse.ServerOS()
     elif os.path.exists('/etc/rc.conf'):
