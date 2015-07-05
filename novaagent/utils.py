@@ -16,6 +16,8 @@ except ImportError as exc:
 
 
 def backup_file(config):
+    if not os.path.exists(config):
+        return
     bakfile_suffix = '{0}.bak'.format(time.time())
     bakfile = '{0}.{1}'.format(config, bakfile_suffix)
     log.info('Backing up -> {0} ({1})'.format(config, bakfile_suffix))
