@@ -8,4 +8,4 @@ respawn
 respawn limit 10 5
 umask 022
 
-exec /usr/local/bin/nova-agent
+exec /usr/local/bin/nova-agent -o /var/log/nova-agent.log

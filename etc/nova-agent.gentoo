@@ -11,7 +11,7 @@ start() {
 
     ebegin "Starting nova-agent"
     start-stop-daemon --background --start --exec $command \
-        --pidfile $pidfile -- -p $pidfile
+        --pidfile $pidfile -- -p $pidfile -o /var/log/nova-agent.log
     eend $?
 }
 

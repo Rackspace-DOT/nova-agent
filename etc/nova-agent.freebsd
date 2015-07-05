@@ -43,14 +43,15 @@ stop_cmd="novaagent_stop"
 
 nova_agent="/usr/local/bin/nova-agent"
 pid_file="/var/run/nova-agent.pid"
+log_vile="/var/log/nova-agent.log"
 
 novaagent_start() {
     export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/games:/usr/local/sbin:/usr/local/bin"
-    daemon $nova_agent -p /var/run/nova-agent.pid
+    daemon $nova_agent -p ${pid_file} -o ${log_file}
 }
 
 novaagent_stop() {
-    kill `cat $pid_file`
+    kill `cat ${pid_file}`
 }
 
 load_rc_config $name
