@@ -1,5 +1,8 @@
 from __future__ import print_function, absolute_import
 import os
+import re
+from tempfile import mkstemp
+from shutil import move
 
 from novaagent import utils
 from subprocess import Popen, PIPE
@@ -39,15 +42,30 @@ class ServerOS(DefaultOS):
 
     def _setup_routes(self, ifname, iface):
         with open('/etc/sysconfig/network/ifroute-{0}'.format(ifname), 'w') as routefile:
-            print(iface)
+            print('# Label {0}'.format(iface['label']), file=routefile)
             if 'gateway' in iface and iface['gateway']:
-                print(iface['gateway'])
                 print('default {0} - -'.format(iface['gateway']), file=routefile)
             if 'gateway_v6' in iface and iface['gateway_v6']:
                 print('default {0} - -'.format(iface['gateway_v6']), file=routefile)
             if 'routes' in iface and iface['routes']:
                 for route in iface['routes']:
                     print('{route} {gateway} {netmask} {0}'.format(ifname, **route), file=routefile)
+
+    def _setup_dns(self, ifname, iface):
+        if 'dns' not in iface:
+            return
+        config = '/etc/sysconfig/network/config'
+        fh, abs_path = mkstemp()
+        with open(abs_path, 'w') as newfile:
+            with open(config) as conffile:
+                for line in conffile:
+                    if re.search('^NETCONFIG_DNS_STATIC_SERVERS=', line):
+                        line = 'NETCONFIG_DNS_STATIC_SERVERS="{0}"\n'.format(' '.join(iface['dns']))
+                    newfile.write(line)
+        os.close(fh)
+        os.remove(config)
+        move(abs_path, config)
+
 
     def resetnetwork(self, name, value):
         ifaces = {}
@@ -77,10 +95,11 @@ class ServerOS(DefaultOS):
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
             self._setup_routes(ifname, iface)
-        #p = Popen(['systemctl', 'restart', 'network.service'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
-        #out, err = p.communicate()
-        #if p.returncode != 0:
-        #    return (str(p.returncode), 'Error restarting network')
+            self._setup_dns(ifname, iface)
+        p = Popen(['systemctl', 'restart', 'network.service'], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            return (str(p.returncode), 'Error restarting network')
 
         return ('0', '')
 
