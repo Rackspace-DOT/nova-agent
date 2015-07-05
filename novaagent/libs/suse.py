@@ -56,18 +56,26 @@ class ServerOS(DefaultOS):
     def _setup_dns(self, ifname, iface):
         if 'dns' not in iface:
             return
-        utils.backup_file('/etc/sysconfig/network/config')
+        newline = 'NETCONFIG_DNS_STATIC_SERVERS="{0}"\n'.format(' '.join(iface['dns']))
         config = '/etc/sysconfig/network/config'
         fh, abs_path = mkstemp()
+        nochange = False
         with open(abs_path, 'w') as newfile:
             with open(config) as conffile:
                 for line in conffile:
                     if re.search('^NETCONFIG_DNS_STATIC_SERVERS=', line):
-                        line = 'NETCONFIG_DNS_STATIC_SERVERS="{0}"\n'.format(' '.join(iface['dns']))
+                        if line == newline:
+                            nochange = True
+                            break
+                        line = newline
                     newfile.write(line)
         os.close(fh)
-        os.remove(config)
-        move(abs_path, config)
+        if nochange:
+            os.remove(abs_path)
+        else:
+            utils.backup_file(config)
+            os.remove(config)
+            move(abs_path, config)
 
 
     def resetnetwork(self, name, value):
