@@ -1,0 +1,16 @@
+pkgname=nova-agent
+pkgver=0.1
+pkgrel=1
+pkgdesc='Setup servers from xenstore'
+arch=('any')
+url='https://github.com/gtmanfred/novaagent'
+license=('custom')
+depends=('python2-pycrypto')
+makedepends=('python2-setuptools')
+source=("$pkgname::git+git://github.com/gtmanfred/novaagent.git")
+
+package(){
+    cd $srcdir/$pkgname
+    python2 setup.py install --root=$pkgdir
+    install -Dm644 etc/nova-agent.service $pkgdir/etc/systemd/system/nova-agent.service
+}
