@@ -39,6 +39,8 @@ class ServerOS(DefaultOS):
             ifaces[iface] = utils.get_interface(mac)
 
         # set hostname
+        utils.backup_file('/etc/hostname')
+        utils.backup_file('/etc/conf.d/hostname')
         hostname = utils.get_hostname()
         with open('/etc/hostname', 'w') as hostnamefile:
             print(hostname, file=hostnamefile)
@@ -50,6 +52,7 @@ class ServerOS(DefaultOS):
             return (str(p.returncode), 'Error setting hostname: hostname')
 
         # setup interface files
+        utils.backup_file('/etc/conf.d/net')
         with open('/etc/conf.d/net', 'w') as iffile:
             print('modules="iproute2"', file=iffile)
         for ifname, iface in ifaces.items():

@@ -9,6 +9,7 @@ from novaagent.libs import DefaultOS
 
 class ServerOS(DefaultOS):
     def _setup_interface(self, ifname, iface):
+        utils.backup_file('/etc/syscfongi/network-scripts/ifcfg-{0}'.format(ifname))
         with open('/etc/sysconfig/network-scripts/ifcfg-{0}'.format(ifname), 'w') as iffile:
             print('# Label {0}'.format(iface['label']), file=iffile)
             print('BOOTPROTO=static', file=iffile)
@@ -37,6 +38,7 @@ class ServerOS(DefaultOS):
             print('NM_CONTROLLED=no', file=iffile)
 
     def _setup_routes(self, ifname, iface):
+        utils.backup_file('/etc/syscfongi/network-scripts/route-{0}'.format(ifname))
         with open('/etc/sysconfig/network-scripts/route-{0}'.format(ifname), 'w') as routefile:
             for count, route in enumerate(iface['routes']):
                 print((
@@ -55,6 +57,7 @@ class ServerOS(DefaultOS):
             ifaces[iface] = utils.get_interface(mac)
 
         # set hostname
+        utils.backup_file('/etc/sysconfig/network')
         hostname = utils.get_hostname()
         with open('/etc/sysconfig/network', 'w') as netfile:
             print('NETWORKING=yes', file=netfile)
@@ -62,6 +65,7 @@ class ServerOS(DefaultOS):
             print('NETWORKING_IPV6=yes', file=netfile)
             print('HOSTNAME={0}'.format(hostname), file=netfile)
         if os.path.exists('/usr/bin/hostnamectl'):
+            utils.backup_file('/etc/hostname')
             p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:

@@ -9,6 +9,7 @@ from novaagent.libs import DefaultOS
 
 class ServerOS(DefaultOS):
     def _setup_loopback(self):
+        utils.backup_file('/etc/network/interfaces')
         with open('/etc/network/interfaces', 'w') as iffile:
             print((
                 '# The loopback network interface\n'
@@ -64,6 +65,7 @@ class ServerOS(DefaultOS):
             ifaces[iface] = utils.get_interface(mac)
 
         # set hostname
+        utils.backup_file('/etc/hostname')
         hostname = utils.get_hostname()
         with open('/etc/hostname', 'w') as hostnamefile:
             print(hostname, file=hostnamefile)

@@ -9,7 +9,8 @@ from novaagent.libs import DefaultOS
 
 class ServerOS(DefaultOS):
     def _setup_dns(self, dns):
-        with open('/etc/resolvconf/resolv.conf.d/base', 'a') as iffile:
+        utils.backup_file('/etc/resolvconf/resolv.conf.d/base')
+        with open('/etc/resolvconf/resolv.conf.d/base', 'w') as iffile:
             for d in dns:
                 print('nameserver {0}'.format(d), file=iffile)
         if not os.path.exists('/run/resolvconf'):
@@ -19,7 +20,8 @@ class ServerOS(DefaultOS):
             os.symlink('/run/resolvconf/resolv.conf', '/etc/resolv.conf')
 
     def _setup_hostname(self, hostname):
-        with open('/etc/rc.conf.local', 'a') as iffile:
+        utils.backup_file('/etc/rc.conf.local')
+        with open('/etc/rc.conf.local', 'w') as iffile:
             print('hostname={0}'.format(hostname), file=iffile)
 
     def _setup_interface(self, ifname, iface):
@@ -50,10 +52,6 @@ class ServerOS(DefaultOS):
                 print('static_routes="{0}"'.format(' '.join(lans)), file=iffile)
 
     def resetnetwork(self, name, value):
-        if os.path.exists('/etc/rc.conf.local'):
-            os.rename('/etc/rc.conf.local', '/etc/rc.conf.local.bak')
-        if os.path.exists('/etc/resolvconf/resolv.conf.d/base'):
-            os.rename('/etc/resolvconf/resolv.conf.d/base', '/etc/resolvconf/resolv.conf.d/base.bak')
         ifaces = {}
         xen_macs = utils.list_xenstore_macaddrs()
         for iface in utils.list_hw_interfaces():

@@ -1,7 +1,9 @@
 from subprocess import PIPE, Popen
 import fcntl, socket, struct
 import os
+import shutil
 import json
+import time
 
 try:
     import netifaces
@@ -9,6 +11,10 @@ try:
 except ImportError as exc:
     HAS_NETIFACES = False
 
+
+def backup_file(config):
+    backfile = '{0}.{1}.bak'.format(config, time.time())
+    shutil.copyfile(config, backfile)
 
 
 def netmask_to_prefix(netmask):

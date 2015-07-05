@@ -7,6 +7,7 @@ from novaagent.libs import DefaultOS
 
 class ServerOS(DefaultOS):
     def _setup_interface(self, ifname, iface):
+        utils.backup_file('/etc/netctl/{0}'.format(ifname))
         with open('/etc/netctl/{0}'.format(ifname), 'w') as iffile:
             print('# Label {0}'.format(iface['label']), file=iffile)
             print('Connection=ethernet', file=iffile)
@@ -37,6 +38,7 @@ class ServerOS(DefaultOS):
             ifaces[iface] = utils.get_interface(mac)
 
         # set hostname
+        utils.backup_file('/etc/hostname')
         hostname = utils.get_hostname()
         p = Popen(['hostnamectl', 'set-hostname', hostname], stdout=PIPE, stderr=PIPE, stdin=PIPE)
         out, err = p.communicate()
