@@ -16,22 +16,27 @@
 . /lib/lsb/init-functions
 
 PROG=nova-agent
+exec=/usr/bin/$PROG
 pid_file=/var/run/nova-agent.pid
 LOCK=/var/lock/subsys/$PROG
 
 do_start() {
+    if pidofproc -p $pid_file; then
+        return 0
+    fi
     export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/games:/usr/local/sbin:/usr/local/bin"
-    start-stop-daemon --background --pidfile $pid_file --start $PROG -- -p $pid_file -o /var/log/nova-agent.log
+    start-stop-daemon --background --pidfile $pid_file --start --exec $exec -- -p $pid_file -o /var/log/nova-agent.log
     RETVAL=$?
     echo "Starting $PROG... "
     if [ $RETVAL -eq 0 ]; then
+        [ -d /var/lock/subsys ] || mkdir -p /var/lock/subsys
         touch $LOCK
     fi
     return $RETVAL
 }
 
 do_stop() {
-    start-stop-daemon --pidfile $pid_file --stop $PROG
+    start-stop-daemon --pidfile $pid_file --stop
     RETVAL=$?
     echo "Stopping $PROG... "
     if [ $RETVAL -eq 0 ]; then
