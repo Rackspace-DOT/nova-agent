@@ -4,10 +4,16 @@
 
 %if 0%{?fedora} || 0%{?rhel}
 %global redhat 1
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+%global with_systemd 1
+%else
+%global with_systemd 0
+%endif
 %endif
 
 %if 0%{?suse_version}
 %global suse 1
+%global with_systemd 1
 %endif
 
 %global _name novaagent
