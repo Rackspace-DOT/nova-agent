@@ -1,4 +1,7 @@
-%global pythonver %(%{__python} -c "import sys; print sys.version[:3]" 2>/dev/null || echo 0.0)
+%{!?__python2: %global __python2 /usr/bin/python2}
+%{!?python2_version: %global python2_version %(%{__python2} -c "import sys; sys.stdout.write(sys.version[:3])")}
+%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
+
 %global _name novaagent
 
 Name:       nova-agent
@@ -39,11 +42,11 @@ xenstore-rm
 
 %build
 cd %{name}-master
-%{__python} setup.py build
+%{__python2} setup.py build
 
 %install
 cd %{name}-master
-%__python setup.py install --skip-build --root=%{buildroot}
+%{__python2} setup.py install --skip-build --root=%{buildroot}
 
 %if 0%{?rhel} == 6
 install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
@@ -51,8 +54,8 @@ install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
 install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
 %endif
 
-if [ -f %{buildroot}%{python_sitelib}/%{_name}-%{version}-py%{pythonver}.egg-info ]; then
-    echo %{python_sitelib}/%{_name}-%{version}-py%{pythonver}.egg-info
+if [ -f %{buildroot}%{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info ]; then
+    echo %{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info
 fi > egg-info
 
 %if 0%{?rhel} != 6 && 0%{?suse_version} == 0
@@ -81,8 +84,8 @@ fi > egg-info
 %endif
 
 %files
-%{python_sitelib}/%{_name}-%{version}-py%{pythonver}.egg-info
-%{python_sitelib}/novaagent/
+%{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info
+%{python2_sitelib}/novaagent/
 %{_bindir}/nova-agent
 
 %if 0%{?rhel} == 6
