@@ -32,7 +32,7 @@ def _get_file_permissions(filename):
         _stat = os.stat(filename)
         return (_stat.st_mode, _stat.st_uid, _stat.st_gid)
     except Exception as e:
-        return (0644, 0, 0)
+        return (0o644, 0, 0)
 
 
 def _write_file(filename, data):
