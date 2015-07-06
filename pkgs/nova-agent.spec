@@ -71,11 +71,11 @@ xenstore-rm
 %install
 %{__python2} setup.py install --skip-build --root=%{buildroot}
 
-%if 0%{?rhel} == 6
-install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
-%else
+%if 0%{?with_systemd}
 install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
-%endif
+%else
+install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
+%endif # with_systemd
 
 
 %if 0%{?rhel} != 6 && 0%{?suse_version} == 0
@@ -110,9 +110,8 @@ install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
 %{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info
 %{python2_sitelib}/novaagent/
 %{_bindir}/nova-agent
-
-%if 0%{?rhel} == 6
-%{_initddir}/nova-agent
-%else
+%if 0%{?with_systemd}
 %{_unitdir}/nova-agent.service
-%endif
+%else
+%{_initddir}/nova-agent
+%endif # with_systemd
