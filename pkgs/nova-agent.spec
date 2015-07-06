@@ -1,24 +1,30 @@
 %global pythonver %(%{__python} -c "import sys; print sys.version[:3]" 2>/dev/null || echo 0.0)
 %global _name novaagent
 
-Name:		nova-agent
-Version:	0.1
-Release:	1%{?dist}
-Summary:	Agent for setting up clean servers on Xen
+Name:       nova-agent
+Version:    0.1
+Release:    1%{?dist}
+Summary:    Agent for setting up clean servers on Xen
 
-Group:		System Environment/Base
-License:	GPL
-URL:		https://github.com/gtmanfred/nova-agent
-Source0:	https://github.com/gtmanfred/nova-agent/archive/master.tar.gz
+Group:      System Environment/Base
+License:    GPL
+URL:        https://github.com/gtmanfred/nova-agent
+Source0:    https://github.com/gtmanfred/nova-agent/archive/master.tar.gz
 
-BuildRequires:	python-setuptools python
-%if 0%{?rhel} != 6
+BuildRequires:  python-setuptools python
+%if 0%{?rhel} != 6 && 0%{?suse_version} == 0
 BuildRequires:  systemd-units
 Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 %endif
-Requires:	python-crypto
+%if 0%{?suse_version} >=13
+BuildRequires:  systemd-rpm-macros
+Requires(post): systemd-rpm-macros
+Requires(preun): systemd-rpm-macros
+Requires(postun): systemd-rpm-macros
+%endif
+Requires:   python-crypto
 
 %description
 Python agent for setting up clean servers on Xen using xenstore data and the
