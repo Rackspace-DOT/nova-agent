@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
 
-export DESTDIR=debian/nova-agent/
-export PYBUILD_DESTDIR_python2=$DESTDIR
+export PYBUILD_DESTDIR_python2=debian/nova-agent/
 
 %:
-	dh $@ --with python2 --buildsystem=pybuild
-	install -Dm644 etc/nova-agent.service $DESTDIR/lib/systemd/system/nova-agent.service
+	dh $@ --with python2 --buildsystem=pybuild --with systemd
