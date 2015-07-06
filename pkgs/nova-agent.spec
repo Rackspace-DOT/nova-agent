@@ -68,6 +68,12 @@ Requires(preun): systemd-rpm-macros
 Requires(postun): systemd-rpm-macros
 %endif # suse
 
+# common requirements
+Requires: /usr/bin/xenstore-ls
+Requires: /usr/bin/xenstore-read
+Requires: /usr/bin/xenstore-rm
+Requires: /usr/bin/xenstore-write
+
 
 %description
 Python agent for setting up clean servers on Xen using xenstore data and the
