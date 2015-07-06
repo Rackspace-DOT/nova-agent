@@ -1,5 +1,5 @@
 PORTNAME=       nova-agent
-PORTVERSION=    0.1
+PORTVERSION=    0.1.0
 MASTER_SITES=   GITHUB
 CATEGORIES=     misc python
 DISTNAME=       nova-agent-master
