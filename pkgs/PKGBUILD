@@ -5,7 +5,7 @@ pkgdesc='Setup servers from xenstore'
 arch=('any')
 url='https://github.com/gtmanfred/novaagent'
 license=('custom')
-depends=('python2-pycrypto')
+depends=('python2-crypto')
 makedepends=('python2-setuptools')
 source=("$pkgname::git+git://github.com/gtmanfred/novaagent.git")
 
