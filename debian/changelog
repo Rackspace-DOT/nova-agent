@@ -1,0 +1,5 @@
+nova-agent (0.1-1) unstable; urgency=low
+
+    * first release of nova-agent
+
+ -- daniel <danielwallace@gtmanfrd.com>  Sun, 5 Jul 2015 20:30:05 +0000

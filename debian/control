@@ -1,0 +1,18 @@
+Source: nova-agent
+Maintainer: Daniel Wallace <danielwallace@gtmanfred.com>
+Section: python
+Priority: optional
+Standards-Version: 3.9.5
+Build-Depends:
+ debhelper (>= 9),
+ dh-python,
+ python-all (>= 2.6.6-3),
+X-Python-Version: >= 2.6
+
+Package: nova-agent
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python:Depends},
+ python-crypto
+Description: Xenstore agent for servers
