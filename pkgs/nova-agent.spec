@@ -43,23 +43,31 @@ BuildRequires: systemd-rpm-macros
 %endif # suse
 %endif # with_systemd
 
-%if 0%{?rhel} != 6 && 0%{?suse_version} == 0
-Requires(post): systemd-units
-Requires(preun): systemd-units
-Requires(postun): systemd-units
-%endif
-%if 0%{?suse_version}
-Requires(post): systemd-rpm-macros
-Requires(preun): systemd-rpm-macros
-Requires(postun): systemd-rpm-macros
-%endif
-
 # pycrypto
 %if 0%{?redhat}
 Requires:   python-crypto
 %endif # redhat
 %if 0%{?suse}
 Requires:   python-pycrypto
+%endif # suse
+
+# scriptlets
+%if 0%{?redhat}
+%if 0%{?with_systemd}
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
+%else
+Requires(post): chkconfig
+Requires(preun): chkconfig
+Requires(preun): initscripts
+Requires(postun): initscripts
+%endif # with_systemd
+%endif # redhat
+%if 0%{?suse}
+Requires(post): systemd-rpm-macros
+Requires(preun): systemd-rpm-macros
+Requires(postun): systemd-rpm-macros
 %endif # suse
 
 
