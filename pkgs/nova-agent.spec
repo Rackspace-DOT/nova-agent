@@ -16,8 +16,6 @@
 %global with_systemd 1
 %endif
 
-%global _name novaagent
-
 Name:       nova-agent
 Version:    0.1.0
 Release:    1%{?dist}
@@ -145,8 +143,7 @@ fi
 
 
 %files
-%{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info
-%{python2_sitelib}/novaagent/
+%{python2_sitelib}/novaagent*
 %{_bindir}/nova-agent
 %if 0%{?with_systemd}
 %{_unitdir}/nova-agent.service
