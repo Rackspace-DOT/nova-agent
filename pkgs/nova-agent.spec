@@ -33,14 +33,22 @@ BuildRequires: python-devel
 %endif # redhat
 BuildRequires:  python-setuptools
 
+# systemd macros
+%if 0%{?with_systemd}
+%if 0%{?redhat}
+BuildRequires: systemd
+%endif # redhat
+%if 0%{?suse}
+BuildRequires: systemd-rpm-macros
+%endif # suse
+%endif # with_systemd
+
 %if 0%{?rhel} != 6 && 0%{?suse_version} == 0
-BuildRequires:  systemd-units
 Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 %endif
 %if 0%{?suse_version}
-BuildRequires:  systemd-rpm-macros
 Requires(post): systemd-rpm-macros
 Requires(preun): systemd-rpm-macros
 Requires(postun): systemd-rpm-macros
