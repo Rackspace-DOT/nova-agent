@@ -35,7 +35,14 @@ Requires(post): systemd-rpm-macros
 Requires(preun): systemd-rpm-macros
 Requires(postun): systemd-rpm-macros
 %endif
+
+# pycrypto
+%if 0%{?redhat}
 Requires:   python-crypto
+%endif # redhat
+%if 0%{?suse}
+Requires:   python-pycrypto
+%endif # suse
 
 
 %description
