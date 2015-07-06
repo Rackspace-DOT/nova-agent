@@ -97,33 +97,51 @@ install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
 install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
 %endif # with_systemd
 
-
-%if 0%{?rhel} != 6 && 0%{?suse_version} == 0
 %post
+%if 0%{?redhat}
+%if 0%{?with_systemd}
 %systemd_post %{name}.service
+%else
+chkconfig --add %{name}
+%endif # with_systemd
+%endif # redhat
 
-
-%preun
-%systemd_preun %{name}.service
-
-
-%postun
-%systemd_postun_with_restart %{name}.service
-%endif
-
-
-%if 0%{?suse_version}
-%post
+%if 0%{?suse}
 %service_add_post %{name}.service
+%endif # suse
 
 
 %preun
+%if 0%{?redhat}
+%if 0%{?with_systemd}
+%systemd_preun %{name}.service
+%else
+if [ $1 -eq 0 ] ; then
+    service %{name} stop &> /dev/null
+    chkconfig --del %{name} &> /dev/null
+fi
+%endif # with_systemd
+%endif # redhat
+
+%if 0%{?suse}
 %service_del_preun %{name}.service
+%endif # suse
 
 
 %postun
+%if 0%{?redhat}
+%if 0%{?with_systemd}
+%systemd_postun_with_restart %{name}.service
+%else
+if [ "$1" -ge "1" ] ; then
+    service %{name} condrestart >/dev/null 2>&1 || :
+fi
+%endif # with_systemd
+%endif # redhat
+
+%if 0%{?suse}
 %service_del_postun %{name}.service
-%endif
+%endif # suse
 
 
 %files
