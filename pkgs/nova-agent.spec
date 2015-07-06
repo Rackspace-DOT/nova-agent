@@ -2,6 +2,14 @@
 %{!?python2_version: %global python2_version %(%{__python2} -c "import sys; sys.stdout.write(sys.version[:3])")}
 %{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")
 
+%if 0%{?fedora} || 0%{?rhel}
+%global redhat 1
+%endif
+
+%if 0%{?suse_version}
+%global suse 1
+%endif
+
 %global _name novaagent
 
 Name:       nova-agent
