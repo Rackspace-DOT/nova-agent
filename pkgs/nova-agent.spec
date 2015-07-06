@@ -56,15 +56,29 @@ if [ -f %{buildroot}%{python_sitelib}/%{_name}-%{version}-py%{pythonver}.egg-inf
     echo %{python_sitelib}/%{_name}-%{version}-py%{pythonver}.egg-info
 fi > egg-info
 
-%if 0%{?rhel} != 6
+%if 0%{?rhel} != 6 && 0%{?suse_version} == 0
 %post
-%systemd_post nova-agent.service
+%systemd_post %{name}.service
 
 %preun
-%systemd_preun nova-agent.service
+%systemd_preun %{name}.service
 
 %postun
-%systemd_postun_with_restart nova-agent.service
+%systemd_postun_with_restart %{name}.service
+%endif
+
+%if 0%{?suse_version} >= 13
+%pre
+%service_add_pre %{name}.service
+
+%post
+%service_add_post %{name}.service
+
+%preun
+%service_del_preun %{name}.service
+
+%postun
+%service_del_postun %{name}.service
 %endif
 
 %files
