@@ -56,10 +56,6 @@ install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
 install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
 %endif
 
-if [ -f %{buildroot}%{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info ]; then
-    echo %{python2_sitelib}/%{_name}-%{version}-py%{python2_version}.egg-info
-fi > egg-info
-
 
 %if 0%{?rhel} != 6 && 0%{?suse_version} == 0
 %post
