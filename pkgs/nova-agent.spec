@@ -5,14 +5,14 @@
 %global _name novaagent
 
 Name:       nova-agent
-Version:    0.1
+Version:    0.1.0
 Release:    1%{?dist}
 Summary:    Agent for setting up clean servers on Xen
 
 Group:      System Environment/Base
 License:    GPL
 URL:        https://github.com/gtmanfred/nova-agent
-Source0:    https://github.com/gtmanfred/nova-agent/archive/master.tar.gz
+Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
 
 BuildRequires:  python-setuptools python
 %if 0%{?rhel} != 6 && 0%{?suse_version} == 0
@@ -38,14 +38,12 @@ xenstore-ls
 xenstore-rm
 
 %prep
-%setup -qc
+%setup -q
 
 %build
-cd %{name}-master
 %{__python2} setup.py build
 
 %install
-cd %{name}-master
 %{__python2} setup.py install --skip-build --root=%{buildroot}
 
 %if 0%{?rhel} == 6
