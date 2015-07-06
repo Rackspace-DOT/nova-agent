@@ -28,7 +28,11 @@ License:    GPL
 URL:        https://github.com/gtmanfred/nova-agent
 Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
 
-BuildRequires:  python-setuptools python
+%if 0%{?redhat}
+BuildRequires: python-devel
+%endif # redhat
+BuildRequires:  python-setuptools
+
 %if 0%{?rhel} != 6 && 0%{?suse_version} == 0
 BuildRequires:  systemd-units
 Requires(post): systemd-units
