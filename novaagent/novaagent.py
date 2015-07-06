@@ -52,7 +52,7 @@ def main():
     if args.logfile == '-':
         logging.basicConfig(stream=sys.stdout, level=loglevel)
     else:
-        logging.basicConfig(stream=args.logfile, level=loglevel)
+        logging.basicConfig(filename=args.logfile, level=loglevel)
 
     if os.path.exists('/etc/arch-release'):
         servertype = archlinux
