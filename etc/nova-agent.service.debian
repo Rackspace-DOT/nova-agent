@@ -1,9 +1,0 @@
-[Unit]
-Description=Nova Agent for xenstore
-Before=network.target
-
-[Service]
-ExecStart=/usr/local/bin/nova-agent
-
-[Install]
-WantedBy=basic.target
