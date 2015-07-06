@@ -76,10 +76,6 @@ fi > egg-info
 
 
 %if 0%{?suse_version}
-%pre
-%service_add_pre %{name}.service
-
-
 %post
 %service_add_post %{name}.service
 
