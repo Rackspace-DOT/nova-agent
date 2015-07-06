@@ -18,7 +18,7 @@ Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 %endif
-%if 0%{?suse_version} >=13
+%if 0%{?suse_version}
 BuildRequires:  systemd-rpm-macros
 Requires(post): systemd-rpm-macros
 Requires(preun): systemd-rpm-macros
@@ -42,7 +42,6 @@ cd %{name}-master
 %{__python} setup.py build
 
 %install
-echo %{rhel}
 cd %{name}-master
 %__python setup.py install --skip-build --root=%{buildroot}
 
@@ -67,7 +66,7 @@ fi > egg-info
 %systemd_postun_with_restart %{name}.service
 %endif
 
-%if 0%{?suse_version} >= 13
+%if 0%{?suse_version}
 %pre
 %service_add_pre %{name}.service
 
