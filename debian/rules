@@ -2,5 +2,10 @@
 
 export PYBUILD_DESTDIR_python2=debian/nova-agent/
 
+ifeq ( $(shell test -d /etc/systemd && echo yes), yes)
 %:
 	dh $@ --with python2 --buildsystem=pybuild --with systemd
+else
+%:
+	dh $@ --with python2 --buildsystem=pybuild
+endif
