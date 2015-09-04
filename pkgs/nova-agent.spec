@@ -25,6 +25,7 @@ Group:      System Environment/Base
 License:    GPL
 URL:        https://github.com/gtmanfred/nova-agent
 Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
+BuildArch:  noarch
 
 %if 0%{?redhat}
 BuildRequires: python-devel
