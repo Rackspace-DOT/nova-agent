@@ -5,6 +5,7 @@ import json
 import os
 import sys
 import argparse
+from subprocess import Popen, PIPE
 
 from novaagent import utils
 from novaagent.libs import (
@@ -13,6 +14,7 @@ from novaagent.libs import (
     debian,
     freebsd,
     gentoo,
+    gentoo_systemd_networkd,
     redhat,
     suse,
 )
@@ -66,6 +68,10 @@ def main():
         servertype = debian
     elif os.path.exists('/etc/gentoo-release'):
         servertype = gentoo
+        p = Popen(["/bin/pidof", "systemd-networkd"], stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        out, err = p.communicate()
+        if p.returncode == 0:
+            servertype = gentoo_systemd_networkd
     elif os.path.exists('/etc/susehelp.d/'):
         servertype = suse
     elif os.path.exists('/etc/rc.conf'):
