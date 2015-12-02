@@ -28,6 +28,7 @@ class ServerOS(DefaultOS):
         with open('/etc/systemd/network/{0}.network'.format(ifname), 'w') as iffile:
             print('# Label {0}'.format(iface['label']), file=iffile)
             print('[Match]\nName={0}\n'.format(ifname), file=iffile)
+            print('[Link]\nMACAddress={0}\n'.format(iface['mac']), file=iffile)
             print('[Network]', file=iffile)
             for x in addrs:
                 print('Address={0}'.format(x), file=iffile)
