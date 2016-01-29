@@ -1,8 +1,10 @@
 %global debug_package %{nil}
 
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_version: %global python2_version %(%{__python2} -c "import sys; sys.stdout.write(sys.version[:3])")}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+# python3
+%if 0%{?fedora} || 0%{?suse_version}
+%global with_python3 1
+%endif
+
 
 %if 0%{?fedora} || 0%{?rhel}
 %global redhat 1
@@ -13,9 +15,19 @@
 %endif
 %endif
 
+# suse macro fixes
 %if 0%{?suse_version}
+%global __python3 /usr/bin/python3
+%global python3_version %{py3_ver}
 %global suse 1
 %global with_systemd 1
+%endif
+
+# el6 macro fixes
+%if 0%{?rhel} && 0%{?rhel} <= 6
+%global __python2 %{__python}
+%global python2_version %{python_version}
+%global python2_sitelib %{python_sitelib}
 %endif
 
 Name:       nova-agent
@@ -29,10 +41,13 @@ URL:        https://github.com/gtmanfred/nova-agent
 Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
 BuildArch:  noarch
 
-%if 0%{?redhat}
+%if 0%{?with_python3}
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+%else
 BuildRequires: python-devel
-%endif # redhat
-BuildRequires:  python-setuptools
+BuildRequires: python-setuptools
+%endif # with_python3
 
 # systemd macros
 %if 0%{?with_systemd}
@@ -45,12 +60,15 @@ BuildRequires: systemd-rpm-macros
 %endif # with_systemd
 
 # pycrypto
-%if 0%{?redhat}
-Requires:   python-crypto
-%endif # redhat
-%if 0%{?suse}
-Requires:   python-pycrypto
-%endif # suse
+%if 0%{?with_python3}
+%if 0%{?suse_version}
+Requires: python3-pycrypto
+%else
+Requires: python3-crypto
+%endif # suse_version
+%else
+Requires: python-crypto
+%endif # with_python3
 
 # scriptlets
 %if 0%{?redhat}
@@ -92,11 +110,19 @@ xenstore-rm
 
 
 %build
+%if 0%{?with_python3}
+%{__python3} setup.py build
+%else
 %{__python2} setup.py build
+%endif # with_python3
 
 
 %install
-%{__python2} setup.py install --skip-build --root=%{buildroot}
+%if 0%{?with_python3}
+%{__python3} setup.py install --optimize 1 --skip-build --root %{buildroot}
+%else
+%{__python2} setup.py install --optimize 1 --skip-build --root %{buildroot}
+%endif # with_python3
 
 %if 0%{?with_systemd}
 install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
@@ -152,7 +178,11 @@ fi
 
 
 %files
+%if 0%{?with_python3}
+%{python3_sitelib}/novaagent*
+%else
 %{python2_sitelib}/novaagent*
+%endif # with_python3
 %{_bindir}/nova-agent
 %if 0%{?with_systemd}
 %{_unitdir}/nova-agent.service
