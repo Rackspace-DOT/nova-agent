@@ -29,7 +29,7 @@ Release:    1%{?dist}
 Summary:    Agent for setting up clean servers on Xen
 
 Group:      System Environment/Base
-License:    Apache 2.0
+License:    ASL 2.0
 URL:        https://github.com/gtmanfred/nova-agent
 Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
 BuildArch:  noarch
