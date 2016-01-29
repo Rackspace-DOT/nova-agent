@@ -169,3 +169,8 @@ fi
 %else
 %{_initddir}/nova-agent
 %endif # with_systemd
+
+
+%changelog
+* Fri Jan 29 2016 Carl George <carl.george@rackspace.com> - 0.1.0-1
+- Initial build of package
