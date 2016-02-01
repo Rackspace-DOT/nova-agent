@@ -158,6 +158,8 @@ fi
 
 
 %files
+%{!?_licensedir:%global license %%doc}
+%license LICENSE.txt
 %if 0%{?with_python3}
 %{python3_sitelib}/novaagent*
 %else
