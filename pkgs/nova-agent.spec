@@ -1,19 +1,26 @@
-%{!?__python2: %global __python2 /usr/bin/python2}
-%{!?python2_version: %global python2_version %(%{__python2} -c "import sys; sys.stdout.write(sys.version[:3])")}
-%{!?python2_sitelib: %global python2_sitelib %(%{__python2} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%global debug_package %{nil}
 
-%if 0%{?fedora} || 0%{?rhel}
-%global redhat 1
-%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+# python3
+%if 0%{?fedora} || 0%{?suse_version}
+%global with_python3 1
+%endif
+
+# systemd
+%if 0%{?fedora} || 0%{?suse_version} || 0%{?rhel} >= 7
 %global with_systemd 1
-%else
-%global with_systemd 0
-%endif
 %endif
 
+# suse macro fixes
 %if 0%{?suse_version}
-%global suse 1
-%global with_systemd 1
+%global __python3 /usr/bin/python3
+%global python3_version %{py3_ver}
+%endif
+
+# el6 macro fixes
+%if 0%{?rhel} && 0%{?rhel} <= 6
+%global __python2 %{__python}
+%global python2_version %{python_version}
+%global python2_sitelib %{python_sitelib}
 %endif
 
 Name:       nova-agent
@@ -22,36 +29,40 @@ Release:    1%{?dist}
 Summary:    Agent for setting up clean servers on Xen
 
 Group:      System Environment/Base
-License:    Apache 2.0
+License:    ASL 2.0
 URL:        https://github.com/gtmanfred/nova-agent
 Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
 BuildArch:  noarch
 
-%if 0%{?redhat}
+%if 0%{?with_python3}
+BuildRequires: python3-devel
+BuildRequires: python3-setuptools
+%else
 BuildRequires: python-devel
-%endif # redhat
-BuildRequires:  python-setuptools
+BuildRequires: python-setuptools
+%endif # with_python3
 
 # systemd macros
 %if 0%{?with_systemd}
-%if 0%{?redhat}
-BuildRequires: systemd
-%endif # redhat
-%if 0%{?suse}
+%if 0%{?suse_version}
 BuildRequires: systemd-rpm-macros
-%endif # suse
+%else
+BuildRequires: systemd
+%endif # suse_version
 %endif # with_systemd
 
 # pycrypto
-%if 0%{?redhat}
-Requires:   python-crypto
-%endif # redhat
-%if 0%{?suse}
-Requires:   python-pycrypto
-%endif # suse
+%if 0%{?with_python3}
+%if 0%{?suse_version}
+Requires: python3-pycrypto
+%else
+Requires: python3-crypto
+%endif # suse_version
+%else
+Requires: python-crypto
+%endif # with_python3
 
 # scriptlets
-%if 0%{?redhat}
 %if 0%{?with_systemd}
 Requires(post): systemd
 Requires(preun): systemd
@@ -62,12 +73,6 @@ Requires(preun): chkconfig
 Requires(preun): initscripts
 Requires(postun): initscripts
 %endif # with_systemd
-%endif # redhat
-%if 0%{?suse}
-Requires(post): systemd-rpm-macros
-Requires(preun): systemd-rpm-macros
-Requires(postun): systemd-rpm-macros
-%endif # suse
 
 # common requirements
 Requires: /usr/bin/xenstore-ls
@@ -90,11 +95,19 @@ xenstore-rm
 
 
 %build
+%if 0%{?with_python3}
+%{__python3} setup.py build
+%else
 %{__python2} setup.py build
+%endif # with_python3
 
 
 %install
-%{__python2} setup.py install --skip-build --root=%{buildroot}
+%if 0%{?with_python3}
+%{__python3} setup.py install --optimize 1 --skip-build --root %{buildroot}
+%else
+%{__python2} setup.py install --optimize 1 --skip-build --root %{buildroot}
+%endif # with_python3
 
 %if 0%{?with_systemd}
 install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
@@ -102,58 +115,62 @@ install -Dm644 etc/%{name}.service %{buildroot}/%{_unitdir}/nova-agent.service
 install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
 %endif # with_systemd
 
+
 %post
-%if 0%{?redhat}
+%if 0%{?suse_version}
+%service_add_post %{name}.service
+%else
 %if 0%{?with_systemd}
 %systemd_post %{name}.service
 %else
 chkconfig --add %{name}
 %endif # with_systemd
-%endif # redhat
-
-%if 0%{?suse}
-%service_add_post %{name}.service
-%endif # suse
+%endif # suse_version
 
 
 %preun
-%if 0%{?redhat}
+%if 0%{?suse_version}
+%service_del_preun %{name}.service
+%else
 %if 0%{?with_systemd}
 %systemd_preun %{name}.service
 %else
-if [ $1 -eq 0 ] ; then
+if [ $1 -eq 0 ]; then
     service %{name} stop &> /dev/null
     chkconfig --del %{name} &> /dev/null
 fi
 %endif # with_systemd
-%endif # redhat
-
-%if 0%{?suse}
-%service_del_preun %{name}.service
-%endif # suse
+%endif # suse_version
 
 
 %postun
-%if 0%{?redhat}
+%if 0%{?suse_version}
+%service_del_postun %{name}.service
+%else
 %if 0%{?with_systemd}
 %systemd_postun_with_restart %{name}.service
 %else
-if [ "$1" -ge "1" ] ; then
+if [ $1 -ge 1 ]; then
     service %{name} condrestart >/dev/null 2>&1 || :
 fi
 %endif # with_systemd
-%endif # redhat
-
-%if 0%{?suse}
-%service_del_postun %{name}.service
-%endif # suse
+%endif # suse_version
 
 
 %files
+%if 0%{?with_python3}
+%{python3_sitelib}/novaagent*
+%else
 %{python2_sitelib}/novaagent*
+%endif # with_python3
 %{_bindir}/nova-agent
 %if 0%{?with_systemd}
 %{_unitdir}/nova-agent.service
 %else
 %{_initddir}/nova-agent
 %endif # with_systemd
+
+
+%changelog
+* Fri Jan 29 2016 Carl George <carl.george@rackspace.com> - 0.1.0-1
+- Initial build of package
