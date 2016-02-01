@@ -172,5 +172,10 @@ fi
 
 
 %changelog
+* Mon Feb 01 2016 Carl George <carl.george@rackspace.com> - 0.2.0-1
+- Disable debug packages
+- Build with Python 3 on Fedora and openSUSE
+- openSUSE macros fixes
+
 * Fri Jan 29 2016 Carl George <carl.george@rackspace.com> - 0.1.0-1
 - Initial build of package
