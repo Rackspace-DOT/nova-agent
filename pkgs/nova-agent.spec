@@ -24,7 +24,7 @@
 %endif
 
 Name:       nova-agent
-Version:    0.1.0
+Version:    0.2.0
 Release:    1%{?dist}
 Summary:    Agent for setting up clean servers on Xen
 
