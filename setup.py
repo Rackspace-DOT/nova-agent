@@ -17,6 +17,5 @@ setuptools.setup(
         ]
     },
     packages=['novaagent', 'novaagent.libs', 'novaagent.common'],
-    zip_safe=False,
-    data_files = [("", ["LICENSE.txt"])]
+    zip_safe=False
 )
