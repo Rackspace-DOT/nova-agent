@@ -1,2 +1,4 @@
 graft etc
+graft debian
+graft pkgs
 include LICENSE.txt
