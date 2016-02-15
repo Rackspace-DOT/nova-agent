@@ -24,7 +24,7 @@
 %endif
 
 Name:       nova-agent
-Version:    0.2.0
+Version:    0.2.1
 Release:    1%{?dist}
 Summary:    Agent for setting up clean servers on Xen
 
@@ -174,6 +174,9 @@ fi
 
 
 %changelog
+* Mon Feb 15 2016 Daniel Wallace <danielwallace@gtmanfred.com> 0.2.1-1
+- Always write a string to xenstore on returns
+
 * Mon Feb 01 2016 Carl George <carl.george@rackspace.com> - 0.2.0-1
 - Disable debug packages
 - Build with Python 3 on Fedora and openSUSE
