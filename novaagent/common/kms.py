@@ -46,7 +46,7 @@ def register_with_rhn(activation_key, profile):
     logging.debug('status = %d' % status)
 
     if status != 0:
-        return (500, "Couldn't activate with RHN: %d" % status)
+        return ("500", "Couldn't activate with RHN: %d" % status)
 
 
 def configure_up2date(domains):
@@ -128,4 +128,4 @@ def kms_activate(data):
     if ret:
         return ret
 
-    return (0, "")
+    return ("0", "")

@@ -207,7 +207,7 @@ class PasswordCommands(object):
 
         self._wipe_key()
 
-        return (0, "")
+        return ("0", "")
 
 
 def _make_salt(length):

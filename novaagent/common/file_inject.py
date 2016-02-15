@@ -66,10 +66,10 @@ class FileInject(object):
         try:
             b64_decoded = base64.b64decode(data)
         except:
-            return (500, "Error doing base64 decoding of data")
+            return ("500", "Error doing base64 decoding of data")
 
         (filename, data) = b64_decoded.split(',', 1)
 
         _write_file(filename, data)
 
-        return (0, "")
+        return ("0", "")
