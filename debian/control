@@ -7,6 +7,7 @@ Build-Depends:
  debhelper (>= 9),
  dh-python,
  python-all (>= 2.6.6-3),
+ python-setuptools,
 X-Python-Version: >= 2.6
 
 Package: nova-agent
