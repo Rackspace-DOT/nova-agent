@@ -28,6 +28,7 @@ import os
 import subprocess
 import time
 import crypt
+import selinux
 
 from Crypto.Cipher import AES
 
@@ -232,6 +233,7 @@ def _create_temp_password_file(user, password, filename):
 
     with open(filename) as f:
         file_data = f.readlines()
+
     stat_info = os.stat(filename)
     tmpfile = '%s.tmp.%d' % (filename, os.getpid())
 
@@ -307,12 +309,18 @@ def set_password(user, password):
     for filename, ftype in files_to_try.iteritems():
         if not os.path.exists(filename):
             continue
+
+        # Get the selinux file context before we do anything with the file
+        selinux_context = selinux.getfilecon(filename)
         tmpfile = _create_temp_password_file(user, password, filename)
         if ftype == RENAME:
             bakfile = '/etc/shadow.bak.%d' % os.getpid()
             os.rename(filename, bakfile)
             os.rename(tmpfile, filename)
             os.remove(bakfile)
+
+            # Update selinux context after the file replace
+            selinux.setfilecon(filename, selinux_context[1])
             return
         if ftype == PWD_MKDB:
             pipe = subprocess.PIPE
