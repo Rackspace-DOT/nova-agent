@@ -35,12 +35,25 @@ def register_with_rhn(activation_key, profile):
         os.unlink(SYSTEMID_PATH)
 
     # Call rhnreg_ks
-    logging.debug('executing /usr/sbin/rhnreg_ks --activationkey <REMOVED>' + \
-            ' --profile %s --force' % profile)
+    logging.debug(
+        'executing /usr/sbin/rhnreg_ks --activationkey <REMOVED>'
+        ' --profile %s --force' % profile
+    )
     pipe = subprocess.PIPE
-    p = subprocess.Popen(['/usr/sbin/rhnreg_ks', '--activationkey',
-            activation_key, '--profile', profile, '--force'],
-            stdin=pipe, stdout=pipe, stderr=pipe, env={})
+    p = subprocess.Popen(
+        [
+            '/usr/sbin/rhnreg_ks',
+            '--activationkey',
+            activation_key,
+            '--profile',
+            profile,
+            '--force'
+        ],
+        stdin=pipe,
+        stdout=pipe,
+        stderr=pipe,
+        env={}
+    )
     logging.debug('waiting on pid %d' % p.pid)
     status = os.waitpid(p.pid, 0)[1]
     logging.debug('status = %d' % status)
@@ -58,8 +71,8 @@ def configure_up2date(domains):
     serverURL = ';'.join(['https:%s' % h for h in domains])
     noSSLServerURL = ';'.join(['http:%s' % h for h in domains])
 
-    data = \
-'''# Automatically generated Red Hat Update Agent config file, do not edit.
+    data = """
+# Automatically generated Red Hat Update Agent config file, do not edit.
 # Format: 1.0
 versionOverride[comment]=Override the automatically determined system version
 versionOverride=
@@ -108,8 +121,7 @@ systemIdPath=/etc/sysconfig/rhn/systemid
 
 noReboot[comment]=Disable the reboot action
 noReboot=0
-''' % {'serverURL': serverURL,
-       'noSSLServerURL': noSSLServerURL}
+""" % {'serverURL': serverURL, 'noSSLServerURL': noSSLServerURL}
 
     return {UP2DATE_PATH: data}
 

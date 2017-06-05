@@ -1,5 +1,8 @@
+
 from __future__ import absolute_import
+
 import novaagent
+
 from novaagent.common.password import PasswordCommands
 from novaagent.common.file_inject import FileInject
 
@@ -24,11 +27,11 @@ class DefaultOS(object):
         return ret
 
     def features(self, name, value):
-        return ('0', 'kmsactivate,resetnetwork,version,keyinit,features,password,agentupdate,injectfile')
+        return (
+            '0',
+            'kmsactivate,resetnetwork,version,keyinit,'
+            'features,password,agentupdate,injectfile'
+        )
 
     def version(self, name, value):
         return ('0', str(novaagent.__version__))
-
-
-if __name__ == '__main__':
-    main()

@@ -1,5 +1,4 @@
 from __future__ import print_function, absolute_import
-import os
 
 from novaagent import utils
 from subprocess import Popen, PIPE
@@ -27,32 +26,63 @@ class ServerOS(DefaultOS):
                     print('\taddress {0}'.format(x['ip']), file=iffile)
                     print('\tnetmask {0}'.format(x['netmask']), file=iffile)
                     if 'gateway' in iface and iface['gateway']:
-                        print('\tgateway {0}'.format(iface['gateway']), file=iffile)
+                        print(
+                            '\tgateway {0}'.format(iface['gateway']),
+                            file=iffile
+                        )
+
                     if 'dns' in iface and iface['dns']:
-                        print("\tdns-nameservers {0}".format(' '.join(iface['dns'])), file=iffile)
+                        print(
+                            "\tdns-nameservers {0}".format(
+                                ' '.join(iface['dns'])
+                            ),
+                            file=iffile
+                        )
+
                     if 'routes' in iface:
                         for route in iface['routes']:
                             print((
-                                '\tpost-up route add -net {route} netmask {netmask} gw {gateway} || true\n'
-                                '\tpost-down route add -net {route} netmask {netmask} gw {gateway} || true'
+                                '\tpost-up route add -net {route} '
+                                'netmask {netmask} gw {gateway} || true\n'
+                                '\tpost-down route add -net {route} '
+                                'netmask {netmask} gw {gateway} || true'
                             ).format(**route), file=iffile)
                 else:
                     print('auto {0}:{1}'.format(ifname, count), file=iffile)
-                    print('iface {0}:{1} inet static'.format(ifname, count), file=iffile)
+                    print(
+                        'iface {0}:{1} inet static'.format(ifname, count),
+                        file=iffile
+                    )
                     print('\taddress {0}'.format(x['ip']), file=iffile)
                     print('\tnetmask {0}'.format(x['netmask']), file=iffile)
             if 'ip6s' in iface and iface['ip6s']:
                 for count, x in enumerate(iface['ip6s']):
                     if count == 0:
-                        print('iface {0} inet6 static'.format(ifname), file=iffile)
+                        print(
+                            'iface {0} inet6 static'.format(ifname),
+                            file=iffile
+                        )
                         print('\taddress {0}'.format(x['ip']), file=iffile)
-                        print('\tnetmask {0}'.format(x['netmask']), file=iffile)
+                        print(
+                            '\tnetmask {0}'.format(x['netmask']),
+                            file=iffile
+                        )
                         if 'gateway_v6' in iface and iface['gateway_v6']:
-                            print('\tgateway {0}'.format(iface['gateway_v6']), file=iffile)
+                            print(
+                                '\tgateway {0}'.format(iface['gateway_v6']),
+                                file=iffile
+                            )
                     else:
-                        print('iface {0}:{1} inet6 static'.format(ifname, count), file=iffile)
+                        print(
+                            'iface {0}:{1} inet6 static'.format(ifname, count),
+                            file=iffile
+                        )
                         print('\taddress {0}'.format(x['ip']), file=iffile)
-                        print('\tnetmask {0}'.format(x['netmask']), file=iffile)
+                        print(
+                            '\tnetmask {0}'.format(x['netmask']),
+                            file=iffile
+                        )
+
             print('\n\n', file=iffile)
 
     def resetnetwork(self, name, value):
@@ -86,7 +116,3 @@ class ServerOS(DefaultOS):
             return (str(p.returncode), 'Error restarting network')
 
         return ('0', '')
-
-
-if __name__ == '__main__':
-    main()

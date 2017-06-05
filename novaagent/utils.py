@@ -1,5 +1,9 @@
+
 from subprocess import PIPE, Popen
-import fcntl, socket, struct
+
+import fcntl
+import socket
+import struct
 import os
 import shutil
 import json
@@ -29,7 +33,12 @@ def netmask_to_prefix(netmask):
 
 
 def get_interface(mac):
-    p = Popen('xenstore-read vm-data/networking/{0}'.format(mac), stdout=PIPE, stderr=PIPE, shell=True)
+    p = Popen(
+        'xenstore-read vm-data/networking/{0}'.format(mac),
+        stdout=PIPE,
+        stderr=PIPE,
+        shell=True
+    )
     out, err = p.communicate()
     if p.returncode == 0:
         ret = json.loads(out.decode('utf-8').strip())
@@ -49,10 +58,18 @@ def list_xenstore_macaddrs():
 def get_hw_addr(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', bytes(ifname[:15])))
+        info = fcntl.ioctl(
+            s.fileno(),
+            0x8927,
+            struct.pack('256s', bytes(ifname[:15]))
+        )
         return ''.join(['%02x' % ord(char) for char in info[18:24]]).upper()
     except TypeError as exc:
-        info = fcntl.ioctl(s.fileno(), 0x8927,  struct.pack('256s', bytes(ifname[:15], 'utf-8')))
+        info = fcntl.ioctl(
+            s.fileno(),
+            0x8927,
+            struct.pack('256s', bytes(ifname[:15], 'utf-8'))
+        )
         return ''.join(['%02x' % char for char in info[18:24]]).upper()
     except IOError as exc:
         if HAS_NETIFACES is False:
@@ -71,7 +88,12 @@ def list_hw_interfaces():
 
 
 def get_hostname():
-    p = Popen('xenstore-read vm-data/hostname', stdout=PIPE, stderr=PIPE, shell=True)
+    p = Popen(
+        'xenstore-read vm-data/hostname',
+        stdout=PIPE,
+        stderr=PIPE,
+        shell=True
+    )
     out, err = p.communicate()
     xen_hostname = out.decode('utf-8').split('\n')[0]
     if p.returncode == 0:
@@ -91,14 +113,24 @@ def list_xen_events():
 
 
 def get_xen_event(uuid):
-    p = Popen('xenstore-read data/host/{0}'.format(uuid), stdout=PIPE, stderr=PIPE, shell=True)
+    p = Popen(
+        'xenstore-read data/host/{0}'.format(uuid),
+        stdout=PIPE,
+        stderr=PIPE,
+        shell=True
+    )
     out, err = p.communicate()
     ret = json.loads(out.decode('utf-8').strip())
     return ret
 
 
 def remove_xenhost_event(uuid):
-    p = Popen('xenstore-rm data/host/{0}'.format(uuid), stdout=PIPE, stderr=PIPE, shell=True)
+    p = Popen(
+        'xenstore-rm data/host/{0}'.format(uuid),
+        stdout=PIPE,
+        stderr=PIPE,
+        shell=True
+    )
     out, err = p.communicate()
     if p.returncode == 0:
         return True
@@ -106,7 +138,12 @@ def remove_xenhost_event(uuid):
 
 
 def update_xenguest_event(uuid, data):
-    p = Popen('xenstore-write data/guest/{0} \'{1}\''.format(uuid, json.dumps(data)), stdout=PIPE, stderr=PIPE, shell=True)
+    p = Popen(
+        'xenstore-write data/guest/{0} \'{1}\''.format(uuid, json.dumps(data)),
+        stdout=PIPE,
+        stderr=PIPE,
+        shell=True
+    )
     out, err = p.communicate()
     if p.returncode == 0:
         return True
