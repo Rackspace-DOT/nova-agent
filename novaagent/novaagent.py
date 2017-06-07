@@ -8,13 +8,9 @@ import sys
 
 from novaagent import utils
 from novaagent.libs import (
-    archlinux,
     centos,
     debian,
-    freebsd,
-    gentoo,
-    redhat,
-    suse,
+    redhat
 )
 
 import logging
@@ -82,9 +78,7 @@ def main():
     else:
         logging.basicConfig(filename=args.logfile, level=loglevel)
 
-    if os.path.exists('/etc/arch-release'):
-        servertype = archlinux
-    elif os.path.exists('/etc/centos-release') \
+    if os.path.exists('/etc/centos-release') \
             or os.path.exists('/etc/fedora-release') \
             or os.path.exists('/etc/sl-release'):
         servertype = centos
@@ -92,12 +86,6 @@ def main():
         servertype = redhat
     elif os.path.exists('/etc/debian_version'):
         servertype = debian
-    elif os.path.exists('/etc/gentoo-release'):
-        servertype = gentoo
-    elif os.path.exists('/etc/susehelp.d/'):
-        servertype = suse
-    elif os.path.exists('/etc/rc.conf'):
-        servertype = freebsd
 
     log.info('Starting actions for {0}...'.format(servertype.__name__))
     serveros = servertype.ServerOS()
