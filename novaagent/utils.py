@@ -50,7 +50,7 @@ def move_file(interface_config):
     )
 
 
-def get_ifcfg_files_to_remove(net_config_dir, interface_file):
+def get_ifcfg_files_to_remove(net_config_dir, interface_file_prefix):
     interfaces = []
     remove_files = []
     for iface in os.listdir('/sys/class/net/'):
