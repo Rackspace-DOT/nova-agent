@@ -8,13 +8,9 @@ import sys
 
 from novaagent import utils
 from novaagent.libs import (
-    archlinux,
     centos,
     debian,
-    freebsd,
-    gentoo,
-    redhat,
-    suse,
+    redhat
 )
 
 import logging
