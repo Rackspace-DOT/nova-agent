@@ -7,10 +7,14 @@ from subprocess import Popen, PIPE
 from novaagent.libs import DefaultOS
 
 
+NETCONFIG_DIR = "/etc/sysconfig/network-scripts"
+INTERFACE_FILE_PREFIX = "ifcfg-"
+
+
 class ServerOS(DefaultOS):
     def _setup_interface(self, ifname, iface):
         utils.backup_file(
-            '/etc/syscfongi/network-scripts/ifcfg-{0}'.format(ifname)
+            '/etc/sysconfig/network-scripts/ifcfg-{0}'.format(ifname)
         )
         with open(
             '/etc/sysconfig/network-scripts/ifcfg-{0}'.format(ifname),
@@ -62,7 +66,7 @@ class ServerOS(DefaultOS):
 
     def _setup_routes(self, ifname, iface):
         utils.backup_file(
-            '/etc/syscfongi/network-scripts/route-{0}'.format(ifname)
+            '/etc/sysconfig/network-scripts/route-{0}'.format(ifname)
         )
         with open(
             '/etc/sysconfig/network-scripts/route-{0}'.format(ifname),
@@ -82,6 +86,7 @@ class ServerOS(DefaultOS):
             mac = utils.get_hw_addr(iface)
             if not mac or mac not in xen_macs:
                 continue
+
             ifaces[iface] = utils.get_interface(mac)
 
         # set hostname
@@ -92,6 +97,7 @@ class ServerOS(DefaultOS):
             print('NOZEROCONF=yes', file=netfile)
             print('NETWORKING_IPV6=yes', file=netfile)
             print('HOSTNAME={0}'.format(hostname), file=netfile)
+
         if os.path.exists('/usr/bin/hostnamectl'):
             utils.backup_file('/etc/hostname')
             p = Popen(
@@ -114,11 +120,20 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 return (str(p.returncode), 'Error setting hostname')
 
+        # move unused interface files out of the way but back them up
+        move_files = utils.get_ifcfg_files_to_remove(
+            NETCONFIG_DIR,
+            INTERFACE_FILE_PREFIX
+        )
+        for interface_config in move_files:
+            utils.move_file(interface_config)
+
         # setup interface files
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
             if 'routes' in iface:
                 self._setup_routes(ifname, iface)
+
         p = Popen(
             ['service', 'network', 'stop'],
             stdout=PIPE,

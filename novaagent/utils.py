@@ -8,9 +8,12 @@ import os
 import shutil
 import json
 import time
-
+import glob
 import logging
+
+
 log = logging.getLogger(__name__)
+
 
 try:
     import netifaces
@@ -22,6 +25,7 @@ except ImportError as exc:
 def backup_file(config):
     if not os.path.exists(config):
         return
+
     bakfile_suffix = '{0}.bak'.format(time.time())
     bakfile = '{0}.{1}'.format(config, bakfile_suffix)
     log.info('Backing up -> {0} ({1})'.format(config, bakfile_suffix))
@@ -30,6 +34,33 @@ def backup_file(config):
 
 def netmask_to_prefix(netmask):
     return sum([bin(int(x)).count('1') for x in netmask.split('.')])
+
+
+def move_file(interface_config):
+    if not os.path.exists(interface_config):
+        return
+
+    bakfile_suffix = '{0}.bak'.format(time.time())
+    log.info('Moving {0} -> {0}.{1}'.format(interface_config, bakfile_suffix))
+    os.rename(
+        interface_config, '{0}.{1}'.format(
+            interface_config,
+            bakfile_suffix
+        )
+    )
+
+
+def get_ifcfg_files_to_remove(net_config_dir, interface_file):
+    interfaces = []
+    remove_files = []
+    for iface in os.listdir('/sys/class/net/'):
+        interfaces.append(net_config_dir + '/' + interface_file_prefix + iface)
+
+    for filepath in glob.glob(net_config_dir + "/ifcfg-*"):
+        if '.' not in filepath and filepath not in interfaces:
+            remove_files.append(filepath)
+
+    return remove_files
 
 
 def get_interface(mac):
