@@ -1,10 +1,10 @@
+
 from __future__ import print_function, absolute_import
+
 import argparse
 import time
-import json
 import os
 import sys
-import argparse
 
 from novaagent import utils
 from novaagent.libs import (
@@ -32,10 +32,25 @@ def action(serveros):
 
         utils.remove_xenhost_event(uuid)
         if returncode:
-            utils.update_xenguest_event(uuid, {'message': returncode[1], 'returncode': returncode[0]})
-            log.info('Returning {{"message": "{1}", "returncode": "{0}"}}'.format(*returncode))
+            utils.update_xenguest_event(
+                uuid, {
+                    'message': returncode[1],
+                    'returncode': returncode[0]
+                }
+            )
+            log.info(
+                'Returning {{"message": "{1}", "returncode": "{0}"}}'.format(
+                    *returncode
+                )
+            )
         else:
-            utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
+            utils.update_xenguest_event(
+                uuid,
+                {
+                    'message': '',
+                    'returncode': '0'
+                }
+            )
             log.info('Returning {"message": "", "returncode": ""}')
         action(serveros)
 
@@ -43,12 +58,25 @@ def action(serveros):
 def main():
     parser = argparse.ArgumentParser(description='Args for novaagent')
     parser.add_argument('-p', dest='pid', type=str, help='pid file')
-    parser.add_argument('-l', dest='loglevel', type=str, default='info', choices=('warning', 'info', 'debug'), help='log level')
-    parser.add_argument('-o', dest='logfile', default='-', type=str, help='path to log file')
+    parser.add_argument(
+        '-l',
+        dest='loglevel',
+        type=str,
+        default='info',
+        choices=('warning', 'info', 'debug'),
+        help='log level'
+    )
+    parser.add_argument(
+        '-o',
+        dest='logfile',
+        default='-',
+        type=str,
+        help='path to log file'
+    )
     args = parser.parse_args()
 
     loglevel = getattr(logging, args.loglevel.upper())
-    
+
     if args.logfile == '-':
         logging.basicConfig(stream=sys.stdout, level=loglevel)
     else:

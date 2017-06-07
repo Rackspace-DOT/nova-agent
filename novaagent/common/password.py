@@ -26,8 +26,8 @@ import logging
 import sys
 import os
 import subprocess
-import time
 import crypt
+import selinux
 
 from Crypto.Cipher import AES
 
@@ -189,9 +189,9 @@ class PasswordCommands(object):
         my_private_key = self._make_private_key()
         my_public_key = self._dh_compute_public_key(my_private_key)
 
-        shared_key = str(self._dh_compute_shared_key(remote_public_key,
-                my_private_key))
-
+        shared_key = str(
+            self._dh_compute_shared_key(remote_public_key, my_private_key)
+        )
         self.aes_key = self._compute_aes_key(shared_key)
 
         # The key needs to be a string response right now
@@ -232,6 +232,7 @@ def _create_temp_password_file(user, password, filename):
 
     with open(filename) as f:
         file_data = f.readlines()
+
     stat_info = os.stat(filename)
     tmpfile = '%s.tmp.%d' % (filename, os.getpid())
 
@@ -239,9 +240,11 @@ def _create_temp_password_file(user, password, filename):
     # the appropriate modes.  If we create it and set modes later,
     # there's a small point of time where a non-root user could
     # potentially open the file and wait for data to be written.
-    fd = os.open(tmpfile,
-            os.O_CREAT | os.O_TRUNC | os.O_WRONLY,
-            stat_info.st_mode)
+    fd = os.open(
+        tmpfile,
+        os.O_CREAT | os.O_TRUNC | os.O_WRONLY,
+        stat_info.st_mode
+    )
     f = None
     success = False
     try:
@@ -264,18 +267,21 @@ def _create_temp_password_file(user, password, filename):
                 # ecnryption type.  We'll re-use that, and make a salt
                 # that's the same size as the old
                 salt_data = s_password[1:].split('$')
-                salt = '$%s$%s$' % (salt_data[0],
-                        _make_salt(len(salt_data[1])))
+                salt = '$%s$%s$' % (
+                    salt_data[0],
+                    _make_salt(len(salt_data[1]))
+                )
             else:
                 # Default to MD5 as a minimum level of compatibility
                 salt = '$1$%s$' % _make_salt(8)
+
             enc_pass = crypt.crypt(password, salt)
             f.write("%s:%s:%s" % (s_user, enc_pass, s_rest))
         f.close()
         f = None
         success = True
     except Exception as exc:
-        logging.error("Couldn't create temporary password file: %s" % str(e))
+        logging.error("Couldn't create temporary password file: %s" % str(exc))
         raise
     finally:
         if not success:
@@ -283,12 +289,12 @@ def _create_temp_password_file(user, password, filename):
             if f:
                 try:
                     os.unlink(tmpfile)
-                except Exception as exc:
+                except Exception:
                     pass
             # Make sure to unlink the tmpfile
             try:
                 os.unlink(tmpfile)
-            except Exception as exc:
+            except Exception:
                 pass
 
     return tmpfile
@@ -297,27 +303,39 @@ def _create_temp_password_file(user, password, filename):
 def set_password(user, password):
     """Set the password for a particular user"""
 
-    INVALID = 0
+    # INVALID = 0
     PWD_MKDB = 1
     RENAME = 2
 
-    files_to_try = {'/etc/shadow': RENAME,
-            '/etc/master.passwd': PWD_MKDB}
+    files_to_try = {
+        '/etc/shadow': RENAME,
+        '/etc/master.passwd': PWD_MKDB
+    }
 
     for filename, ftype in files_to_try.iteritems():
         if not os.path.exists(filename):
             continue
+
+        # Get the selinux file context before we do anything with the file
+        selinux_context = selinux.getfilecon(filename)
         tmpfile = _create_temp_password_file(user, password, filename)
         if ftype == RENAME:
             bakfile = '/etc/shadow.bak.%d' % os.getpid()
             os.rename(filename, bakfile)
             os.rename(tmpfile, filename)
             os.remove(bakfile)
+
+            # Update selinux context after the file replace
+            selinux.setfilecon(filename, selinux_context[1])
             return
         if ftype == PWD_MKDB:
             pipe = subprocess.PIPE
-            p = subprocess.Popen(['/usr/sbin/pwd_mkdb', tmpfile],
-                    stdin=pipe, stdout=pipe, stderr=pipe)
+            p = subprocess.Popen(
+                ['/usr/sbin/pwd_mkdb', tmpfile],
+                stdin=pipe,
+                stdout=pipe,
+                stderr=pipe
+            )
             (stdoutdata, stderrdata) = p.communicate()
             if p.returncode != 0:
                 if stderrdata:
@@ -332,4 +350,5 @@ def set_password(user, password):
                 raise PasswordError(
                         (500, "Rebuilding the passwd database failed"))
             return
+
     raise PasswordError((500, "Unknown password file format"))
