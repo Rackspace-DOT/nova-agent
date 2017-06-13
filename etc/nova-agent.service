@@ -3,7 +3,7 @@ Description=Nova Agent for xenstore
 Before=network.target
 
 [Service]
-ExecStart=/usr/bin/nova-agent
+ExecStart=/usr/bin/nova-agent -l info
 
 [Install]
 WantedBy=basic.target
