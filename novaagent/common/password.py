@@ -317,7 +317,11 @@ def set_password(user, password):
             continue
 
         # Get the selinux file context before we do anything with the file
-        selinux_context = selinux.getfilecon(filename)
+        try:
+            selinux_context = selinux.getfilecon(filename)
+        except:
+            selinux_context = None
+
         tmpfile = _create_temp_password_file(user, password, filename)
         if ftype == RENAME:
             bakfile = '/etc/shadow.bak.%d' % os.getpid()
@@ -326,7 +330,9 @@ def set_password(user, password):
             os.remove(bakfile)
 
             # Update selinux context after the file replace
-            selinux.setfilecon(filename, selinux_context[1])
+            if selinux_context is not None:
+                selinux.setfilecon(filename, selinux_context[1])
+
             return
         if ftype == PWD_MKDB:
             pipe = subprocess.PIPE
