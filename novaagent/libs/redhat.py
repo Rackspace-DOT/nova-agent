@@ -1,8 +1,8 @@
 
 from __future__ import print_function, absolute_import
 
-from novaagent.common import kms
 
+from novaagent.common import kms
 from novaagent.libs import centos
 
 
