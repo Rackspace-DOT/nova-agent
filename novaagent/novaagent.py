@@ -51,9 +51,15 @@ def action(serveros):
         action(serveros)
 
 
+def nova_agent_listen(servertype, serveros):
+    log.info('Starting actions for {0}...'.format(servertype.__name__))
+    while True:
+        action(serveros)
+        time.sleep(1)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Args for novaagent')
-    parser.add_argument('-p', dest='pid', type=str, help='pid file')
     parser.add_argument(
         '-l',
         dest='loglevel',
@@ -87,14 +93,25 @@ def main():
     elif os.path.exists('/etc/debian_version'):
         servertype = debian
 
-    log.info('Starting actions for {0}...'.format(servertype.__name__))
+    log.info('Starting daemon')
     serveros = servertype.ServerOS()
-    while True:
-        if args.pid:
-            with open(args.pid, 'w') as pidfile:
-                print(os.getpid(), file=pidfile)
-        action(serveros)
-        time.sleep(1)
+
+    try:
+        pid = os.fork()
+        if pid > 0:
+             log.info('PID: {0}'.format(pid))
+             os._exit(0)
+
+    except OSError as error:
+        log.error(
+            'Unable to fork. Error: {0} {1}'.format(
+                error.errno,
+                error.strerror
+            )
+        )
+        os._exit(1)
+
+    nova_agent_listen(servertype, serveros)
 
 
 if __name__ == '__main__':
