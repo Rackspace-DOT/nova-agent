@@ -27,7 +27,12 @@ import sys
 import os
 import subprocess
 import crypt
-import selinux
+
+try:
+    import selinux
+    SELINUX = True
+except:
+    SELINUX = False
 
 from Crypto.Cipher import AES
 
@@ -317,10 +322,8 @@ def set_password(user, password):
             continue
 
         # Get the selinux file context before we do anything with the file
-        try:
+        if SELINUX:
             selinux_context = selinux.getfilecon(filename)
-        except:
-            selinux_context = None
 
         tmpfile = _create_temp_password_file(user, password, filename)
         if ftype == RENAME:
@@ -330,7 +333,7 @@ def set_password(user, password):
             os.remove(bakfile)
 
             # Update selinux context after the file replace
-            if selinux_context is not None:
+            if SELINUX:
                 selinux.setfilecon(filename, selinux_context[1])
 
             return
