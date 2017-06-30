@@ -25,7 +25,7 @@ do_start() {
         return 0
     fi
     export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/games:/usr/local/sbin:/usr/local/bin"
-    start-stop-daemon --background --pidfile $pid_file --start --exec $exec -- -o /var/log/nova-agent.log -l info
+    start-stop-daemon --background --pidfile $pid_file --start --exec $exec -- -o /var/log/nova-agent.log
     RETVAL=$?
     echo "Starting $PROG... "
     if [ $RETVAL -eq 0 ]; then
