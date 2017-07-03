@@ -22,6 +22,7 @@ except ImportError as exc:
     HAS_NETIFACES = False
 
 
+# Why is this function and move_file both here as they do the same thing
 def backup_file(config):
     if not os.path.exists(config):
         return
@@ -98,7 +99,6 @@ def list_hw_interfaces():
     return netifaces.interfaces()
 
 
-"""Xen store commands"""
 def get_interface(mac_address):
     p = Popen(
         ['xenstore-read', 'vm-data/networking/{0}'.format(mac_address)],

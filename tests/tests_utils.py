@@ -187,7 +187,6 @@ class TestHelpers(TestCase):
         )
 
     def test_network_get_mac_addresses_failure(self):
-        check_mac_addrs = ['BC764E206C5B', 'BC764E206C5A']
         with mock.patch('novaagent.utils.Popen') as popen:
             popen.return_value.communicate.return_value = (b'', b'')
             popen.return_value.returncode = 1
@@ -278,7 +277,6 @@ class TestHelpers(TestCase):
         )
 
     def test_get_mac_address_from_system_netifaces_failure(self):
-        check_mac_addr = 'BC764E205A79'
         with mock.patch('novaagent.utils.socket.socket.fileno') as fileno:
             fileno.return_value = 3
             with mock.patch('novaagent.utils.fcntl.ioctl') as get_hex:
