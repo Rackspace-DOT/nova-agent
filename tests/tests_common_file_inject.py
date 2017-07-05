@@ -112,13 +112,13 @@ class TestHelpers(TestCase):
         files = glob.glob('/tmp/tests/test_file*')
         self.assertEqual(
             len(files),
-            2,
+            1,
             'Did not find any files'
         )
         found_file = False
         temp_contents = None
         for f in files:
-            if '/tmp/test_file_write' == f:
+            if '/tmp/tests/test_file_write' == f:
                 with open(f) as temp_file:
                     temp_contents = temp_file.read()
 
