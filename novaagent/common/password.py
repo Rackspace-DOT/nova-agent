@@ -1,4 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
 #
 #  Copyright (c) 2011 Openstack, LLC.
 #  All Rights Reserved.
@@ -20,13 +19,16 @@
 JSON password reset handling plugin
 """
 
-import base64
 import binascii
 import logging
+import base64
+import crypt
 import sys
 import os
-import subprocess
-import crypt
+
+
+from Crypto.Cipher import AES
+
 
 try:
     import selinux
@@ -34,10 +36,13 @@ try:
 except:
     SELINUX = False
 
-from Crypto.Cipher import AES
+
+PASSWD_FILES = ['/etc/shadow']
+
 
 if sys.version_info > (3,):
     long = int
+
 
 # This is to support older python versions that don't have hashlib
 try:
@@ -73,7 +78,6 @@ class PasswordCommands(object):
     """
     Class for password related commands
     """
-
     def __init__(self, *args, **kwargs):
         # prime to use
         self.prime = 162259276829213363391578010288127
@@ -91,24 +95,15 @@ class PasswordCommands(object):
         return result
 
     def _make_private_key(self):
-        """
-        Create a private key using /dev/urandom
-        """
-
+        """Create a private key using /dev/urandom"""
         return int(binascii.hexlify(os.urandom(16)), 16)
 
     def _dh_compute_public_key(self, private_key):
-        """
-        Given a private key, compute a public key
-        """
-
+        """Given a private key, compute a public key"""
         return self._mod_exp(self.base, private_key, self.prime)
 
     def _dh_compute_shared_key(self, public_key, private_key):
-        """
-        Given public and private keys, compute the shared key
-        """
-
+        """Given public and private keys, compute the shared key"""
         return self._mod_exp(public_key, private_key, self.prime)
 
     def _compute_aes_key(self, key):
@@ -116,7 +111,6 @@ class PasswordCommands(object):
         Given a key, compute the corresponding key that can be used
         with AES
         """
-
         m = hashlib.md5()
         m.update(key.encode('utf-8'))
 
@@ -127,24 +121,23 @@ class PasswordCommands(object):
         m.update(key.encode('utf-8'))
 
         aes_iv = m.digest()
-
         return (aes_key, aes_iv)
 
     def _decrypt_password(self, aes_key, data):
-
         aes = AES.new(aes_key[0], AES.MODE_CBC, aes_key[1])
         passwd = aes.decrypt(data)
+        try:
+            cut_off_sz = ord(passwd[len(passwd) - 1])
+        except:
+            cut_off_sz = passwd[len(passwd) - 1]
 
-        cut_off_sz = ord(passwd[len(passwd) - 1])
         if cut_off_sz > 16 or len(passwd) < 16:
             raise PasswordError((500, "Invalid password data received"))
 
         passwd = passwd[: - cut_off_sz]
-
         return passwd
 
     def _decode_password(self, data):
-
         try:
             real_data = base64.b64decode(data)
         except Exception as exc:
@@ -173,19 +166,14 @@ class PasswordCommands(object):
         set_password('root', passwd.strip('\n'))
 
     def _wipe_key(self):
-        """
-        Remove key from a previous keyinit command
-        """
-
+        """Remove key from a previous keyinit command"""
         try:
             del self.aes_key
         except AttributeError as exc:
             pass
 
     def keyinit_cmd(self, data):
-
         # Remote pubkey comes in as large number
-
         # Or well, it should come in as a large number.  It's possible
         # that some legacy client code will send it as a string.  So,
         # we'll make sure to always convert it to long.
@@ -203,7 +191,6 @@ class PasswordCommands(object):
         return ("D0", str(my_public_key))
 
     def password_cmd(self, data):
-
         try:
             passwd = self._decode_password(data)
             self._change_password(passwd)
@@ -211,30 +198,30 @@ class PasswordCommands(object):
             return exc.get_response()
 
         self._wipe_key()
-
         return ("0", "")
 
 
 def _make_salt(length):
     """Create a salt of appropriate length"""
-
     salt_chars = 'abcdefghijklmnopqrstuvwxyz'
     salt_chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     salt_chars += '0123456789./'
-
     rand_data = os.urandom(length)
     salt = ''
     for c in rand_data:
-        salt += salt_chars[ord(c) % len(salt_chars)]
+        try:
+            salt += salt_chars[ord(c) % len(salt_chars)]
+        except:
+            salt += salt_chars[c % len(salt_chars)]
+
     return salt
 
 
 def _create_temp_password_file(user, password, filename):
-    """Read original passwd file, generating a new temporary file.
-
+    """
+    Read original passwd file, generating a new temporary file.
     Returns: The temporary filename
     """
-
     with open(filename) as f:
         file_data = f.readlines()
 
@@ -256,17 +243,21 @@ def _create_temp_password_file(user, password, filename):
         os.chown(tmpfile, stat_info.st_uid, stat_info.st_gid)
         f = os.fdopen(fd, 'w')
         for line in file_data:
+            line = line.strip()
             if line.startswith('#'):
                 f.write(line)
                 continue
+
             try:
                 (s_user, s_password, s_rest) = line.split(':', 2)
             except ValueError as exc:
                 f.write(line)
                 continue
+
             if s_user != user:
                 f.write(line)
                 continue
+
             if s_password.startswith('$'):
                 # Format is '$ID$SALT$HASH' where ID defines the
                 # ecnryption type.  We'll re-use that, and make a salt
@@ -282,6 +273,7 @@ def _create_temp_password_file(user, password, filename):
 
             enc_pass = crypt.crypt(password, salt)
             f.write("%s:%s:%s" % (s_user, enc_pass, s_rest))
+
         f.close()
         f = None
         success = True
@@ -293,7 +285,7 @@ def _create_temp_password_file(user, password, filename):
             # Close the file if it's open
             if f:
                 try:
-                    os.unlink(tmpfile)
+                    f.close()
                 except Exception:
                     pass
             # Make sure to unlink the tmpfile
@@ -307,17 +299,7 @@ def _create_temp_password_file(user, password, filename):
 
 def set_password(user, password):
     """Set the password for a particular user"""
-
-    # INVALID = 0
-    PWD_MKDB = 1
-    RENAME = 2
-
-    files_to_try = {
-        '/etc/shadow': RENAME,
-        '/etc/master.passwd': PWD_MKDB
-    }
-
-    for filename, ftype in files_to_try.iteritems():
+    for filename in PASSWD_FILES:
         if not os.path.exists(filename):
             continue
 
@@ -326,38 +308,16 @@ def set_password(user, password):
             selinux_context = selinux.getfilecon(filename)
 
         tmpfile = _create_temp_password_file(user, password, filename)
-        if ftype == RENAME:
-            bakfile = '/etc/shadow.bak.%d' % os.getpid()
-            os.rename(filename, bakfile)
-            os.rename(tmpfile, filename)
-            os.remove(bakfile)
+        bakfile = '{0}.bak.{1}'.format(filename, os.getpid())
 
-            # Update selinux context after the file replace
-            if SELINUX:
-                selinux.setfilecon(filename, selinux_context[1])
+        os.rename(filename, bakfile)
+        os.rename(tmpfile, filename)
+        os.remove(bakfile)
 
-            return
-        if ftype == PWD_MKDB:
-            pipe = subprocess.PIPE
-            p = subprocess.Popen(
-                ['/usr/sbin/pwd_mkdb', tmpfile],
-                stdin=pipe,
-                stdout=pipe,
-                stderr=pipe
-            )
-            (stdoutdata, stderrdata) = p.communicate()
-            if p.returncode != 0:
-                if stderrdata:
-                    stderrdata.strip('\n')
-                else:
-                    stderrdata = '<None>'
-                logging.error("pwd_mkdb failed: %s" % stderrdata)
-                try:
-                    os.unlink(tmpfile)
-                except Exception as exc:
-                    pass
-                raise PasswordError(
-                        (500, "Rebuilding the passwd database failed"))
-            return
+        # Update selinux context after the file replace
+        if SELINUX:
+            selinux.setfilecon(filename, selinux_context[1])
 
-    raise PasswordError((500, "Unknown password file format"))
+        return
+
+    raise PasswordError((500, "No password file found"))
