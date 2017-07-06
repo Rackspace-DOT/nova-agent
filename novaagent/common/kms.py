@@ -1,4 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
 #
 #  Copyright (c) 2011 Openstack, LLC.
 #  All Rights Reserved.
@@ -21,9 +20,11 @@ redhat/centos KMS activation helper module
 """
 from __future__ import print_function
 
+
 import os
 import subprocess
 import logging
+
 
 RHN_PATH = '/etc/sysconfig/rhn'
 SYSTEMID_PATH = os.path.join(RHN_PATH, 'systemid')
@@ -67,7 +68,6 @@ def configure_up2date(domains):
         domains = [domains]
 
     domains = ['//%s/XMLRPC' % d for d in domains]
-
     serverURL = ';'.join(['https:%s' % h for h in domains])
     noSSLServerURL = ';'.join(['http:%s' % h for h in domains])
 
@@ -129,15 +129,14 @@ noReboot=0
 def kms_activate(data):
     activation_key = data['activation_key']
     profile = data['profile']
-
     domains = data['domains']
-
     update_files = configure_up2date(domains)
+
     with open(UP2DATE_PATH, 'w') as up2date:
         print(update_files[UP2DATE_PATH], file=up2date)
 
-    ret = register_with_rhn(activation_key, profile)
-    if ret:
-        return ret
+    message = register_with_rhn(activation_key, profile)
+    if message:
+        return message
 
     return ("0", "")
