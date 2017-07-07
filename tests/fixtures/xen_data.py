@@ -65,7 +65,8 @@ def check_network_interface():
         ],
         'broadcast': '10.208.255.255',
         'mac': 'BC:76:4E:20:6C:5B',
-        'gateway': None, 'routes': [
+        'gateway': None,
+        'routes': [
             {
                 'gateway': '10.208.224.1',
                 'route': '10.208.0.0',
