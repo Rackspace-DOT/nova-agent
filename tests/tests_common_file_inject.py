@@ -5,6 +5,7 @@ from novaagent.common import file_inject
 
 import base64
 import shutil
+import mock
 import glob
 import os
 
@@ -27,10 +28,21 @@ class TestHelpers(TestCase):
             pass
 
     def test_file_permission(self):
-        mode, uid, gid = file_inject._get_file_permissions('/tmp/test_file')
+        class MockStat(object):
+            def __init__(self):
+                self.st_mode = 33188
+                self.st_uid = 1001
+                self.st_gid = 1001
+
+        with mock.patch('novaagent.common.file_inject.os.stat') as stat:
+            stat.return_value = MockStat()
+            mode, uid, gid = file_inject._get_file_permissions(
+                '/tmp/test_file'
+            )
+
         self.assertEqual(mode, 33188, 'Mode is not expected value')
-        self.assertEqual(uid, 501, 'UID is not expected value')
-        self.assertEqual(gid, 0, 'GID is not expected value')
+        self.assertEqual(uid, 1001, 'UID is not expected value')
+        self.assertEqual(gid, 1001, 'GID is not expected value')
 
     def test_file_permission_exception(self):
         os.remove('/tmp/test_file')
