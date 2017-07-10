@@ -7,7 +7,7 @@ python:
   - "3.3"
   - "3.4"
 install:
-  - pip install -r requirements
+  - pip install -r requirements.txt
   - pip install coverage flake8 funcsigs
 before_script:
   - flake8 .
