@@ -80,7 +80,7 @@ def get_hw_addr(ifname):
             struct.pack('256s', bin_ifname)
         )
         return ''.join(['%02x' % ord(char) for char in info[18:24]]).upper()
-    except IOError as exc:
+    except IOError:
         if HAS_NETIFACES is False:
             return False
 

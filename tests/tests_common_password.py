@@ -283,7 +283,7 @@ class TestHelpers(TestCase):
                     'badpass', 'password', '/tmp/passwd'
                 )
                 assert False, 'Exception should have been raised'
-            except Exception as e:
+            except Exception:
                 pass
 
     def test_set_password_invalid_file(self):

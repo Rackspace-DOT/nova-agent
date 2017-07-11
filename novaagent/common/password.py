@@ -169,7 +169,7 @@ class PasswordCommands(object):
         """Remove key from a previous keyinit command"""
         try:
             del self.aes_key
-        except AttributeError as exc:
+        except AttributeError:
             pass
 
     def keyinit_cmd(self, data):
