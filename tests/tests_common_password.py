@@ -70,20 +70,46 @@ class TestHelpers(TestCase):
 
     def test_make_private_key(self):
         test = password.PasswordCommands()
-        self.assertEqual(
-            type(test._make_private_key()),
-            int,
-            'Invalid return type from make key'
-        )
+        private_key = test._make_private_key()
+        type_success = False
+        try:
+            self.assertEqual(
+                type(private_key),
+                long,
+                'Invalid return type from make key'
+            )
+            type_success = True
+        except:
+            self.assertEqual(
+                type(private_key),
+                int,
+                'Invalid return type from make key'
+            )
+            type_success = True
+        finally:
+            assert type_success, 'Assert for type was not processed'
 
     def test_compute_public_key(self):
         temp_private = 242416858127415443985927051233248666254
         test = password.PasswordCommands()
-        self.assertEqual(
-            type(test._dh_compute_public_key(temp_private)),
-            int,
-            'Invalid return type returned from compute public'
-        )
+        public_key = test._dh_compute_public_key(temp_private)
+        type_success = False
+        try:
+            self.assertEqual(
+                type(public_key),
+                long,
+                'Invalid return type returned from compute public'
+            )
+            type_success = True
+        except:
+            self.assertEqual(
+                type(public_key),
+                int,
+                'Invalid return type returned from compute public'
+            )
+            type_success = True
+        finally:
+            assert type_success, 'Assert for type was not processed'
 
     def test_compute_shared_key(self):
         temp_private = 242416858127415443985927051233248666254
