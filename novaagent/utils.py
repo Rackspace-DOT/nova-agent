@@ -70,7 +70,7 @@ def get_hw_addr(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         bin_ifname = bytes(ifname[:15])
-    except TypeError as exc:
+    except TypeError:
         bin_ifname = bytes(ifname[:15], 'utf-8')
 
     try:
