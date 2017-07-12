@@ -1,0 +1,14 @@
+
+language: python
+python:
+  - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+install:
+  - pip install -r requirements.txt
+  - pip install -r opt_requirements.txt
+  - pip install coverage flake8 funcsigs
+before_script:
+  - flake8 .
+script: nosetests -v --cover-erase --with-coverage --cover-package=novaagent
