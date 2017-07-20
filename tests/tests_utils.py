@@ -9,6 +9,24 @@ import glob
 import os
 
 
+class ClientTest(object):
+    """ Test class used for client mock """
+    def __init__(self, return_value):
+        self.return_data = return_value
+
+    def list(self, path):
+        return self.return_data
+
+    def read(self, path):
+        return self.return_data
+
+    def write(self, event, data):
+        return self.return_data
+
+    def delete(self, path):
+        return self.return_data
+
+
 class TestHelpers(TestCase):
     def setUp(self):
         if not os.path.exists('/tmp/ifcfg-eth0'):
@@ -22,13 +40,8 @@ class TestHelpers(TestCase):
             os.remove(item)
 
     def test_get_hostname_success_popen(self):
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (
-                xen_data.get_hostname()
-            )
-            popen.return_value.returncode = 0
-            hostname = utils.get_hostname()
-
+        client = ClientTest(xen_data.get_hostname(True))
+        hostname = utils.get_hostname(client)
         self.assertEquals(
             hostname,
             'test-server',
@@ -36,16 +49,11 @@ class TestHelpers(TestCase):
         )
 
     def test_get_hostname_success_socket(self):
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (
-                xen_data.get_hostname()
+        with mock.patch('novaagent.utils.socket') as get:
+            get.gethostname.return_value = (
+                xen_data.get_hostname(False)
             )
-            popen.return_value.returncode = 1
-            with mock.patch('novaagent.utils.socket') as get:
-                get.gethostname.return_value = (
-                    xen_data.get_hostname(False)
-                )
-                hostname = utils.get_hostname()
+            hostname = utils.get_hostname('dummy_client')
 
         self.assertEquals(
             hostname,
@@ -55,12 +63,8 @@ class TestHelpers(TestCase):
 
     def test_list_host_xen_events(self):
         check_events = ['748dee41-c47f-4ec7-b2cd-037e51da4031']
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (
-                xen_data.get_xen_host_events()
-            )
-            event_list = utils.list_xen_events()
-
+        client = ClientTest(xen_data.get_xen_host_events())
+        event_list = utils.list_xen_events(client)
         self.assertEquals(
             event_list,
             check_events,
@@ -73,12 +77,8 @@ class TestHelpers(TestCase):
             "name": "keyinit",
             "value": "68436575764933852815830951574296"
         }
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (
-                xen_data.get_xen_host_event_details()
-            )
-            event_details = utils.get_xen_event(host_event_id)
-
+        client = ClientTest(xen_data.get_xen_host_event_details())
+        event_details = utils.get_xen_event(host_event_id, client)
         self.assertEquals(
             event_check,
             event_details,
@@ -87,12 +87,7 @@ class TestHelpers(TestCase):
 
     def test_remove_xenhost_event_failure(self):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (b'', '')
-            popen.return_value.returncode = 1
-
-            success = utils.remove_xenhost_event(host_event_id)
-
+        success = utils.remove_xenhost_event(host_event_id, 'dummy_client')
         self.assertEquals(
             success,
             False,
@@ -101,12 +96,8 @@ class TestHelpers(TestCase):
 
     def test_remove_xenhost_event_success(self):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (b'', '')
-            popen.return_value.returncode = 0
-
-            success = utils.remove_xenhost_event(host_event_id)
-
+        client = ClientTest('')
+        success = utils.remove_xenhost_event(host_event_id, client)
         self.assertEquals(
             success,
             True,
@@ -115,13 +106,9 @@ class TestHelpers(TestCase):
 
     def test_update_xenguest_event_success(self):
         event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        client = ClientTest('')
         write_data = {"message": "", "returncode": "0"}
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (b'', '')
-            popen.return_value.returncode = 0
-
-            success = utils.update_xenguest_event(event_uuid, write_data)
-
+        success = utils.update_xenguest_event(event_uuid, write_data, client)
         self.assertEquals(
             success,
             True,
@@ -131,12 +118,11 @@ class TestHelpers(TestCase):
     def test_update_xenguest_event_failure(self):
         event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         write_data = {"message": "", "returncode": "0"}
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (b'', '')
-            popen.return_value.returncode = 1
-
-            success = utils.update_xenguest_event(event_uuid, write_data)
-
+        success = utils.update_xenguest_event(
+            event_uuid,
+            write_data,
+            'dummy_client'
+        )
         self.assertEquals(
             success,
             False,
@@ -145,13 +131,8 @@ class TestHelpers(TestCase):
 
     def test_network_get_interfaces_success(self):
         mac_address = 'BC764E206C5B'
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (
-                xen_data.get_network_interface()
-            )
-            popen.return_value.returncode = 0
-            network_info = utils.get_interface(mac_address)
-
+        client = ClientTest(xen_data.get_network_interface())
+        network_info = utils.get_interface(mac_address, client)
         self.assertEquals(
             network_info,
             xen_data.check_network_interface(),
@@ -160,26 +141,18 @@ class TestHelpers(TestCase):
 
     def test_network_get_interfaces_failure(self):
         mac_address = 'BC764E206C5B'
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (b'', b'')
-            popen.return_value.returncode = 1
-            network_info = utils.get_interface(mac_address)
-
+        client = ClientTest(None)
+        network_info = utils.get_interface(mac_address, client)
         self.assertEquals(
             network_info,
-            False,
-            'Network info should be False on error'
+            None,
+            'Network info should be None on error'
         )
 
     def test_netowrk_get_mac_addresses_success(self):
         check_mac_addrs = ['BC764E206C5B', 'BC764E206C5A']
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (
-                xen_data.get_mac_addresses()
-            )
-            popen.return_value.returncode = 0
-            mac_addrs = utils.list_xenstore_macaddrs()
-
+        client = ClientTest(xen_data.get_mac_addresses())
+        mac_addrs = utils.list_xenstore_macaddrs(client)
         self.assertEquals(
             mac_addrs,
             check_mac_addrs,
@@ -187,11 +160,8 @@ class TestHelpers(TestCase):
         )
 
     def test_network_get_mac_addresses_failure(self):
-        with mock.patch('novaagent.utils.Popen') as popen:
-            popen.return_value.communicate.return_value = (b'', b'')
-            popen.return_value.returncode = 1
-            mac_addrs = utils.list_xenstore_macaddrs()
-
+        client = ClientTest([])
+        mac_addrs = utils.list_xenstore_macaddrs(client)
         self.assertEquals(
             mac_addrs,
             [],
@@ -375,3 +345,13 @@ class TestHelpers(TestCase):
         os.remove(rename_file)
         utils.backup_file(rename_file)
         assert True, 'Move interface did not generate error'
+
+    def test_encoding_to_bytes(self):
+        test_string = 'this is a test'
+        compare_string = b'this is a test'
+        test = utils.encode_to_bytes(test_string)
+        self.assertEqual(
+            compare_string,
+            test,
+            'Byte strings do not match as expected'
+        )

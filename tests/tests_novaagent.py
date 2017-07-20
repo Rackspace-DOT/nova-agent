@@ -34,7 +34,7 @@ class TestHelpers(TestCase):
                     ) as update:
                         update.return_value = True
                         try:
-                            novaagent.novaagent.action(temp_os)
+                            novaagent.novaagent.action(temp_os, 'dummy_client')
                         except:
                             assert False, (
                                 'An exception was thrown during action'
@@ -61,7 +61,10 @@ class TestHelpers(TestCase):
                         ) as update:
                             update.return_value = True
                             try:
-                                novaagent.novaagent.action(temp_os)
+                                novaagent.novaagent.action(
+                                    temp_os,
+                                    'dummy_client'
+                                )
                             except:
                                 assert False, (
                                     'An exception was thrown during action'

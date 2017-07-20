@@ -22,11 +22,11 @@ class ServerOS(DefaultOS):
             iffile.write('auto lo\n')
             iffile.write('iface lo inet loopback\n\n')
 
-    def _setup_hostname(self):
+    def _setup_hostname(self, client):
         """
         hostnamectl is available in some Debian systems and depends on dbus
         """
-        hostname = utils.get_hostname()
+        hostname = utils.get_hostname(client)
         if os.path.exists('/usr/bin/hostnamectl'):
             utils.backup_file(self.hostname_file)
             p = Popen(
@@ -136,19 +136,19 @@ class ServerOS(DefaultOS):
 
             iffile.write('\n')
 
-    def resetnetwork(self, name, value):
+    def resetnetwork(self, name, value, client):
         ifaces = {}
-        hostname_return_code, hostname = self._setup_hostname()
+        hostname_return_code, hostname = self._setup_hostname(client)
         if hostname_return_code != 0:
             return (str(hostname_return_code), 'Error setting hostname')
 
-        xen_macs = utils.list_xenstore_macaddrs()
+        xen_macs = utils.list_xenstore_macaddrs(client)
         for iface in utils.list_hw_interfaces():
             mac = utils.get_hw_addr(iface)
             if not mac or mac not in xen_macs:
                 continue
 
-            ifaces[iface] = utils.get_interface(mac)
+            ifaces[iface] = utils.get_interface(mac, client)
 
         # setup interface files
         self._setup_loopback()

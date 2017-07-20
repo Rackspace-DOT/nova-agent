@@ -83,7 +83,7 @@ class TestHelpers(TestCase):
             'novaagent.libs.centos.ServerOS._setup_hostname'
         ) as hostname:
             hostname.return_value = 1, 'test_hostname'
-            result = temp.resetnetwork('name', 'value')
+            result = temp.resetnetwork('name', 'value', 'dummy_client')
 
         self.assertEqual(
             result,
@@ -133,7 +133,11 @@ class TestHelpers(TestCase):
                                         'out', 'error'
                                     )
                                     p.return_value.returncode = 0
-                                    result = temp.resetnetwork('name', 'value')
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
@@ -200,7 +204,11 @@ class TestHelpers(TestCase):
                                         'out', 'error'
                                     )
                                     p.return_value.returncode = 1
-                                    result = temp.resetnetwork('name', 'value')
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
@@ -314,7 +322,9 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 0
-                    return_code, hostname = temp._setup_hostname()
+                    return_code, hostname = temp._setup_hostname(
+                        'dummy_client'
+                    )
 
         self.assertEqual(
             hostname,
@@ -341,7 +351,9 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 1
-                    return_code, hostname = temp._setup_hostname()
+                    return_code, hostname = temp._setup_hostname(
+                        'dummy_client'
+                    )
 
         self.assertEqual(
             hostname,
@@ -368,7 +380,9 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 0
-                    return_code, hostname = temp._setup_hostname()
+                    return_code, hostname = temp._setup_hostname(
+                        'dummy_client'
+                    )
 
         self.assertEqual(
             hostname,
@@ -395,7 +409,9 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 1
-                    return_code, hostname = temp._setup_hostname()
+                    return_code, hostname = temp._setup_hostname(
+                        'dummy_client'
+                    )
 
         self.assertEqual(
             hostname,
