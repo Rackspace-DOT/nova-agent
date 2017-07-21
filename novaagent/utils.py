@@ -1,6 +1,4 @@
 
-from subprocess import PIPE, Popen
-
 import fcntl
 import socket
 import struct
@@ -31,6 +29,13 @@ def backup_file(config):
     bakfile = '{0}.{1}'.format(config, bakfile_suffix)
     log.info('Backing up -> {0} ({1})'.format(config, bakfile_suffix))
     shutil.copyfile(config, bakfile)
+
+
+def encode_to_bytes(data_string):
+    try:
+        return bytes(data_string)
+    except:
+        return bytes(data_string, 'utf-8')
 
 
 def netmask_to_prefix(netmask):
@@ -99,94 +104,89 @@ def list_hw_interfaces():
     return netifaces.interfaces()
 
 
-def get_interface(mac_address):
-    p = Popen(
-        ['xenstore-read', 'vm-data/networking/{0}'.format(mac_address)],
-        stdout=PIPE,
-        stderr=PIPE
+def get_interface(mac_address, client):
+    interface = None
+    get_interface = encode_to_bytes(
+        'vm-data/networking/{0}'.format(mac_address)
     )
-    out, err = p.communicate()
-    if p.returncode == 0:
-        interface = json.loads(out.decode('utf-8').strip())
-        log.info('interface {0}: {1}'.format(mac_address, interface))
-        return interface
-    return False
+    try:
+        interface = json.loads(
+            client.read(get_interface).decode('utf-8').strip()
+        )
+    except:
+        pass
+
+    log.info('interface {0}: {1}'.format(mac_address, interface))
+    return interface
 
 
-def list_xenstore_macaddrs():
-    p = Popen(
-        ['xenstore-ls', 'vm-data/networking'],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = p.communicate()
-    interfaces = out.decode('utf-8').split('\n')
-    mac_addrs = [iface.split(' = ')[0] for iface in interfaces if iface]
+def list_xenstore_macaddrs(client):
+    mac_addrs = []
+    try:
+        for item in client.list(b'vm-data/networking'):
+            mac_addrs.append(item.decode('utf-8').strip())
+    except:
+        pass
+
     return mac_addrs
 
 
-def get_hostname():
-    p = Popen(
-        ['xenstore-read', 'vm-data/hostname'],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = p.communicate()
-    if p.returncode == 0:
-        xen_hostname = out.decode('utf-8').split('\n')[0]
-    else:
+def get_hostname(client):
+    xen_hostname = None
+    try:
+        xen_hostname = client.read(b'vm-data/hostname').decode('utf-8').strip()
+    except:
         xen_hostname = socket.gethostname()
 
     log.info('hostname: {0}'.format(xen_hostname))
     return xen_hostname
 
 
-def list_xen_events():
-    p = Popen(
-        ['xenstore-ls', 'data/host'],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = p.communicate()
-    event_list = out.decode('utf-8').split('\n')
-    message_uuids = [x.split(' = ')[0] for x in event_list if x]
+def list_xen_events(client):
+    message_uuids = []
+    try:
+        for item in client.list(b'data/host'):
+            message_uuids.append(item.decode('utf-8').strip())
+    except:
+        pass
+
     return message_uuids
 
 
-def get_xen_event(uuid):
-    p = Popen(
-        ['xenstore-read', 'data/host/{0}'.format(uuid)],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = p.communicate()
-    event_detail = json.loads(out.decode('utf-8').strip())
+def get_xen_event(uuid, client):
+    event_detail = None
+    get_xen_event = encode_to_bytes('data/host/{0}'.format(uuid))
+    try:
+        event_detail = json.loads(
+            client.read(get_xen_event).decode('utf-8').strip()
+        )
+    except:
+        pass
+
     return event_detail
 
 
-def remove_xenhost_event(uuid):
-    p = Popen(
-        ['xenstore-rm', 'data/host/{0}'.format(uuid)],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = p.communicate()
-    if p.returncode == 0:
-        return True
-    return False
+def remove_xenhost_event(uuid, client):
+    success = False
+    remove_xen_event = encode_to_bytes('data/host/{0}'.format(uuid))
+    try:
+        client.delete(remove_xen_event)
+        success = True
+    except:
+        pass
+
+    return success
 
 
-def update_xenguest_event(uuid, data):
-    p = Popen(
-        [
-            'xenstore-write',
-            'data/guest/{}'.format(uuid),
-            '{}'.format(json.dumps(data))
-        ],
-        stdout=PIPE,
-        stderr=PIPE
-    )
-    out, err = p.communicate()
-    if p.returncode == 0:
-        return True
-    return False
+def update_xenguest_event(uuid, data, client):
+    success = False
+    write_path = encode_to_bytes('data/host/{0}'.format(uuid))
+    write_value = encode_to_bytes(json.dumps(data))
+
+    try:
+        client.write(write_path, write_value)
+        success = True
+    except:
+        pass
+
+    return success

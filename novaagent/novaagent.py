@@ -1,5 +1,9 @@
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function
+from __future__ import absolute_import
+
+from pyxs.connection import XenBusConnection
+from pyxs.client import Client
 
 
 import argparse
@@ -13,31 +17,35 @@ from novaagent import utils
 from novaagent.libs import centos
 from novaagent.libs import debian
 from novaagent.libs import redhat
+from novaagent.xenbus import XenGuestRouter
 
 
 log = logging.getLogger(__name__)
 
 
-def action(server_os):
-    for uuid in utils.list_xen_events():
-        event = utils.get_xen_event(uuid)
-        log.info('Event: {0} -> {1}'.format(uuid, event['name']))
-        status_return = ('', '')
-        if hasattr(server_os, event['name']):
-            cmd = getattr(server_os, event['name'])
-            status_return = cmd(event['name'], event['value'])
+# Connect to Xenbus in order to interact with xenstore
+XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
-        utils.remove_xenhost_event(uuid)
-        message = status_return[1]
-        return_code = status_return[0]
-        if status_return[0] == '':
+
+def action(server_os, client):
+    for uuid in utils.list_xen_events(client):
+        event = utils.get_xen_event(uuid, client)
+        log.info('Event: {0} -> {1}'.format(uuid, event['name']))
+        command_return = ('', '')
+        if hasattr(server_os, event['name']):
+            run_command = getattr(server_os, event['name'])
+            command_return = run_command(event['name'], event['value'])
+
+        utils.remove_xenhost_event(uuid, client)
+        message = command_return[1]
+        return_code = command_return[0]
+        if command_return[0] == '':
             return_code = '0'
 
         utils.update_xenguest_event(
-            uuid, {
-                'message': message,
-                'returncode': return_code
-            }
+            uuid,
+            {'message': message, 'returncode': return_code},
+            client
         )
         log.info(
             'Returning {{"message": "{0}", "returncode": "{1}"}}'.format(
@@ -50,8 +58,9 @@ def action(server_os):
 def nova_agent_listen(server_type, server_os):
     log.info('Starting actions for {0}...'.format(server_type.__name__))
     while True:
-        action(server_os)
-        time.sleep(1)
+        with Client(router=XENBUS_ROUTER) as client:
+            action(server_os, client)
+            time.sleep(1)
 
 
 def get_server_type():
