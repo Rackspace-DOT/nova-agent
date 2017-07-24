@@ -23,7 +23,7 @@ class TestHelpers(TestCase):
     def test_libs_init_version(self):
         temp = libs.DefaultOS()
         self.assertEqual(
-            temp.version('Name', 'Value'),
+            temp.version('Name', 'Value', 'Client'),
             ('0', '2.0.0'),
             'Did not get expected value on version'
         )
@@ -31,7 +31,7 @@ class TestHelpers(TestCase):
     def test_libs_init_features(self):
         temp = libs.DefaultOS()
         self.assertEqual(
-            temp.features('Name', 'Value'),
+            temp.features('Name', 'Value', 'Client'),
             (
                 '0',
                 'kmsactivate,resetnetwork,version,keyinit,'
@@ -45,7 +45,7 @@ class TestHelpers(TestCase):
         with mock.patch('novaagent.libs.FileInject.injectfile_cmd') as fin:
             fin.return_value = ('0', '')
             self.assertEqual(
-                temp.injectfile('Name', 'Value'),
+                temp.injectfile('Name', 'Value', 'Client'),
                 ('0', ''),
                 'Did not get expected value on file inject'
             )
@@ -55,7 +55,7 @@ class TestHelpers(TestCase):
         with mock.patch('novaagent.libs.PasswordCommands.password_cmd') as pas:
             pas.return_value = ('0', '')
             self.assertEqual(
-                temp.password('Name', 'Value'),
+                temp.password('Name', 'Value', 'Client'),
                 ('0', ''),
                 'Did not get expected value on password'
             )
@@ -65,7 +65,7 @@ class TestHelpers(TestCase):
         with mock.patch('novaagent.libs.PasswordCommands.keyinit_cmd') as key:
             key.return_value = ('0', '')
             self.assertEqual(
-                temp.keyinit('Name', 'Value'),
+                temp.keyinit('Name', 'Value', 'Client'),
                 ('0', ''),
                 'Did not get expected value on keyinit'
             )
