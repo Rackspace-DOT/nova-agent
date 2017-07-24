@@ -57,8 +57,8 @@ def action(server_os, client):
 
 def nova_agent_listen(server_type, server_os):
     log.info('Starting actions for {0}...'.format(server_type.__name__))
-    while True:
-        with Client(router=XENBUS_ROUTER) as client:
+    with Client(router=XENBUS_ROUTER) as client:
+        while True:
             action(server_os, client)
             time.sleep(1)
 
