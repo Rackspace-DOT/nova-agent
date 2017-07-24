@@ -34,7 +34,7 @@ def action(server_os, client):
         command_return = ('', '')
         if hasattr(server_os, event['name']):
             run_command = getattr(server_os, event['name'])
-            command_return = run_command(event['name'], event['value'])
+            command_return = run_command(event['name'], event['value'], client)
 
         utils.remove_xenhost_event(uuid, client)
         message = command_return[1]

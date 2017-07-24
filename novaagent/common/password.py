@@ -272,7 +272,7 @@ def _create_temp_password_file(user, password, filename):
                 salt = '$1$%s$' % _make_salt(8)
 
             enc_pass = crypt.crypt(password, salt)
-            f.write("%s:%s:%s" % (s_user, enc_pass, s_rest))
+            f.write("%s:%s:%s\n" % (s_user, enc_pass, s_rest))
 
         f.close()
         f = None

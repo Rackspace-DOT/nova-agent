@@ -180,7 +180,7 @@ def remove_xenhost_event(uuid, client):
 
 def update_xenguest_event(uuid, data, client):
     success = False
-    write_path = encode_to_bytes('data/host/{0}'.format(uuid))
+    write_path = encode_to_bytes('data/guest/{0}'.format(uuid))
     write_value = encode_to_bytes(json.dumps(data))
 
     try:
