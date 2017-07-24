@@ -25,6 +25,7 @@ class ServerOS(DefaultOS):
         )
         utils.backup_file(interface_file)
         with open(interface_file, 'w') as iffile:
+            iffile.write('# Automatically generated, do not edit\n\n')
             iffile.write('# Label {0}\n'.format(iface['label']))
             iffile.write('BOOTPROTO=static\n')
             iffile.write('DEVICE={0}\n'.format(ifname))
