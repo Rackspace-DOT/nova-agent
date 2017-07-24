@@ -84,7 +84,16 @@ def get_hw_addr(ifname):
             0x8927,
             struct.pack('256s', bin_ifname)
         )
-        return ''.join(['%02x' % ord(char) for char in info[18:24]]).upper()
+        try:
+            hw_address = ''.join(
+                ['%02x' % ord(char) for char in info[18:24]]
+            ).upper()
+        except:
+            hw_address = ''.join(
+                ['%02x' % char for char in info[18:24]]
+            ).upper()
+
+        return hw_address
     except IOError:
         if HAS_NETIFACES is False:
             return False
