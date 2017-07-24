@@ -9,6 +9,8 @@ CENTOS_ROUTE_FILE = [
 ]
 
 CENTOS_IFCFG_ETH1 = [
+    '# Automatically generated, do not edit\n',
+    '\n',
     '# Label private\n',
     'BOOTPROTO=static\n',
     'DEVICE=eth1\n',
@@ -19,6 +21,8 @@ CENTOS_IFCFG_ETH1 = [
 ]
 
 CENTOS_IFCFG_ETH0 = [
+    '# Automatically generated, do not edit\n',
+    '\n',
     '# Label public\n',
     'BOOTPROTO=static\n',
     'DEVICE=eth0\n',
