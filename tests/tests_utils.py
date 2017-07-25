@@ -227,11 +227,11 @@ class TestHelpers(TestCase):
         )
 
     def test_get_mac_address_from_system_string(self):
-        check_mac_addr = 'BC764E206C5B'
+        check_mac_addr = 'BC764E2012B3'
         with mock.patch('novaagent.utils.socket.socket.fileno') as fileno:
             fileno.return_value = 3
             with mock.patch('novaagent.utils.fcntl.ioctl') as get_hex:
-                get_hex.return_value = xen_data.FCNTL_INFO
+                get_hex.return_value = xen_data.FNCTL_INFO_STRING
                 mac_address = utils.get_hw_addr('eth1')
 
         self.assertEqual(
@@ -241,15 +241,11 @@ class TestHelpers(TestCase):
         )
 
     def test_get_mac_address_from_system_bytes(self):
-        check_mac_addr = 'C2BC764E206C'
+        check_mac_addr = 'BC764E2012B3'
         with mock.patch('novaagent.utils.socket.socket.fileno') as fileno:
             fileno.return_value = 3
             with mock.patch('novaagent.utils.fcntl.ioctl') as get_hex:
-                try:
-                    get_hex.return_value = bytes(xen_data.FCNTL_INFO)
-                except:
-                    get_hex.return_value = bytes(xen_data.FCNTL_INFO, 'utf-8')
-
+                get_hex.return_value = xen_data.FCNTL_INFO_BYTES
                 mac_address = utils.get_hw_addr('eth1')
 
         self.assertEqual(
