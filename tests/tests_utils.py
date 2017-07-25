@@ -71,6 +71,15 @@ class TestHelpers(TestCase):
             'Event list does not match expected list'
         )
 
+    def test_list_host_xen_events_exception(self):
+        client = ClientTest(None)
+        event_list = utils.list_xen_events(client)
+        self.assertEquals(
+            event_list,
+            [],
+            'Event list should be an empty list with exception'
+        )
+
     def test_get_host_event(self):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         event_check = {
@@ -83,6 +92,16 @@ class TestHelpers(TestCase):
             event_check,
             event_details,
             'Event details do not match expected value'
+        )
+
+    def test_get_host_event_exception(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        client = ClientTest(None)
+        event_details = utils.get_xen_event(host_event_id, client)
+        self.assertEquals(
+            event_details,
+            None,
+            'Event details should be None on exception'
         )
 
     def test_remove_xenhost_event_failure(self):
@@ -149,7 +168,7 @@ class TestHelpers(TestCase):
             'Network info should be None on error'
         )
 
-    def test_netowrk_get_mac_addresses_success(self):
+    def test_network_get_mac_addresses_success(self):
         check_mac_addrs = ['BC764E206C5B', 'BC764E206C5A']
         client = ClientTest(xen_data.get_mac_addresses())
         mac_addrs = utils.list_xenstore_macaddrs(client)
@@ -157,6 +176,15 @@ class TestHelpers(TestCase):
             mac_addrs,
             check_mac_addrs,
             'Mac addrs returned do not match expected value'
+        )
+
+    def test_network_get_mac_addresses_exception(self):
+        client = ClientTest(None)
+        mac_addrs = utils.list_xenstore_macaddrs(client)
+        self.assertEquals(
+            mac_addrs,
+            [],
+            'Mac addrs returned is not empty list after error'
         )
 
     def test_network_get_mac_addresses_failure(self):
@@ -198,12 +226,30 @@ class TestHelpers(TestCase):
             'Interfaces returned do not match expected return'
         )
 
-    def test_get_mac_address_from_system(self):
+    def test_get_mac_address_from_system_string(self):
         check_mac_addr = 'BC764E206C5B'
         with mock.patch('novaagent.utils.socket.socket.fileno') as fileno:
             fileno.return_value = 3
             with mock.patch('novaagent.utils.fcntl.ioctl') as get_hex:
                 get_hex.return_value = xen_data.FCNTL_INFO
+                mac_address = utils.get_hw_addr('eth1')
+
+        self.assertEqual(
+            check_mac_addr,
+            mac_address,
+            'Mac addresses returned does not match expected value'
+        )
+
+    def test_get_mac_address_from_system_bytes(self):
+        check_mac_addr = 'C2BC764E206C'
+        with mock.patch('novaagent.utils.socket.socket.fileno') as fileno:
+            fileno.return_value = 3
+            with mock.patch('novaagent.utils.fcntl.ioctl') as get_hex:
+                try:
+                    get_hex.return_value = bytes(xen_data.FCNTL_INFO)
+                except:
+                    get_hex.return_value = bytes(xen_data.FCNTL_INFO, 'utf-8')
+
                 mac_address = utils.get_hw_addr('eth1')
 
         self.assertEqual(

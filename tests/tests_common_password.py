@@ -73,6 +73,24 @@ class TestHelpers(TestCase):
             "invalid key from kwargs"
         )
 
+    def test_change_password_bytes(self):
+        test = password.PasswordCommands()
+        test_password = b'test_password\n'
+        with mock.patch('novaagent.common.password.set_password'):
+            try:
+                test._change_password(test_password)
+            except:
+                assert False, 'An error was generated when should not have'
+
+    def test_change_password_string(self):
+        test = password.PasswordCommands()
+        test_password = 'test_password\n'
+        with mock.patch('novaagent.common.password.set_password'):
+            try:
+                test._change_password(test_password)
+            except:
+                assert False, 'An error was generated when should not have'
+
     def test_make_private_key(self):
         test = password.PasswordCommands()
         private_key = test._make_private_key()
@@ -224,6 +242,29 @@ class TestHelpers(TestCase):
                 "500: Input strings must be a multiple of 16 in length",
                 'Incorrect message received generic password error'
             )
+
+    def test_password_cmd_success(self):
+        test = password.PasswordCommands(testmode=True)
+        test.aes_key = (
+            b"\xf8\x05\x98\xbb '\xeeM<=\xe2\x8eU\xf6E\xa1",
+            b';\xd1\xacR|:\xc2\xdd#t\x181\xad\x11d\x0b'
+        )
+        with mock.patch(
+            'novaagent.common.password.PasswordCommands._decode_password'
+        ):
+            with mock.patch(
+                'novaagent.common.password.PasswordCommands._change_password'
+            ):
+                message = test.password_cmd(
+                    '6E6haX/YGRSEcR9X9+3nLOgD+ItDTv9/'
+                    'uOHms02Cos0sqI/k1uFIC3V/YNydHJOk'
+                )
+
+        self.assertEqual(
+            ("0", ""),
+            message,
+            'Did not receive expected message on change password'
+        )
 
     def test_password_cmd_error(self):
         test = password.PasswordCommands(testmode=True)
