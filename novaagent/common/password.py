@@ -251,17 +251,17 @@ def _create_temp_password_file(user, password, filename):
         for line in file_data:
             line = line.strip()
             if line.startswith('#'):
-                f.write(line)
+                f.write('{0}\n'.format(line))
                 continue
 
             try:
                 (s_user, s_password, s_rest) = line.split(':', 2)
             except ValueError as exc:
-                f.write(line)
+                f.write('{0}\n'.format(line))
                 continue
 
             if s_user != user:
-                f.write(line)
+                f.write('{0}\n'.format(line))
                 continue
 
             if s_password.startswith('$'):
