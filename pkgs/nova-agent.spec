@@ -1,20 +1,17 @@
 %global debug_package %{nil}
 
+
 # python3
-%if 0%{?fedora} || 0%{?suse_version}
+%if 0%{?fedora}
 %global with_python3 1
 %endif
 
+
 # systemd
-%if 0%{?fedora} || 0%{?suse_version} || 0%{?rhel} >= 7
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %global with_systemd 1
 %endif
 
-# suse macro fixes
-%if 0%{?suse_version}
-%global __python3 /usr/bin/python3
-%global python3_version %{py3_ver}
-%endif
 
 # el6 macro fixes
 %if 0%{?rhel} && 0%{?rhel} <= 6
@@ -23,16 +20,18 @@
 %global python2_sitelib %{python_sitelib}
 %endif
 
+
 Name:       nova-agent
-Version:    0.2.1
+Version:    2.0.0
 Release:    1%{?dist}
 Summary:    Agent for setting up clean servers on Xen
 
 Group:      System Environment/Base
 License:    ASL 2.0
-URL:        https://github.com/gtmanfred/nova-agent
-Source0:    https://github.com/gtmanfred/nova-agent/archive/v%{version}.tar.gz
+URL:        https://github.com/oldarmyc/nova-agent
+Source0:    https://github.com/oldarmyc/nova-agent/archive/v%{version}.tar.gz
 BuildArch:  noarch
+
 
 %if 0%{?with_python3}
 BuildRequires: python3-devel
@@ -42,25 +41,28 @@ BuildRequires: python-devel
 BuildRequires: python-setuptools
 %endif # with_python3
 
+
 # systemd macros
 %if 0%{?with_systemd}
-%if 0%{?suse_version}
-BuildRequires: systemd-rpm-macros
-%else
 BuildRequires: systemd
-%endif # suse_version
 %endif # with_systemd
+
 
 # pycrypto
 %if 0%{?with_python3}
-%if 0%{?suse_version}
-Requires: python3-pycrypto
-%else
 Requires: python3-crypto
-%endif # suse_version
 %else
 Requires: python-crypto
 %endif # with_python3
+
+
+# pyxs
+%if 0%{?with_python3}
+Requires: python3-pyxs
+%else
+Requires: python-pyxs
+%endif # with_python3
+
 
 # scriptlets
 %if 0%{?with_systemd}
@@ -74,20 +76,13 @@ Requires(preun): initscripts
 Requires(postun): initscripts
 %endif # with_systemd
 
+
 # common requirements
-Requires: /usr/bin/xenstore-ls
-Requires: /usr/bin/xenstore-read
-Requires: /usr/bin/xenstore-rm
-Requires: /usr/bin/xenstore-write
+# No requirments needed
 
 
 %description
-Python agent for setting up clean servers on Xen using xenstore data and the
-command line commands:
-xenstore-write
-xenstore-read
-xenstore-ls
-xenstore-rm
+Python agent for setting up clean servers on Xen using xenstore data
 
 
 %prep
@@ -117,21 +112,14 @@ install -Dm755 etc/%{name}.redhat %{buildroot}/%{_initddir}/nova-agent
 
 
 %post
-%if 0%{?suse_version}
-%service_add_post %{name}.service
-%else
 %if 0%{?with_systemd}
 %systemd_post %{name}.service
 %else
 chkconfig --add %{name}
 %endif # with_systemd
-%endif # suse_version
 
 
 %preun
-%if 0%{?suse_version}
-%service_del_preun %{name}.service
-%else
 %if 0%{?with_systemd}
 %systemd_preun %{name}.service
 %else
@@ -140,13 +128,9 @@ if [ $1 -eq 0 ]; then
     chkconfig --del %{name} &> /dev/null
 fi
 %endif # with_systemd
-%endif # suse_version
 
 
 %postun
-%if 0%{?suse_version}
-%service_del_postun %{name}.service
-%else
 %if 0%{?with_systemd}
 %systemd_postun_with_restart %{name}.service
 %else
@@ -154,7 +138,6 @@ if [ $1 -ge 1 ]; then
     service %{name} condrestart >/dev/null 2>&1 || :
 fi
 %endif # with_systemd
-%endif # suse_version
 
 
 %files
@@ -174,6 +157,9 @@ fi
 
 
 %changelog
+* Mon Jun 26 2017 Dave Kludt <david.kludt@rackspace.com> 2.0.0
+- Refactor code and bump to higher version so upgrade can be done
+
 * Mon Feb 15 2016 Daniel Wallace <danielwallace@gtmanfred.com> 0.2.1-1
 - Always write a string to xenstore on returns
 
