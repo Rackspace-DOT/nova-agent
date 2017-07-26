@@ -162,8 +162,14 @@ class PasswordCommands(object):
 
         if self.kwargs.get('testmode', False):
             return None
+
+        if isinstance(passwd, bytes):
+            string_passwd = passwd.decode('utf-8')
+        else:
+            string_passwd = str(passwd)
+
         # Make sure there are no newlines at the end
-        set_password('root', passwd.strip('\n'))
+        set_password('root', string_passwd.strip('\n'))
 
     def _wipe_key(self):
         """Remove key from a previous keyinit command"""
