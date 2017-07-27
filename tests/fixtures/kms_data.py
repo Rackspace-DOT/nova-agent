@@ -8,7 +8,7 @@ versionOverride=
 enableProxyAuth[comment]=To use an authenticated proxy or not
 enableProxyAuth=0
 
-networkRetries[comment]=Number of attempts to make at network connections '''         '''before giving up
+networkRetries[comment]=Number of attempts to make at network connections before giving up
 networkRetries=5
 
 hostedWhitelist[comment]=None
@@ -29,8 +29,8 @@ noSSLServerURL=http://iadproxy.rhn.rackspace.com/XMLRPC;
 proxyUser[comment]=The username for an authenticated proxy
 proxyUser=
 
-disallowConfChanges[comment]=Config options that can not be overwritten '''         '''by a config update action
-disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;noSSLServerURL;'''         '''serverURL;disallowConfChanges;
+disallowConfChanges[comment]=Config options that can not be overwritten by a config update action
+disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;noSSLServerURL;serverURL;disallowConfChanges;
 
 sslCACert[comment]=The CA cert used to verify the ssl server
 sslCACert=/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT
@@ -67,8 +67,7 @@ UP2DATE_READLINES = [
     '\n',
     (
         "networkRetries[comment]="
-        "Number of attempts to make at network connections '''         '''"
-        "before giving up\n"
+        "Number of attempts to make at network connections before giving up\n"
     ),
     'networkRetries=5\n',
     '\n',
@@ -92,12 +91,12 @@ UP2DATE_READLINES = [
     '\n',
     (
         "disallowConfChanges[comment]="
-        "Config options that can not be overwritten '''         '''"
+        "Config options that can not be overwritten "
         "by a config update action\n"
     ),
     (
         "disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;"
-        "noSSLServerURL;'''         '''serverURL;disallowConfChanges;\n"
+        "noSSLServerURL;serverURL;disallowConfChanges;\n"
     ),
     '\n',
     'sslCACert[comment]=The CA cert used to verify the ssl server\n',

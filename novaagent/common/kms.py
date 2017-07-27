@@ -80,8 +80,8 @@ versionOverride=
 enableProxyAuth[comment]=To use an authenticated proxy or not
 enableProxyAuth=0
 
-networkRetries[comment]=Number of attempts to make at network connections ''' \
-        '''before giving up
+networkRetries[comment]=Number of attempts to make at network """ \
+"""connections before giving up
 networkRetries=5
 
 hostedWhitelist[comment]=None
@@ -102,10 +102,10 @@ noSSLServerURL=%(noSSLServerURL)s;
 proxyUser[comment]=The username for an authenticated proxy
 proxyUser=
 
-disallowConfChanges[comment]=Config options that can not be overwritten ''' \
-        '''by a config update action
-disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;noSSLServerURL;''' \
-        '''serverURL;disallowConfChanges;
+disallowConfChanges[comment]=Config options that can not be """ \
+"""overwritten by a config update action
+disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;""" \
+"""noSSLServerURL;serverURL;disallowConfChanges;
 
 sslCACert[comment]=The CA cert used to verify the ssl server
 sslCACert=/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT
