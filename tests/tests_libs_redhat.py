@@ -17,7 +17,7 @@ class TestHelpers(TestCase):
         temp = redhat.ServerOS()
         with mock.patch('novaagent.common.kms.kms_activate') as kms:
             kms.return_value = ("0", "")
-            message = temp.kmsactivate('name', 'value')
+            message = temp.kmsactivate('name', 'value', 'client')
 
         self.assertEqual(
             ("0", ""),

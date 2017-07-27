@@ -7,5 +7,5 @@ from novaagent.libs import centos
 
 
 class ServerOS(centos.ServerOS):
-    def kmsactivate(self, name, value):
+    def kmsactivate(self, name, value, client):
         return kms.kms_activate(value)
