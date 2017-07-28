@@ -1,14 +1,14 @@
 Source: nova-agent
-Maintainer: Daniel Wallace <danielwallace@gtmanfred.com>
+Maintainer: David Kludt <david.kludt@rackspace.com>
 Section: python
 Priority: optional
 Standards-Version: 3.9.5
 Build-Depends:
  debhelper (>= 9),
  dh-python,
- python-all (>= 2.6.6-3),
+ python-all (>= 2.7.9-1),
  python-setuptools,
-X-Python-Version: >= 2.6
+X-Python-Version: >= 2.7
 
 Package: nova-agent
 Architecture: all
