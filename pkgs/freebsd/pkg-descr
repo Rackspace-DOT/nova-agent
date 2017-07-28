@@ -1,3 +1,0 @@
-Agent used to listen to xenstore and configure servers on first boot
-
-WWW: http://github.com/gtmanfred/nova-agent
