@@ -3,7 +3,12 @@ from unittest import TestCase
 from novaagent import libs
 
 import novaagent
-import mock
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestHelpers(TestCase):

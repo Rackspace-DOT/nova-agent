@@ -5,9 +5,14 @@ from novaagent.common import file_inject
 
 import base64
 import shutil
-import mock
 import glob
 import os
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestHelpers(TestCase):

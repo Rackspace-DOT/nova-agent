@@ -4,8 +4,13 @@ from unittest import TestCase
 
 
 import novaagent
-import mock
 import time
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestHelpers(TestCase):

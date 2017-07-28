@@ -3,10 +3,14 @@ from unittest import TestCase
 from .fixtures import xen_data
 from novaagent import utils
 
-
-import mock
 import glob
 import os
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class ClientTest(object):

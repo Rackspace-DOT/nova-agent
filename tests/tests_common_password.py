@@ -4,10 +4,15 @@ from novaagent.common import password
 
 
 import base64
-import mock
 import glob
 import sys
 import os
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 if sys.version_info > (3,):

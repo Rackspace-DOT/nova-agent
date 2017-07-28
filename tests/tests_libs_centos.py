@@ -5,9 +5,14 @@ from .fixtures import network
 from unittest import TestCase
 
 
-import mock
 import glob
 import os
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestHelpers(TestCase):
