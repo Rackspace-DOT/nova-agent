@@ -16,4 +16,4 @@ Depends:
  ${misc:Depends},
  ${python:Depends},
  python-crypto
-Description: Xenstore agent for servers
+Description: Python xenstore agent for servers
