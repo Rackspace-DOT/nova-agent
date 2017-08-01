@@ -7,10 +7,8 @@ python:
   - "3.5"
   - "3.6"
 install:
-  - pip install -r requirements.txt
-  - pip install -r opt_requirements.txt
+  - pip install -e .[tests]
 before_script:
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pyflakes .; fi
-  - if [[ $TRAVIS_PYTHON_VERSION > 2.6 ]]; then flake8 .; fi
+  - flake8 .
 script:
   - nosetests -v --cover-erase --with-coverage --cover-package=novaagent

@@ -2,6 +2,19 @@
 
 import setuptools
 import novaagent
+import sys
+
+
+requirements = ['netifaces', 'pyxs', 'pycrypto']
+if sys.version_info[:2] < (2, 7):
+    requirements.append('argparse')
+
+
+test_requirements = ['mock', 'nose']
+if sys.version_info[:2] < (2, 7):
+    test_requirements.extend(['flake8 < 3', 'unittest2'])
+else:
+    test_requirements.append('flake8')
 
 
 setuptools.setup(
@@ -13,10 +26,9 @@ setuptools.setup(
     ),
     author='David Kludt',
     author_email='david.kludt@rackspace.com',
-    install_requires=['pyxs', 'pycrypto'],
-    extra_require={
-        'dev': ['netifaces'],
-        'test': ['mock', 'coverage', 'flake8', 'nose']
+    install_requires=requirements,
+    extras_require={
+        'tests': test_requirements
     },
     entry_points={
         'console_scripts': [
