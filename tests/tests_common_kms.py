@@ -3,9 +3,14 @@ from novaagent.common import kms
 from unittest import TestCase
 from .fixtures import kms_data
 
-import mock
 import glob
 import os
+
+
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestHelpers(TestCase):

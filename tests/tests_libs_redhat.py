@@ -3,7 +3,10 @@ from novaagent.libs import redhat
 from unittest import TestCase
 
 
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 
 
 class TestHelpers(TestCase):
