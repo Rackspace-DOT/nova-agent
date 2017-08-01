@@ -164,7 +164,7 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 return (
                     str(p.returncode),
-                    'Error stopping network: {}'.format(ifname)
+                    'Error stopping network: {0}'.format(ifname)
                 )
 
             # Sleep for one second
@@ -179,7 +179,7 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 return (
                     str(p.returncode),
-                    'Error starting network: {}'.format(ifname)
+                    'Error starting network: {0}'.format(ifname)
                 )
 
         return ('0', '')

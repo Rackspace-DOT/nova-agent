@@ -361,7 +361,7 @@ class TestHelpers(TestCase):
             password.set_password('testuser', 'test')
         except Exception as e:
             assert False, (
-                'Exception raised when should not have: {}'.format(e)
+                'Exception raised when should not have: {0}'.format(e)
             )
 
         files = glob.glob('/tmp/passwd*')
