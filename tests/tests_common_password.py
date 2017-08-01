@@ -1,5 +1,4 @@
 
-from unittest import TestCase
 from novaagent.common import password
 
 
@@ -7,6 +6,12 @@ import base64
 import glob
 import sys
 import os
+
+
+if sys.version_info[:2] >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 
 try:

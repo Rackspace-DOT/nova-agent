@@ -1,10 +1,16 @@
 
 from novaagent.libs import centos
-from unittest import TestCase
 
 
 import novaagent
 import time
+import sys
+
+
+if sys.version_info[:2] >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 
 try:

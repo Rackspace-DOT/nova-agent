@@ -1,10 +1,16 @@
 
 from novaagent.common import kms
-from unittest import TestCase
 from .fixtures import kms_data
 
 import glob
 import os
+import sys
+
+
+if sys.version_info[:2] >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 
 try:
