@@ -1,2 +1,11 @@
-# required for freebsd
+# required for freebsd and testing
 netifaces
+
+# For testing
+coverage
+flake8; python_version > '2.6'
+funcsigs; python_version > '2.6'
+
+#Specific python 2.6 requirements
+unittest2; python_version == '2.6'
+pyflakes; python_version == '2.6'

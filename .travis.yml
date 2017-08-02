@@ -9,7 +9,10 @@ python:
 install:
   - pip install -r requirements.txt
   - pip install -r opt_requirements.txt
-  - pip install coverage flake8 funcsigs
 before_script:
-  - flake8 .
-script: nosetests -v --cover-erase --with-coverage --cover-package=novaagent
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pyflakes .; fi
+  - if [[ $TRAVIS_PYTHON_VERSION > 2.6 ]]; then flake8 .; fi
+script:
+  - nosetests -v --cover-erase --with-coverage --cover-package=novaagent
+after_success:
+  - coveralls
