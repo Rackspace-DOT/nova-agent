@@ -17,9 +17,6 @@ except ImportError:
     import mock
 
 
-
-
-
 class TestHelpers(TestCase):
     def setUp(self):
         pass
