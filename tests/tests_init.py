@@ -27,7 +27,7 @@ class TestHelpers(TestCase):
     def test_version(self):
         self.assertEqual(
             novaagent.__version__,
-            '2.0.0',
+            '2.0.3',
             'Version expected was not returned correctly'
         )
 
@@ -35,7 +35,7 @@ class TestHelpers(TestCase):
         temp = libs.DefaultOS()
         self.assertEqual(
             temp.version('Name', 'Value', 'Client'),
-            ('0', '2.0.0'),
+            ('0', '2.0.3'),
             'Did not get expected value on version'
         )
 
