@@ -43,7 +43,7 @@ class TestHelpers(TestCase):
             f.write('This is a test file')
 
     def setup_temp_interface_config(self, interface):
-        with open('/tmp/ifcfg-{}'.format(interface), 'a+') as f:
+        with open('/tmp/ifcfg-{0}'.format(interface), 'a+') as f:
             f.write('This is a test file')
 
     def setup_temp_hostname(self):
