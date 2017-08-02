@@ -8,8 +8,9 @@ python:
   - "3.6"
 install:
   - pip install -r requirements.txt
-  - pip install -r opt_requirements.txt
-  - pip install coverage flake8 funcsigs
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install -r python2-6-requirements.txt; fi
+  - if [[ $TRAVIS_PYTHON_VERSION > 2.6 ]]; then pip install -r opt_requirements.txt; fi
 before_script:
-  - flake8 .
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pyflakes .; fi
+  - if [[ $TRAVIS_PYTHON_VERSION > 2.6 ]]; then flake8 .; fi
 script: nosetests -v --cover-erase --with-coverage --cover-package=novaagent

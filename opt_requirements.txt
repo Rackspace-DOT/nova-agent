@@ -1,2 +1,7 @@
-# required for freebsd
+# required for freebsd and testing
 netifaces
+
+# For testing
+coverage
+flake8
+funcsigs
