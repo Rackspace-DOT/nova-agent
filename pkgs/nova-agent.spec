@@ -6,9 +6,10 @@
 %bcond_without systemd
 %endif
 
+%bcond_without tests
 
 Name: nova-agent
-Version: 2.0.0
+Version: 2.0.3
 Release: 1%{?dist}
 Summary: Agent for setting up clean servers on Xen
 License: ASL 2.0
@@ -17,11 +18,21 @@ Source0: https://github.com/oldarmyc/nova-agent/archive/%{version}/nova-agent-%{
 BuildArch: noarch
 
 %{?with_systemd:BuildRequires: systemd}
-
 BuildRequires: python%{?with_python3:3}-devel
 BuildRequires: python%{?with_python3:3}-setuptools
+%if %{with tests}
+%{!?with_python3:BuildRequires: python-mock}
+BuildRequires: python%{?with_python3:3}-nose
+%{?el6:BuildRequires: python-unittest2}
+%{?el6:BuildRequires: python-argparse}
+BuildRequires: python%{?with_python3:3}-crypto
+BuildRequires: python%{?with_python3:3}-netifaces
+BuildRequires: python%{?with_python3:3}-pyxs
+%endif
 
+%{?el6:Requires: python-argparse}
 Requires: python%{?with_python3:3}-crypto
+Requires: python%{?with_python3:3}-netifaces
 Requires: python%{?with_python3:3}-pyxs
 %if %{with systemd}
 Requires(post): systemd
@@ -40,7 +51,7 @@ Python agent for setting up clean servers on Xen using xenstore data
 
 
 %prep
-%setup -q
+%autosetup -p 1
 
 
 %build
@@ -62,6 +73,16 @@ Python agent for setting up clean servers on Xen using xenstore data
 install -Dm644 etc/nova-agent.service %{buildroot}/%{_unitdir}/nova-agent.service
 %else
 install -Dm755 etc/nova-agent.redhat %{buildroot}/%{_initddir}/nova-agent
+%endif
+
+
+%if %{with tests}
+%check
+%if %{with python3}
+nosetests-%{python3_version} -v
+%else
+nosetests -v
+%endif
 %endif
 
 
@@ -110,6 +131,10 @@ fi
 
 
 %changelog
+* Wed Aug 02 2017 Carl George <carl@george.computer> - 2.0.3-1
+- Latest upstream
+- Run test suite
+
 * Mon Jun 26 2017 Dave Kludt <david.kludt@rackspace.com> 2.0.0-1
 - Refactor code and bump to higher version so upgrade can be done
 
