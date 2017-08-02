@@ -1,6 +1,14 @@
 
 from novaagent.libs import redhat
-from unittest import TestCase
+
+
+import sys
+
+
+if sys.version_info[:2] >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 
 try:

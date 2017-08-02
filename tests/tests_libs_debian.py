@@ -2,11 +2,17 @@
 from novaagent.libs import debian
 from .fixtures import xen_data
 from .fixtures import network
-from unittest import TestCase
 
 
 import glob
 import os
+import sys
+
+
+if sys.version_info[:2] >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 
 try:

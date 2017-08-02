@@ -1,12 +1,18 @@
 
-from unittest import TestCase
 from novaagent.common import file_inject
 
 
 import base64
 import shutil
+import sys
 import glob
 import os
+
+
+if sys.version_info[:2] >= (2, 7):
+    from unittest import TestCase
+else:
+    from unittest2 import TestCase
 
 
 try:
