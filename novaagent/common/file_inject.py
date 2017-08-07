@@ -1,5 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-#
 #  Copyright (c) 2011 Openstack, LLC.
 #  All Rights Reserved.
 #
@@ -31,7 +29,7 @@ def _get_file_permissions(filename):
     try:
         _stat = os.stat(filename)
         return (_stat.st_mode, _stat.st_uid, _stat.st_gid)
-    except Exception as e:
+    except Exception:
         return (0o644, 0, 0)
 
 
@@ -47,8 +45,11 @@ def _write_file(filename, data):
     f.write(data)
     f.close()
 
-    os.chown(tempfilename, owner, group)
-    os.chmod(tempfilename, permission)
+    try:
+        os.chown(tempfilename, owner, group)
+        os.chmod(tempfilename, permission)
+    except:
+        pass
 
     if os.path.exists(filename):
         # Backup old file first
@@ -58,7 +59,6 @@ def _write_file(filename, data):
 
 
 class FileInject(object):
-
     def __init__(self, *args, **kwargs):
         pass
 
@@ -68,8 +68,7 @@ class FileInject(object):
         except:
             return ("500", "Error doing base64 decoding of data")
 
-        (filename, data) = b64_decoded.split(',', 1)
+        filename, data = b64_decoded.decode('utf-8').split(',', 1)
 
         _write_file(filename, data)
-
         return ("0", "")

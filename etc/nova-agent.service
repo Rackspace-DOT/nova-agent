@@ -3,7 +3,8 @@ Description=Nova Agent for xenstore
 Before=network.target
 
 [Service]
-ExecStart=/usr/bin/nova-agent
+Type=forking
+ExecStart=/usr/bin/nova-agent -o /var/log/nova-agent.log -l info
 
 [Install]
 WantedBy=basic.target

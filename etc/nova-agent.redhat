@@ -22,12 +22,15 @@
 
 prog="nova-agent"
 exec="/usr/bin/$prog"
+pidfile="/var/run/nova-agent.pid"
 lockfile="/var/lock/subsys/$prog"
+logfile="/var/log/nova-agent.log"
+loglevel="info"
 
 start() {
     [ -x $exec ] || exit 5
     echo -n $"Starting $prog: "
-    daemon $exec
+    daemon $exec -o $logfile -l $loglevel
     retval=$?
     echo
     [ $retval -eq 0 ] && touch $lockfile

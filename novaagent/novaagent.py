@@ -1,84 +1,132 @@
-from __future__ import print_function, absolute_import
+
+from __future__ import print_function
+from __future__ import absolute_import
+
+from pyxs.connection import XenBusConnection
+from pyxs.client import Client
+
+
 import argparse
+import logging
 import time
-import json
 import os
 import sys
-import argparse
+
 
 from novaagent import utils
-from novaagent.libs import (
-    archlinux,
-    centos,
-    debian,
-    freebsd,
-    gentoo,
-    redhat,
-    suse,
-)
+from novaagent.libs import centos
+from novaagent.libs import debian
+from novaagent.libs import redhat
+from novaagent.xenbus import XenGuestRouter
 
-import logging
+
 log = logging.getLogger(__name__)
 
 
-def action(serveros):
-    for uuid in utils.list_xen_events():
-        event = utils.get_xen_event(uuid)
-        log.info('Event: {0} -> {1}'.format(uuid, event['name']))
-        returncode = ()
-        if hasattr(serveros, event['name']):
-            cmd = getattr(serveros, event['name'])
-            returncode = cmd(event['name'], event['value'])
+# Connect to Xenbus in order to interact with xenstore
+XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
-        utils.remove_xenhost_event(uuid)
-        if returncode:
-            utils.update_xenguest_event(uuid, {'message': returncode[1], 'returncode': returncode[0]})
-            log.info('Returning {{"message": "{1}", "returncode": "{0}"}}'.format(*returncode))
-        else:
-            utils.update_xenguest_event(uuid, {'message': '', 'returncode': '0'})
-            log.info('Returning {"message": "", "returncode": ""}')
-        action(serveros)
+
+def action(server_os, client):
+    for uuid in utils.list_xen_events(client):
+        event = utils.get_xen_event(uuid, client)
+        log.info('Event: {0} -> {1}'.format(uuid, event['name']))
+        command_return = ('', '')
+        if hasattr(server_os, event['name']):
+            run_command = getattr(server_os, event['name'])
+            command_return = run_command(event['name'], event['value'], client)
+
+        utils.remove_xenhost_event(uuid, client)
+        message = command_return[1]
+        return_code = command_return[0]
+        if command_return[0] == '':
+            return_code = '0'
+
+        utils.update_xenguest_event(
+            uuid,
+            {'message': message, 'returncode': return_code},
+            client
+        )
+        log.info(
+            'Returning {{"message": "{0}", "returncode": "{1}"}}'.format(
+                message,
+                return_code
+            )
+        )
+
+
+def nova_agent_listen(server_type, server_os):
+    log.info('Starting actions for {0}...'.format(server_type.__name__))
+    with Client(router=XENBUS_ROUTER) as client:
+        while True:
+            action(server_os, client)
+            time.sleep(1)
+
+
+def get_server_type():
+    server_type = None
+    if (
+        os.path.exists('/etc/centos-release') or
+        os.path.exists('/etc/fedora-release') or
+        os.path.exists('/etc/sl-release')
+    ):
+        server_type = centos
+    elif os.path.exists('/etc/redhat-release'):
+        server_type = redhat
+    elif os.path.exists('/etc/debian_version'):
+        server_type = debian
+
+    return server_type
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(description='Args for novaagent')
+    parser.add_argument(
+        '-l',
+        dest='loglevel',
+        type=str,
+        default='info',
+        choices=('warning', 'info', 'debug'),
+        help='log level'
+    )
+    parser.add_argument(
+        '-o',
+        dest='logfile',
+        default='-',
+        type=str,
+        help='path to log file'
+    )
+    return parser
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Args for novaagent')
-    parser.add_argument('-p', dest='pid', type=str, help='pid file')
-    parser.add_argument('-l', dest='loglevel', type=str, default='info', choices=('warning', 'info', 'debug'), help='log level')
-    parser.add_argument('-o', dest='logfile', default='-', type=str, help='path to log file')
+    parser = create_parser()
     args = parser.parse_args()
-
     loglevel = getattr(logging, args.loglevel.upper())
-    
     if args.logfile == '-':
         logging.basicConfig(stream=sys.stdout, level=loglevel)
     else:
         logging.basicConfig(filename=args.logfile, level=loglevel)
 
-    if os.path.exists('/etc/arch-release'):
-        servertype = archlinux
-    elif os.path.exists('/etc/centos-release') \
-            or os.path.exists('/etc/fedora-release') \
-            or os.path.exists('/etc/sl-release'):
-        servertype = centos
-    elif os.path.exists('/etc/redhat-release'):
-        servertype = redhat
-    elif os.path.exists('/etc/debian_version'):
-        servertype = debian
-    elif os.path.exists('/etc/gentoo-release'):
-        servertype = gentoo
-    elif os.path.exists('/etc/susehelp.d/'):
-        servertype = suse
-    elif os.path.exists('/etc/rc.conf'):
-        servertype = freebsd
+    server_type = get_server_type()
+    server_os = server_type.ServerOS()
+    log.info('Starting daemon')
+    try:
+        pid = os.fork()
+        if pid > 0:
+            log.info('PID: {0}'.format(pid))
+            os._exit(0)
 
-    log.info('Starting actions for {0}...'.format(servertype.__name__))
-    serveros = servertype.ServerOS()
-    while True:
-        if args.pid:
-            with open(args.pid, 'w') as pidfile:
-                print(os.getpid(), file=pidfile)
-        action(serveros)
-        time.sleep(1)
+    except OSError as error:
+        log.error(
+            'Unable to fork. Error: {0} {1}'.format(
+                error.errno,
+                error.strerror
+            )
+        )
+        os._exit(1)
+
+    nova_agent_listen(server_type, server_os)
 
 
 if __name__ == '__main__':

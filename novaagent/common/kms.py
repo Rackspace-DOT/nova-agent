@@ -1,4 +1,3 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
 #
 #  Copyright (c) 2011 Openstack, LLC.
 #  All Rights Reserved.
@@ -21,9 +20,11 @@ redhat/centos KMS activation helper module
 """
 from __future__ import print_function
 
+
 import os
 import subprocess
 import logging
+
 
 RHN_PATH = '/etc/sysconfig/rhn'
 SYSTEMID_PATH = os.path.join(RHN_PATH, 'systemid')
@@ -35,12 +36,25 @@ def register_with_rhn(activation_key, profile):
         os.unlink(SYSTEMID_PATH)
 
     # Call rhnreg_ks
-    logging.debug('executing /usr/sbin/rhnreg_ks --activationkey <REMOVED>' + \
-            ' --profile %s --force' % profile)
+    logging.debug(
+        'executing /usr/sbin/rhnreg_ks --activationkey <REMOVED>'
+        ' --profile %s --force' % profile
+    )
     pipe = subprocess.PIPE
-    p = subprocess.Popen(['/usr/sbin/rhnreg_ks', '--activationkey',
-            activation_key, '--profile', profile, '--force'],
-            stdin=pipe, stdout=pipe, stderr=pipe, env={})
+    p = subprocess.Popen(
+        [
+            '/usr/sbin/rhnreg_ks',
+            '--activationkey',
+            activation_key,
+            '--profile',
+            profile,
+            '--force'
+        ],
+        stdin=pipe,
+        stdout=pipe,
+        stderr=pipe,
+        env={}
+    )
     logging.debug('waiting on pid %d' % p.pid)
     status = os.waitpid(p.pid, 0)[1]
     logging.debug('status = %d' % status)
@@ -54,12 +68,11 @@ def configure_up2date(domains):
         domains = [domains]
 
     domains = ['//%s/XMLRPC' % d for d in domains]
-
     serverURL = ';'.join(['https:%s' % h for h in domains])
     noSSLServerURL = ';'.join(['http:%s' % h for h in domains])
 
-    data = \
-'''# Automatically generated Red Hat Update Agent config file, do not edit.
+    data = """
+# Automatically generated Red Hat Update Agent config file, do not edit.
 # Format: 1.0
 versionOverride[comment]=Override the automatically determined system version
 versionOverride=
@@ -67,8 +80,8 @@ versionOverride=
 enableProxyAuth[comment]=To use an authenticated proxy or not
 enableProxyAuth=0
 
-networkRetries[comment]=Number of attempts to make at network connections ''' \
-        '''before giving up
+networkRetries[comment]=Number of attempts to make at network """ \
+"""connections before giving up
 networkRetries=5
 
 hostedWhitelist[comment]=None
@@ -89,10 +102,10 @@ noSSLServerURL=%(noSSLServerURL)s;
 proxyUser[comment]=The username for an authenticated proxy
 proxyUser=
 
-disallowConfChanges[comment]=Config options that can not be overwritten ''' \
-        '''by a config update action
-disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;noSSLServerURL;''' \
-        '''serverURL;disallowConfChanges;
+disallowConfChanges[comment]=Config options that can not be """ \
+"""overwritten by a config update action
+disallowConfChanges=noReboot;sslCACert;useNoSSLForPackages;""" \
+"""noSSLServerURL;serverURL;disallowConfChanges;
 
 sslCACert[comment]=The CA cert used to verify the ssl server
 sslCACert=/usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT
@@ -108,8 +121,7 @@ systemIdPath=/etc/sysconfig/rhn/systemid
 
 noReboot[comment]=Disable the reboot action
 noReboot=0
-''' % {'serverURL': serverURL,
-       'noSSLServerURL': noSSLServerURL}
+""" % {'serverURL': serverURL, 'noSSLServerURL': noSSLServerURL}
 
     return {UP2DATE_PATH: data}
 
@@ -117,15 +129,14 @@ noReboot=0
 def kms_activate(data):
     activation_key = data['activation_key']
     profile = data['profile']
-
     domains = data['domains']
-
     update_files = configure_up2date(domains)
+
     with open(UP2DATE_PATH, 'w') as up2date:
         print(update_files[UP2DATE_PATH], file=up2date)
 
-    ret = register_with_rhn(activation_key, profile)
-    if ret:
-        return ret
+    message = register_with_rhn(activation_key, profile)
+    if message:
+        return message
 
     return ("0", "")
