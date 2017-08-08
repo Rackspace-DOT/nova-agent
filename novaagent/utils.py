@@ -1,13 +1,16 @@
 
-import fcntl
+from novaagent.xenstore import xenstore
+
+
+import logging
 import socket
 import struct
-import os
 import shutil
+import fcntl
 import json
 import time
 import glob
-import logging
+import os
 
 
 log = logging.getLogger(__name__)

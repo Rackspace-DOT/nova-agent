@@ -2,6 +2,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+
 from pyxs.connection import XenBusConnection
 from pyxs.client import Client
 
@@ -13,11 +14,11 @@ import os
 import sys
 
 
-from novaagent import utils
+from novaagent.xenbus import XenGuestRouter
 from novaagent.libs import centos
 from novaagent.libs import debian
 from novaagent.libs import redhat
-from novaagent.xenbus import XenGuestRouter
+from novaagent import utils
 
 
 log = logging.getLogger(__name__)

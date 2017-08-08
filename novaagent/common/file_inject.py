@@ -19,10 +19,11 @@ JSON File injection plugin
 """
 from __future__ import print_function
 
-import base64
-import os
+
 import os.path
+import base64
 import time
+import os
 
 
 def _get_file_permissions(filename):

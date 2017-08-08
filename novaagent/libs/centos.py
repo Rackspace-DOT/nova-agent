@@ -1,11 +1,15 @@
-from __future__ import print_function, absolute_import
+from __future__ import print_function
+from __future__ import absolute_import
 
 
 import os
 
 
+from subprocess import Popen
+from subprocess import PIPE
+
+
 from novaagent import utils
-from subprocess import Popen, PIPE
 from novaagent.libs import DefaultOS
 
 

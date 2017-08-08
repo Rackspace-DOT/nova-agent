@@ -11,20 +11,20 @@ class DefaultOS(object):
     def keyinit(self, name, value, client):
         if not hasattr(self, 'p'):
             self.p = PasswordCommands()
-        ret = self.p.keyinit_cmd(value)
-        return ret
+
+        return self.p.keyinit_cmd(value)
 
     def password(self, name, value, client):
         if not hasattr(self, 'p'):
             self.p = PasswordCommands()
-        ret = self.p.password_cmd(value)
-        return ret
+
+        return self.p.password_cmd(value)
 
     def injectfile(self, name, value, client):
         if not hasattr(self, 'f'):
             self.f = FileInject()
-        ret = self.f.injectfile_cmd(value)
-        return ret
+
+        return self.f.injectfile_cmd(value)
 
     def features(self, name, value, client):
         return (
