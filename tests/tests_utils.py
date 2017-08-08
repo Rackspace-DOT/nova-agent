@@ -1,6 +1,8 @@
 
+from .fixtures import utils_data
 from .fixtures import xen_data
 from novaagent import utils
+
 
 import glob
 import os
@@ -49,7 +51,7 @@ class TestHelpers(TestCase):
         for item in files:
             os.remove(item)
 
-    def test_get_hostname_success_popen(self):
+    def test_get_hostname_success(self):
         client = ClientTest(xen_data.get_hostname(True))
         hostname = utils.get_hostname(client)
         self.assertEquals(
@@ -59,11 +61,63 @@ class TestHelpers(TestCase):
         )
 
     def test_get_hostname_success_socket(self):
-        with mock.patch('novaagent.utils.socket') as get:
-            get.gethostname.return_value = (
-                xen_data.get_hostname(False)
+        with mock.patch(
+            'novaagent.utils.xenstore.xenstore_read',
+            side_effect=ValueError
+        ):
+            with mock.patch('novaagent.utils.socket') as get:
+                get.gethostname.return_value = (
+                    xen_data.get_hostname(False)
+                )
+                hostname = utils.get_hostname('dummy_client')
+
+        self.assertEquals(
+            hostname,
+            'test-server',
+            'Hostname does not match expected ouput'
+        )
+
+    def test_get_hostname_success_popen(self):
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (
+                utils_data.get_hostname(True)
             )
-            hostname = utils.get_hostname('dummy_client')
+            popen.return_value.returncode = 0
+            hostname = utils.get_hostname(None)
+
+        self.assertEquals(
+            hostname,
+            'test-server',
+            'Hostname does not match expected ouput'
+        )
+
+    def test_get_hostname_failure_popen(self):
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+            with mock.patch('novaagent.utils.socket') as get:
+                get.gethostname.return_value = (
+                    utils_data.get_hostname(False)
+                )
+
+                hostname = utils.get_hostname(None)
+
+        self.assertEquals(
+            hostname,
+            'test-server',
+            'Hostname does not match expected ouput'
+        )
+
+    def test_get_hostname_exception_popen(self):
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            with mock.patch('novaagent.utils.socket') as get:
+                get.gethostname.return_value = (
+                    utils_data.get_hostname(False)
+                )
+                hostname = utils.get_hostname(None)
 
         self.assertEquals(
             hostname,
@@ -84,6 +138,47 @@ class TestHelpers(TestCase):
     def test_list_host_xen_events_exception(self):
         client = ClientTest(None)
         event_list = utils.list_xen_events(client)
+        self.assertEquals(
+            event_list,
+            [],
+            'Event list should be an empty list with exception'
+        )
+
+    def test_list_host_xen_events_popen(self):
+        check_events = ['748dee41-c47f-4ec7-b2cd-037e51da4031']
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (
+                utils_data.get_xen_host_events()
+            )
+            popen.return_value.returncode = 0
+            event_list = utils.list_xen_events(None)
+
+        self.assertEquals(
+            event_list,
+            check_events,
+            'Event list does not match expected list'
+        )
+
+    def test_list_host_xen_events_failure_popen(self):
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            event_list = utils.list_xen_events(None)
+
+        self.assertEquals(
+            event_list,
+            [],
+            'Event list does not match expected list after failure'
+        )
+
+    def test_list_host_xen_events_popen_exception(self):
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            event_list = utils.list_xen_events(None)
+
         self.assertEquals(
             event_list,
             [],
@@ -114,6 +209,53 @@ class TestHelpers(TestCase):
             'Event details should be None on exception'
         )
 
+    def test_get_host_event_popen(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        event_check = {
+            "name": "keyinit",
+            "value": "68436575764933852815830951574296"
+        }
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (
+                utils_data.get_xen_host_event_details()
+            )
+            popen.return_value.returncode = 0
+            event_details = utils.get_xen_event(host_event_id, None)
+
+        self.assertEquals(
+            event_check,
+            event_details,
+            'Event details do not match expected value'
+        )
+
+    def test_get_host_event_failure_popen(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            event_details = utils.get_xen_event(host_event_id, None)
+
+        self.assertEquals(
+            event_details,
+            None,
+            'Event details do not match expected value after failure'
+        )
+
+    def test_get_host_event_popen_exception(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            event_details = utils.get_xen_event(host_event_id, None)
+
+        self.assertEquals(
+            event_details,
+            None,
+            'Event details should be None on exception'
+        )
+
     def test_remove_xenhost_event_failure(self):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         success = utils.remove_xenhost_event(host_event_id, 'dummy_client')
@@ -133,7 +275,49 @@ class TestHelpers(TestCase):
             'Return value was not True on success'
         )
 
-    def test_update_xenguest_event_success(self):
+    def test_remove_xenhost_event_success_popen(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 0
+
+            success = utils.remove_xenhost_event(host_event_id, None)
+
+        self.assertEquals(
+            success,
+            True,
+            'Return value was not True on success'
+        )
+
+    def test_remove_xenhost_event_failure_popen(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            success = utils.remove_xenhost_event(host_event_id, None)
+
+        self.assertEquals(
+            success,
+            False,
+            'Return value was not False on failure'
+        )
+
+    def test_remove_xenhost_event_exception_popen(self):
+        host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            success = utils.remove_xenhost_event(host_event_id, None)
+
+        self.assertEquals(
+            success,
+            False,
+            'Return value was not False on exception'
+        )
+
+    def test_write_xenguest_event_success(self):
         event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         client = ClientTest('')
         write_data = {"message": "", "returncode": "0"}
@@ -144,7 +328,7 @@ class TestHelpers(TestCase):
             'Return value was not True on success'
         )
 
-    def test_update_xenguest_event_failure(self):
+    def test_write_xenguest_event_failure(self):
         event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         write_data = {"message": "", "returncode": "0"}
         success = utils.update_xenguest_event(
@@ -152,6 +336,50 @@ class TestHelpers(TestCase):
             write_data,
             'dummy_client'
         )
+        self.assertEquals(
+            success,
+            False,
+            'Return value was not False on failure'
+        )
+
+    def test_write_xenguest_event_success_popen(self):
+        event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        write_data = {"message": "", "returncode": "0"}
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 0
+
+            success = utils.update_xenguest_event(event_uuid, write_data, None)
+
+        self.assertEquals(
+            success,
+            True,
+            'Return value was not True on success'
+        )
+
+    def test_write_xenguest_event_failure_popen(self):
+        event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        write_data = {"message": "", "returncode": "0"}
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            success = utils.update_xenguest_event(event_uuid, write_data, None)
+        self.assertEquals(
+            success,
+            False,
+            'Return value was not False on failure'
+        )
+
+    def test_write_xenguest_event_exception_popen(self):
+        event_uuid = '748dee41-c47f-4ec7-b2cd-037e51da4031'
+        write_data = {"message": "", "returncode": "0"}
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            success = utils.update_xenguest_event(event_uuid, write_data, None)
+
         self.assertEquals(
             success,
             False,
@@ -176,6 +404,51 @@ class TestHelpers(TestCase):
             network_info,
             None,
             'Network info should be None on error'
+        )
+
+    def test_network_get_interfaces_success_popen(self):
+        mac_address = 'BC764E206C5B'
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (
+                utils_data.get_network_interface()
+            )
+            popen.return_value.returncode = 0
+
+            network_info = utils.get_interface(mac_address, None)
+
+        self.assertEquals(
+            network_info,
+            xen_data.check_network_interface(),
+            'Network info returned was not the expected value'
+        )
+
+    def test_network_get_interfaces_failure_popen(self):
+        mac_address = 'BC764E206C5B'
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            network_info = utils.get_interface(mac_address, None)
+
+        self.assertEquals(
+            network_info,
+            None,
+            'Network info returned was not the expected value'
+        )
+
+    def test_network_get_interfaces_exception_popen(self):
+        mac_address = 'BC764E206C5B'
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+
+            network_info = utils.get_interface(mac_address, None)
+
+        self.assertEquals(
+            network_info,
+            None,
+            'Network info returned was not the expected value'
         )
 
     def test_network_get_mac_addresses_success(self):
@@ -204,6 +477,48 @@ class TestHelpers(TestCase):
             mac_addrs,
             [],
             'Mac addrs returned is not empty list after error'
+        )
+
+    def test_network_get_mac_addresses_success_popen(self):
+        check_mac_addrs = ['BC764E206C5B', 'BC764E206C5A']
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (
+                utils_data.get_mac_addresses()
+            )
+            popen.return_value.returncode = 0
+
+            mac_addrs = utils.list_xenstore_macaddrs(None)
+
+        self.assertEquals(
+            mac_addrs,
+            check_mac_addrs,
+            'Mac addrs returned do not match expected value'
+        )
+
+    def test_network_get_mac_addresses_exception_popen(self):
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            mac_addrs = utils.list_xenstore_macaddrs(None)
+
+        self.assertEquals(
+            mac_addrs,
+            [],
+            'Mac addrs returned is not empty list after popen exception'
+        )
+
+    def test_network_get_mac_addresses_failure_popen(self):
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            mac_addrs = utils.list_xenstore_macaddrs(None)
+
+        self.assertEquals(
+            mac_addrs,
+            [],
+            'Mac addrs returned is not empty list after popen error'
         )
 
     def test_get_os_interfaces(self):
