@@ -118,15 +118,17 @@ def list_hw_interfaces():
 
 def get_interface(mac_address, client):
     interface = None
-    get_interface = encode_to_bytes(
-        'vm-data/networking/{0}'.format(mac_address)
-    )
     try:
-        interface = json.loads(
-            client.read(get_interface).decode('utf-8').strip()
+        get_interface = encode_to_bytes(
+            'vm-data/networking/{0}'.format(mac_address)
         )
-    except:
-        pass
+        interface = json.loads(
+            xenstore.xenstore_read(get_interface, client)
+        )
+    except Exception as e:
+        log.error(
+            'Exception was caught getting the interface: {0}'.format(str(e))
+        )
 
     log.info('interface {0}: {1}'.format(mac_address, interface))
     return interface
@@ -135,10 +137,9 @@ def get_interface(mac_address, client):
 def list_xenstore_macaddrs(client):
     mac_addrs = []
     try:
-        for item in client.list(b'vm-data/networking'):
-            mac_addrs.append(item.decode('utf-8').strip())
-    except:
-        pass
+        mac_addrs = xenstore.xenstore_list(b'vm-data/networking', client)
+    except Exception as e:
+        log.error('Exception was caught getting mac addrs: {0}'.format(str(e)))
 
     return mac_addrs
 
@@ -146,7 +147,9 @@ def list_xenstore_macaddrs(client):
 def get_hostname(client):
     xen_hostname = None
     try:
-        xen_hostname = client.read(b'vm-data/hostname').decode('utf-8').strip()
+        xen_hostname = xenstore.xenstore_read(b'vm-data/hostname', client)
+        if xen_hostname is None:
+            raise ValueError('Shell to xenstore-read for hostname failed')
     except:
         xen_hostname = socket.gethostname()
 
@@ -157,10 +160,11 @@ def get_hostname(client):
 def list_xen_events(client):
     message_uuids = []
     try:
-        for item in client.list(b'data/host'):
-            message_uuids.append(item.decode('utf-8').strip())
-    except:
-        pass
+        message_uuids = xenstore.xenstore_list(b'data/host', client)
+    except Exception as e:
+        log.error(
+            'Exception was caught getting xen events: {0}'.format(str(e))
+        )
 
     return message_uuids
 
@@ -169,11 +173,11 @@ def get_xen_event(uuid, client):
     event_detail = None
     get_xen_event = encode_to_bytes('data/host/{0}'.format(uuid))
     try:
-        event_detail = json.loads(
-            client.read(get_xen_event).decode('utf-8').strip()
+        event_detail = xenstore.xenstore_read(get_xen_event, client, True)
+    except Exception as e:
+        log.error(
+            'Exception was caught reading xen event: {0}'.format(str(e))
         )
-    except:
-        pass
 
     return event_detail
 
@@ -182,10 +186,12 @@ def remove_xenhost_event(uuid, client):
     success = False
     remove_xen_event = encode_to_bytes('data/host/{0}'.format(uuid))
     try:
-        client.delete(remove_xen_event)
+        xenstore.xenstore_delete(remove_xen_event, client)
         success = True
-    except:
-        pass
+    except Exception as e:
+        log.error(
+            'Exception was caught removing xen event: {0}'.format(str(e))
+        )
 
     return success
 
@@ -194,11 +200,12 @@ def update_xenguest_event(uuid, data, client):
     success = False
     write_path = encode_to_bytes('data/guest/{0}'.format(uuid))
     write_value = encode_to_bytes(json.dumps(data))
-
     try:
-        client.write(write_path, write_value)
+        xenstore.xenstore_write(write_path, write_value, client)
         success = True
-    except:
-        pass
+    except Exception as e:
+        log.error(
+            'Exception was caught writing xen event: {0}'.format(str(e))
+        )
 
     return success
