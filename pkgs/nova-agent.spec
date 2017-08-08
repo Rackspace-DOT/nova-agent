@@ -9,7 +9,7 @@
 %bcond_without tests
 
 Name: nova-agent
-Version: 2.0.3
+Version: 2.1.0
 Release: 1%{?dist}
 Summary: Agent for setting up clean servers on Xen
 License: ASL 2.0
