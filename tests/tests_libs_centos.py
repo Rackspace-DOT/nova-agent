@@ -251,6 +251,177 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
+    def test_reset_network_success_systemctl(self):
+        self.setup_temp_route()
+        self.setup_temp_interface_config('eth1')
+        self.setup_temp_interface_config('lo')
+        self.setup_temp_network()
+        temp = centos.ServerOS()
+        temp.netconfig_dir = '/tmp'
+        temp.network_file = '/tmp/network'
+
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            True, True, False, True, True
+        ]
+        with mock.patch(
+            'novaagent.libs.centos.os.path.exists',
+            mock_response
+        ):
+            with mock.patch(
+                'novaagent.libs.centos.ServerOS._setup_hostname'
+            ) as hostname:
+                hostname.return_value = 0, 'test_hostname'
+                with mock.patch(
+                    'novaagent.utils.list_xenstore_macaddrs'
+                ) as mac:
+                    mac.return_value = ['BC764E206C5B']
+                    with mock.patch(
+                        'novaagent.utils.list_hw_interfaces'
+                    ) as hwint:
+                        hwint.return_value = ['eth1']
+                        with mock.patch(
+                            'novaagent.utils.get_hw_addr'
+                        ) as hw_addr:
+                            hw_addr.return_value = 'BC764E206C5B'
+                            with mock.patch(
+                                'novaagent.utils.get_interface'
+                            ) as inter:
+                                inter.return_value = (
+                                    xen_data.check_network_interface()
+                                )
+                                with mock.patch(
+                                    'novaagent.utils.get_ifcfg_files_to_remove'
+                                ) as ifcfg_files:
+                                    ifcfg_files.return_value = [
+                                        '/tmp/ifcfg-eth1'
+                                    ]
+                                    with mock.patch(
+                                        'novaagent.libs.centos.Popen'
+                                    ) as p:
+                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                        p.return_value.returncode = 0
+                                        result = temp.resetnetwork(
+                                            'name',
+                                            'value',
+                                            'dummy_client'
+                                        )
+
+        self.assertEqual(
+            result,
+            ('0', ''),
+            'Result was not the expected value'
+        )
+        network_files = glob.glob('/tmp/network*')
+        self.assertEqual(
+            len(network_files),
+            2,
+            'Incorrect number of network files'
+        )
+        ifcfg_files = glob.glob('/tmp/ifcfg-eth*')
+        self.assertEqual(
+            len(ifcfg_files),
+            2,
+            'Incorrect number of ifcfg files'
+        )
+        route_files = glob.glob('/tmp/route*')
+        self.assertEqual(
+            len(route_files),
+            2,
+            'Incorrect number of route files'
+        )
+        localhost = glob.glob('/tmp/ifcfg-lo')
+        self.assertEqual(
+            len(localhost),
+            1,
+            'Localhost ifcfg file was moved out of the way and should not have'
+        )
+
+    def test_reset_network_error_systemctl(self):
+        self.setup_temp_route()
+        self.setup_temp_interface_config('eth1')
+        self.setup_temp_interface_config('lo')
+        self.setup_temp_network()
+        temp = centos.ServerOS()
+        temp.netconfig_dir = '/tmp'
+        temp.network_file = '/tmp/network'
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            True, True, False, True, True
+        ]
+        with mock.patch(
+            'novaagent.libs.centos.os.path.exists',
+            mock_response
+        ):
+            with mock.patch(
+                'novaagent.libs.centos.ServerOS._setup_hostname'
+            ) as hostname:
+                hostname.return_value = 0, 'test_hostname'
+                with mock.patch(
+                    'novaagent.utils.list_xenstore_macaddrs'
+                ) as mac:
+                    mac.return_value = ['BC764E206C5B']
+                    with mock.patch(
+                        'novaagent.utils.list_hw_interfaces'
+                    ) as hwint:
+                        hwint.return_value = ['eth1']
+                        with mock.patch(
+                            'novaagent.utils.get_hw_addr'
+                        ) as hw_addr:
+                            hw_addr.return_value = 'BC764E206C5B'
+                            with mock.patch(
+                                'novaagent.utils.get_interface'
+                            ) as inter:
+                                inter.return_value = (
+                                    xen_data.check_network_interface()
+                                )
+                                with mock.patch(
+                                    'novaagent.utils.get_ifcfg_files_to_remove'
+                                ) as ifcfg_files:
+                                    ifcfg_files.return_value = [
+                                        '/tmp/ifcfg-eth1'
+                                    ]
+                                    with mock.patch(
+                                        'novaagent.libs.centos.Popen'
+                                    ) as p:
+                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                        p.return_value.returncode = 1
+                                        result = temp.resetnetwork(
+                                            'name',
+                                            'value',
+                                            'dummy_client'
+                                        )
+
+        self.assertEqual(
+            result,
+            ('1', 'Error restarting network'),
+            'Result was not the expected value'
+        )
+        network_files = glob.glob('/tmp/network*')
+        self.assertEqual(
+            len(network_files),
+            2,
+            'Incorrect number of network files'
+        )
+        ifcfg_files = glob.glob('/tmp/ifcfg-eth*')
+        self.assertEqual(
+            len(ifcfg_files),
+            2,
+            'Incorrect number of ifcfg files'
+        )
+        route_files = glob.glob('/tmp/route*')
+        self.assertEqual(
+            len(route_files),
+            2,
+            'Incorrect number of route files'
+        )
+        localhost = glob.glob('/tmp/ifcfg-lo')
+        self.assertEqual(
+            len(localhost),
+            1,
+            'Localhost ifcfg file was moved out of the way and should not have'
+        )
+
     def test_setup_routes(self):
         self.setup_temp_route()
         temp = centos.ServerOS()

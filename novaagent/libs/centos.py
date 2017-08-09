@@ -1,3 +1,4 @@
+
 from __future__ import print_function
 from __future__ import absolute_import
 
@@ -173,18 +174,21 @@ class ServerOS(DefaultOS):
             if 'routes' in iface:
                 self._setup_routes(ifname, iface)
 
-        p = Popen(
-            ['service', 'network', 'stop'],
-            stdout=PIPE,
-            stderr=PIPE,
-            stdin=PIPE
-        )
-        p = Popen(
-            ['service', 'network', 'start'],
-            stdout=PIPE,
-            stderr=PIPE,
-            stdin=PIPE
-        )
+        if os.path.exists('/usr/bin/systemctl'):
+            p = Popen(
+                ['systemctl', 'network', 'restart'],
+                stdout=PIPE,
+                stderr=PIPE,
+                stdin=PIPE
+            )
+        else:
+            p = Popen(
+                ['service', 'network', 'restart'],
+                stdout=PIPE,
+                stderr=PIPE,
+                stdin=PIPE
+            )
+
         out, err = p.communicate()
         if p.returncode != 0:
             return (str(p.returncode), 'Error restarting network')
