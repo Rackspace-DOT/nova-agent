@@ -59,9 +59,7 @@ def action(server_os, client):
 def nova_agent_listen(server_type, server_os):
     log.info('Starting actions for {0}...'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
-    has_correct_xenbus_file = os.path.exists('/dev/xen/xenbus')
-
-    if has_correct_xenbus_file:
+    if os.path.exists('/dev/xen/xenbus'):
         with Client(router=XENBUS_ROUTER) as client:
             while True:
                 action(server_os, client)
