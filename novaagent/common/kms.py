@@ -21,9 +21,9 @@ redhat/centos KMS activation helper module
 from __future__ import print_function
 
 
-import os
 import subprocess
 import logging
+import os
 
 
 RHN_PATH = '/etc/sysconfig/rhn'

@@ -1,9 +1,11 @@
 
-from pyxs.client import Router
-from pyxs._internal import Op
-from pyxs._internal import NUL
-from pyxs._internal import Event
 from pyxs.exceptions import UnexpectedPacket
+from pyxs.client import Router
+
+
+from pyxs._internal import Event
+from pyxs._internal import NUL
+from pyxs._internal import Op
 
 
 import select

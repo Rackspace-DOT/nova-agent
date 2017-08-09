@@ -2,6 +2,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+
 from pyxs.connection import XenBusConnection
 from pyxs.client import Client
 
@@ -13,11 +14,11 @@ import os
 import sys
 
 
-from novaagent import utils
+from novaagent.xenbus import XenGuestRouter
 from novaagent.libs import centos
 from novaagent.libs import debian
 from novaagent.libs import redhat
-from novaagent.xenbus import XenGuestRouter
+from novaagent import utils
 
 
 log = logging.getLogger(__name__)
@@ -57,9 +58,15 @@ def action(server_os, client):
 
 def nova_agent_listen(server_type, server_os):
     log.info('Starting actions for {0}...'.format(server_type.__name__))
-    with Client(router=XENBUS_ROUTER) as client:
+    log.info('Checking for existence of /dev/xen/xenbus')
+    if os.path.exists('/dev/xen/xenbus'):
+        with Client(router=XENBUS_ROUTER) as client:
+            while True:
+                action(server_os, client)
+                time.sleep(1)
+    else:
         while True:
-            action(server_os, client)
+            action(server_os, None)
             time.sleep(1)
 
 
