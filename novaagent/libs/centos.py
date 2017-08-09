@@ -176,7 +176,7 @@ class ServerOS(DefaultOS):
 
         if os.path.exists('/usr/bin/systemctl'):
             p = Popen(
-                ['systemctl', 'network', 'restart'],
+                ['systemctl', 'restart', 'network.service'],
                 stdout=PIPE,
                 stderr=PIPE,
                 stdin=PIPE
