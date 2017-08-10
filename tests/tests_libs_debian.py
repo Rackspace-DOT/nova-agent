@@ -4,9 +4,10 @@ from .fixtures import xen_data
 from .fixtures import network
 
 
+import logging
 import glob
-import os
 import sys
+import os
 
 
 if sys.version_info[:2] >= (2, 7):
@@ -23,9 +24,10 @@ except ImportError:
 
 class TestHelpers(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
+        logging.disable(logging.NOTSET)
         file_searches = [
             '/tmp/hostname*',
             '/tmp/interfaces*'

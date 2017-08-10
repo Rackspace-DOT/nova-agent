@@ -1,7 +1,9 @@
 
 from novaagent import libs
 
+
 import novaagent
+import logging
 import sys
 
 
@@ -19,15 +21,15 @@ except ImportError:
 
 class TestHelpers(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
-        pass
+        logging.disable(logging.NOTSET)
 
     def test_version(self):
         self.assertEqual(
             novaagent.__version__,
-            '2.1.0',
+            '2.1.1',
             'Version expected was not returned correctly'
         )
 
@@ -35,7 +37,7 @@ class TestHelpers(TestCase):
         temp = libs.DefaultOS()
         self.assertEqual(
             temp.version('Name', 'Value', 'Client'),
-            ('0', '2.1.0'),
+            ('0', '2.1.1'),
             'Did not get expected value on version'
         )
 

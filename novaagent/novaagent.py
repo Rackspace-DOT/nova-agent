@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
 
-def action(server_os, client):
+def action(server_os, client=None):
     for uuid in utils.list_xen_events(client):
         event = utils.get_xen_event(uuid, client)
         log.info('Event: {0} -> {1}'.format(uuid, event['name']))
@@ -60,13 +60,13 @@ def nova_agent_listen(server_type, server_os):
     log.info('Starting actions for {0}...'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
     if os.path.exists('/dev/xen/xenbus'):
-        with Client(router=XENBUS_ROUTER) as client:
+        with Client(router=XENBUS_ROUTER) as xenbus_client:
             while True:
-                action(server_os, client)
+                action(server_os, client=xenbus_client)
                 time.sleep(1)
     else:
         while True:
-            action(server_os, None)
+            action(server_os)
             time.sleep(1)
 
 
