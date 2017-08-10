@@ -2,6 +2,8 @@
 from novaagent.common import kms
 from .fixtures import kms_data
 
+
+import logging
 import glob
 import os
 import sys
@@ -21,9 +23,10 @@ except ImportError:
 
 class TestHelpers(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
+        logging.disable(logging.NOTSET)
         files = glob.glob('/tmp/up2date*')
         for item in files:
             os.remove(item)

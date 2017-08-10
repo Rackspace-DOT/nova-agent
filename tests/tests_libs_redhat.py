@@ -2,6 +2,7 @@
 from novaagent.libs import redhat
 
 
+import logging
 import sys
 
 
@@ -19,10 +20,10 @@ except ImportError:
 
 class TestHelpers(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
-        pass
+        logging.disable(logging.NOTSET)
 
     def test_redhat_kmsactivate(self):
         temp = redhat.ServerOS()

@@ -4,6 +4,9 @@ from pyxs.connection import XenBusConnection
 
 
 from novaagent import xenbus
+
+
+import logging
 import sys
 
 
@@ -15,10 +18,10 @@ else:
 
 class TestXenBus(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
-        pass
+        logging.disable(logging.NOTSET)
 
     def test_init(self):
         c = Client(router=xenbus.XenGuestRouter(XenBusConnection()))

@@ -2,6 +2,7 @@
 from novaagent.common import file_inject
 
 
+import logging
 import base64
 import shutil
 import sys
@@ -23,12 +24,14 @@ except ImportError:
 
 class TestHelpers(TestCase):
     def setUp(self):
+        logging.disable(logging.ERROR)
         if not os.path.exists('/tmp/test_file'):
             with open('/tmp/test_file', 'a+') as f:
                 f.write('This is a test file')
                 os.utime('/tmp/test_file', None)
 
     def tearDown(self):
+        logging.disable(logging.NOTSET)
         files = glob.glob('/tmp/test_file*')
         for item in files:
             os.remove(item)

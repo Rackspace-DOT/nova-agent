@@ -4,9 +4,10 @@ from .fixtures import xen_data
 from novaagent import utils
 
 
+import logging
 import glob
-import os
 import sys
+import os
 
 
 if sys.version_info[:2] >= (2, 7):
@@ -41,12 +42,14 @@ class ClientTest(object):
 
 class TestHelpers(TestCase):
     def setUp(self):
+        logging.disable(logging.ERROR)
         if not os.path.exists('/tmp/ifcfg-eth0'):
             with open('/tmp/ifcfg-eth0', 'a+') as f:
                 f.write('This is a test file')
                 os.utime('/tmp/ifcfg-eth0', None)
 
     def tearDown(self):
+        logging.disable(logging.NOTSET)
         files = glob.glob('/tmp/ifcfg-eth0*')
         for item in files:
             os.remove(item)

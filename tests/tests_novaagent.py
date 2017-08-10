@@ -3,6 +3,7 @@ from novaagent.libs import centos
 
 
 import novaagent
+import logging
 import time
 import sys
 
@@ -21,10 +22,10 @@ except ImportError:
 
 class TestHelpers(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
-        pass
+        logging.disable(logging.NOTSET)
 
     def test_xen_action_no_action(self):
         temp_os = centos.ServerOS()

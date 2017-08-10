@@ -2,6 +2,7 @@
 from novaagent.common import password
 
 
+import logging
 import base64
 import glob
 import sys
@@ -26,9 +27,10 @@ if sys.version_info > (3,):
 
 class TestHelpers(TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.ERROR)
 
     def tearDown(self):
+        logging.disable(logging.NOTSET)
         files = glob.glob('/tmp/passwd*')
         for item in files:
             os.remove(item)
