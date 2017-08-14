@@ -156,14 +156,12 @@ class ServerOS(DefaultOS):
             ifaces[iface] = utils.get_interface(mac, client)
 
         # Setup interface file for all interfaces
-        temp_ifnames = []
         self._setup_loopback()
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
-            temp_ifnames.append(ifname)
 
         # Loop through the interfaces and restart networking
-        for ifname in temp_ifnames:
+        for ifname in ifaces.keys():
             p = Popen(
                 ['ifdown', ifname],
                 stdout=PIPE,
