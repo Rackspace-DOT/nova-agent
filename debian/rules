@@ -1,6 +1,0 @@
-#!/usr/bin/make -f
-
-export PYBUILD_DESTDIR_python2=debian/nova-agent/
-
-%:
-	dh $@ --with python2 --buildsystem=pybuild
