@@ -1,5 +1,0 @@
-nova-agent (2.0.0-1) unstable; urgency=low
-
-    * primary release of nova-agent
-
- -- Dave Kludt <david.kludt@rackspace.com>  Fri, 21 Jul 2017 20:30:05 +0000
