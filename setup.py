@@ -35,6 +35,11 @@ setuptools.setup(
             'nova-agent=novaagent.novaagent:main'
         ]
     },
-    packages=['novaagent', 'novaagent.libs', 'novaagent.common'],
+    packages=[
+        'novaagent',
+        'novaagent.libs',
+        'novaagent.common',
+        'novaagent.xenstore'
+    ],
     zip_safe=False
 )
