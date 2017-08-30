@@ -103,6 +103,13 @@ def create_parser():
         type=str,
         help='path to log file'
     )
+    parser.add_argument(
+        '--no-fork',
+        dest='no_fork',
+        default=False,
+        type=bool,
+        help='Perform os.fork when starting agent'
+    )
     return parser
 
 
@@ -117,21 +124,24 @@ def main():
 
     server_type = get_server_type()
     server_os = server_type.ServerOS()
-    log.info('Starting daemon')
-    try:
-        pid = os.fork()
-        if pid > 0:
-            log.info('PID: {0}'.format(pid))
-            os._exit(0)
+    if args.no_fork is False:
+        log.info('Starting daemon')
+        try:
+            pid = os.fork()
+            if pid > 0:
+                log.info('PID: {0}'.format(pid))
+                os._exit(0)
 
-    except OSError as error:
-        log.error(
-            'Unable to fork. Error: {0} {1}'.format(
-                error.errno,
-                error.strerror
+        except OSError as error:
+            log.error(
+                'Unable to fork. Error: {0} {1}'.format(
+                    error.errno,
+                    error.strerror
+                )
             )
-        )
-        os._exit(1)
+            os._exit(1)
+    else:
+        log.info('Skipping os.fork as directed by arguments')
 
     nova_agent_listen(server_type, server_os)
 

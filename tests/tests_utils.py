@@ -57,7 +57,7 @@ class TestHelpers(TestCase):
     def test_get_hostname_success(self):
         client = ClientTest(xen_data.get_hostname(True))
         hostname = utils.get_hostname(client)
-        self.assertEquals(
+        self.assertEqual(
             hostname,
             'test-server',
             'Hostname does not match expected ouput'
@@ -74,7 +74,7 @@ class TestHelpers(TestCase):
                 )
                 hostname = utils.get_hostname('dummy_client')
 
-        self.assertEquals(
+        self.assertEqual(
             hostname,
             'test-server',
             'Hostname does not match expected ouput'
@@ -88,7 +88,7 @@ class TestHelpers(TestCase):
             popen.return_value.returncode = 0
             hostname = utils.get_hostname(None)
 
-        self.assertEquals(
+        self.assertEqual(
             hostname,
             'test-server',
             'Hostname does not match expected ouput'
@@ -105,7 +105,7 @@ class TestHelpers(TestCase):
 
                 hostname = utils.get_hostname(None)
 
-        self.assertEquals(
+        self.assertEqual(
             hostname,
             'test-server',
             'Hostname does not match expected ouput'
@@ -122,7 +122,7 @@ class TestHelpers(TestCase):
                 )
                 hostname = utils.get_hostname(None)
 
-        self.assertEquals(
+        self.assertEqual(
             hostname,
             'test-server',
             'Hostname does not match expected ouput'
@@ -132,7 +132,7 @@ class TestHelpers(TestCase):
         check_events = ['748dee41-c47f-4ec7-b2cd-037e51da4031']
         client = ClientTest(xen_data.get_xen_host_events())
         event_list = utils.list_xen_events(client)
-        self.assertEquals(
+        self.assertEqual(
             event_list,
             check_events,
             'Event list does not match expected list'
@@ -141,7 +141,7 @@ class TestHelpers(TestCase):
     def test_list_host_xen_events_exception(self):
         client = ClientTest(None)
         event_list = utils.list_xen_events(client)
-        self.assertEquals(
+        self.assertEqual(
             event_list,
             [],
             'Event list should be an empty list with exception'
@@ -156,7 +156,7 @@ class TestHelpers(TestCase):
             popen.return_value.returncode = 0
             event_list = utils.list_xen_events(None)
 
-        self.assertEquals(
+        self.assertEqual(
             event_list,
             check_events,
             'Event list does not match expected list'
@@ -169,7 +169,7 @@ class TestHelpers(TestCase):
 
             event_list = utils.list_xen_events(None)
 
-        self.assertEquals(
+        self.assertEqual(
             event_list,
             [],
             'Event list does not match expected list after failure'
@@ -182,7 +182,7 @@ class TestHelpers(TestCase):
         ):
             event_list = utils.list_xen_events(None)
 
-        self.assertEquals(
+        self.assertEqual(
             event_list,
             [],
             'Event list should be an empty list with exception'
@@ -196,7 +196,7 @@ class TestHelpers(TestCase):
         }
         client = ClientTest(xen_data.get_xen_host_event_details())
         event_details = utils.get_xen_event(host_event_id, client)
-        self.assertEquals(
+        self.assertEqual(
             event_check,
             event_details,
             'Event details do not match expected value'
@@ -206,7 +206,7 @@ class TestHelpers(TestCase):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         client = ClientTest(None)
         event_details = utils.get_xen_event(host_event_id, client)
-        self.assertEquals(
+        self.assertEqual(
             event_details,
             None,
             'Event details should be None on exception'
@@ -225,7 +225,7 @@ class TestHelpers(TestCase):
             popen.return_value.returncode = 0
             event_details = utils.get_xen_event(host_event_id, None)
 
-        self.assertEquals(
+        self.assertEqual(
             event_check,
             event_details,
             'Event details do not match expected value'
@@ -239,7 +239,7 @@ class TestHelpers(TestCase):
 
             event_details = utils.get_xen_event(host_event_id, None)
 
-        self.assertEquals(
+        self.assertEqual(
             event_details,
             None,
             'Event details do not match expected value after failure'
@@ -253,7 +253,7 @@ class TestHelpers(TestCase):
         ):
             event_details = utils.get_xen_event(host_event_id, None)
 
-        self.assertEquals(
+        self.assertEqual(
             event_details,
             None,
             'Event details should be None on exception'
@@ -262,7 +262,7 @@ class TestHelpers(TestCase):
     def test_remove_xenhost_event_failure(self):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         success = utils.remove_xenhost_event(host_event_id, 'dummy_client')
-        self.assertEquals(
+        self.assertEqual(
             success,
             False,
             'Return value was not False on failure'
@@ -272,7 +272,7 @@ class TestHelpers(TestCase):
         host_event_id = '748dee41-c47f-4ec7-b2cd-037e51da4031'
         client = ClientTest('')
         success = utils.remove_xenhost_event(host_event_id, client)
-        self.assertEquals(
+        self.assertEqual(
             success,
             True,
             'Return value was not True on success'
@@ -286,7 +286,7 @@ class TestHelpers(TestCase):
 
             success = utils.remove_xenhost_event(host_event_id, None)
 
-        self.assertEquals(
+        self.assertEqual(
             success,
             True,
             'Return value was not True on success'
@@ -300,7 +300,7 @@ class TestHelpers(TestCase):
 
             success = utils.remove_xenhost_event(host_event_id, None)
 
-        self.assertEquals(
+        self.assertEqual(
             success,
             False,
             'Return value was not False on failure'
@@ -314,7 +314,7 @@ class TestHelpers(TestCase):
         ):
             success = utils.remove_xenhost_event(host_event_id, None)
 
-        self.assertEquals(
+        self.assertEqual(
             success,
             False,
             'Return value was not False on exception'
@@ -325,7 +325,7 @@ class TestHelpers(TestCase):
         client = ClientTest('')
         write_data = {"message": "", "returncode": "0"}
         success = utils.update_xenguest_event(event_uuid, write_data, client)
-        self.assertEquals(
+        self.assertEqual(
             success,
             True,
             'Return value was not True on success'
@@ -339,7 +339,7 @@ class TestHelpers(TestCase):
             write_data,
             'dummy_client'
         )
-        self.assertEquals(
+        self.assertEqual(
             success,
             False,
             'Return value was not False on failure'
@@ -354,7 +354,7 @@ class TestHelpers(TestCase):
 
             success = utils.update_xenguest_event(event_uuid, write_data, None)
 
-        self.assertEquals(
+        self.assertEqual(
             success,
             True,
             'Return value was not True on success'
@@ -368,7 +368,7 @@ class TestHelpers(TestCase):
             popen.return_value.returncode = 1
 
             success = utils.update_xenguest_event(event_uuid, write_data, None)
-        self.assertEquals(
+        self.assertEqual(
             success,
             False,
             'Return value was not False on failure'
@@ -383,7 +383,7 @@ class TestHelpers(TestCase):
         ):
             success = utils.update_xenguest_event(event_uuid, write_data, None)
 
-        self.assertEquals(
+        self.assertEqual(
             success,
             False,
             'Return value was not False on failure'
@@ -393,7 +393,7 @@ class TestHelpers(TestCase):
         mac_address = 'BC764E206C5B'
         client = ClientTest(xen_data.get_network_interface())
         network_info = utils.get_interface(mac_address, client)
-        self.assertEquals(
+        self.assertEqual(
             network_info,
             xen_data.check_network_interface(),
             'Network info returned was not the expected value'
@@ -403,7 +403,7 @@ class TestHelpers(TestCase):
         mac_address = 'BC764E206C5B'
         client = ClientTest(None)
         network_info = utils.get_interface(mac_address, client)
-        self.assertEquals(
+        self.assertEqual(
             network_info,
             None,
             'Network info should be None on error'
@@ -419,7 +419,7 @@ class TestHelpers(TestCase):
 
             network_info = utils.get_interface(mac_address, None)
 
-        self.assertEquals(
+        self.assertEqual(
             network_info,
             xen_data.check_network_interface(),
             'Network info returned was not the expected value'
@@ -433,7 +433,7 @@ class TestHelpers(TestCase):
 
             network_info = utils.get_interface(mac_address, None)
 
-        self.assertEquals(
+        self.assertEqual(
             network_info,
             None,
             'Network info returned was not the expected value'
@@ -448,7 +448,7 @@ class TestHelpers(TestCase):
 
             network_info = utils.get_interface(mac_address, None)
 
-        self.assertEquals(
+        self.assertEqual(
             network_info,
             None,
             'Network info returned was not the expected value'
@@ -458,7 +458,7 @@ class TestHelpers(TestCase):
         check_mac_addrs = ['BC764E206C5B', 'BC764E206C5A']
         client = ClientTest(xen_data.get_mac_addresses())
         mac_addrs = utils.list_xenstore_macaddrs(client)
-        self.assertEquals(
+        self.assertEqual(
             mac_addrs,
             check_mac_addrs,
             'Mac addrs returned do not match expected value'
@@ -467,7 +467,7 @@ class TestHelpers(TestCase):
     def test_network_get_mac_addresses_exception(self):
         client = ClientTest(None)
         mac_addrs = utils.list_xenstore_macaddrs(client)
-        self.assertEquals(
+        self.assertEqual(
             mac_addrs,
             [],
             'Mac addrs returned is not empty list after error'
@@ -476,7 +476,7 @@ class TestHelpers(TestCase):
     def test_network_get_mac_addresses_failure(self):
         client = ClientTest([])
         mac_addrs = utils.list_xenstore_macaddrs(client)
-        self.assertEquals(
+        self.assertEqual(
             mac_addrs,
             [],
             'Mac addrs returned is not empty list after error'
@@ -492,7 +492,7 @@ class TestHelpers(TestCase):
 
             mac_addrs = utils.list_xenstore_macaddrs(None)
 
-        self.assertEquals(
+        self.assertEqual(
             mac_addrs,
             check_mac_addrs,
             'Mac addrs returned do not match expected value'
@@ -505,7 +505,7 @@ class TestHelpers(TestCase):
         ):
             mac_addrs = utils.list_xenstore_macaddrs(None)
 
-        self.assertEquals(
+        self.assertEqual(
             mac_addrs,
             [],
             'Mac addrs returned is not empty list after popen exception'
@@ -518,7 +518,7 @@ class TestHelpers(TestCase):
 
             mac_addrs = utils.list_xenstore_macaddrs(None)
 
-        self.assertEquals(
+        self.assertEqual(
             mac_addrs,
             [],
             'Mac addrs returned is not empty list after popen error'
