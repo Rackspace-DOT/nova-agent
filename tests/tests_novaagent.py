@@ -87,6 +87,7 @@ class TestHelpers(TestCase):
             def __init__(self):
                 self.logfile = '-'
                 self.loglevel = 'info'
+                self.no_fork = False
 
         test_args = Test()
         mock_response = mock.Mock()
@@ -116,11 +117,44 @@ class TestHelpers(TestCase):
                                 except:
                                     pass
 
+    def test_main_success_no_fork(self):
+        class Test(object):
+            def __init__(self):
+                self.logfile = '-'
+                self.loglevel = 'info'
+                self.no_fork = True
+
+        test_args = Test()
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            time.sleep(1),
+            time.sleep(1),
+            KeyboardInterrupt
+        ]
+        with mock.patch(
+            'novaagent.novaagent.argparse.ArgumentParser.parse_args'
+        ) as parse_args:
+            parse_args.return_value = test_args
+            with mock.patch(
+                'novaagent.novaagent.get_server_type'
+            ) as server_type:
+                server_type.return_value = centos
+                with mock.patch('novaagent.novaagent.action'):
+                    with mock.patch(
+                        'novaagent.novaagent.time.sleep',
+                        side_effect=mock_response
+                    ):
+                        try:
+                            novaagent.novaagent.main()
+                        except:
+                            pass
+
     def test_main_success_with_xenbus(self):
         class Test(object):
             def __init__(self):
                 self.logfile = '-'
                 self.loglevel = 'info'
+                self.no_fork = False
 
         test_args = Test()
         mock_response = mock.Mock()
@@ -159,6 +193,7 @@ class TestHelpers(TestCase):
             def __init__(self):
                 self.logfile = '-'
                 self.loglevel = 'info'
+                self.no_fork = False
 
         test_args = Test()
         mock_response = mock.Mock()
