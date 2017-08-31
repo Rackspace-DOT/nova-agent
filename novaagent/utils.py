@@ -161,12 +161,20 @@ def get_hostname(client):
 
 
 def list_xen_events(client):
+    """
+        After a reboot it is possible that the data/host path is not present.
+        Once an action is passed to the instance then the path will be
+        created and this will not generate an exception.
+
+        Changing the log level to debug from error and making a better log
+        message
+    """
     message_uuids = []
     try:
         message_uuids = xenstore.xenstore_list(b'data/host', client)
     except Exception as e:
-        log.error(
-            'Exception was caught getting xen events: {0}'.format(str(e))
+        log.debug(
+            'Exception reading data/host: {0}'.format(str(e))
         )
 
     return message_uuids
