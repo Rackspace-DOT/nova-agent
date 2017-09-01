@@ -24,9 +24,7 @@ from novaagent import utils
 
 
 log = logging.getLogger(__name__)
-log_formatter = logging.Formatter(
-    "%(asctime)s %(message)s"
-)
+
 
 # Connect to Xenbus in order to interact with xenstore
 XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
