@@ -24,14 +24,12 @@ from novaagent import utils
 
 
 log = logging.getLogger(__name__)
-
+log_formatter = logging.Formatter(
+    "%(asctime)s %(message)s"
+)
 
 # Connect to Xenbus in order to interact with xenstore
 XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
-
-
-class AgentRunning(Exception):
-    pass
 
 
 def action(server_os, client=None):
@@ -179,10 +177,11 @@ def create_lock_file():
     try:
         fcntl.lockf(lf_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except IOError:
-        raise AgentRunning(
-            'Agent may already be running and only one instance of it can run '
+        log.error(
+            'Agent is already running and only one instance of it can run '
             'at a time.'
         )
+        os._exit(1)
 
     return
 

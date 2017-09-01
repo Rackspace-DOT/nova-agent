@@ -320,10 +320,5 @@ class TestHelpers(TestCase):
             'novaagent.novaagent.fcntl.lockf',
             side_effect=IOError
         ):
-            try:
+            with mock.patch('novaagent.novaagent.os._exit'):
                 novaagent.novaagent.create_lock_file()
-                assert False, 'Exception was not raised'
-            except novaagent.novaagent.AgentRunning:
-                pass
-            except:
-                assert False, 'Correct exception was not thrown'
