@@ -123,10 +123,19 @@ def main():
     parser = create_parser()
     args = parser.parse_args()
     loglevel = getattr(logging, args.loglevel.upper())
+    log_format = "%(asctime)s [%(levelname)-5.5s] %(message)s"
     if args.logfile == '-':
-        logging.basicConfig(stream=sys.stdout, level=loglevel)
+        logging.basicConfig(
+            stream=sys.stdout,
+            level=loglevel,
+            format=log_format
+        )
     else:
-        logging.basicConfig(filename=args.logfile, level=loglevel)
+        logging.basicConfig(
+            filename=args.logfile,
+            level=loglevel,
+            format=log_format
+        )
 
     server_type = get_server_type()
     server_os = server_type.ServerOS()
