@@ -3,15 +3,17 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 
-from pyxs.connection import XenBusConnection
-from pyxs.client import Client
-
-
 import argparse
 import logging
+import fcntl
 import time
-import os
+import stat
 import sys
+import os
+
+
+from pyxs.connection import XenBusConnection
+from pyxs.client import Client
 
 
 from novaagent.xenbus import XenGuestRouter
@@ -26,6 +28,10 @@ log = logging.getLogger(__name__)
 
 # Connect to Xenbus in order to interact with xenstore
 XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
+
+
+class AgentRunning(Exception):
+    pass
 
 
 def action(server_os, client=None):
@@ -57,6 +63,8 @@ def action(server_os, client=None):
 
 
 def nova_agent_listen(server_type, server_os):
+    log.info('Setting lock on file')
+    create_lock_file()
     log.info('Starting actions for {0}...'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
     if os.path.exists('/dev/xen/xenbus'):
@@ -144,6 +152,39 @@ def main():
         log.info('Skipping os.fork as directed by arguments')
 
     nova_agent_listen(server_type, server_os)
+
+
+def create_lock_file():
+    """
+        Try to create a lock file in order to keep only one instance of the
+        agent running.
+
+        Lock file will be at /tmp/.nova-agent.lock.
+
+        Also making sure that all users can write to it as the agent could be
+        started by a non root user.
+    """
+    lf_path = os.path.join('/tmp', '.nova-agent.lock')
+    log.info('Creating lock file {0}'.format(lf_path))
+    lf_flags = os.O_WRONLY | os.O_CREAT
+    lf_mode = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+
+    umask_original = os.umask(0)
+    try:
+        lf_fd = os.open(lf_path, lf_flags, lf_mode)
+    finally:
+        os.umask(umask_original)
+
+    # Try locking the file
+    try:
+        fcntl.lockf(lf_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except IOError:
+        raise AgentRunning(
+            'Agent may already be running and only one instance of it can run '
+            'at a time.'
+        )
+
+    return
 
 
 if __name__ == '__main__':
