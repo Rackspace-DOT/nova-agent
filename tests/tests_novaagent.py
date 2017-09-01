@@ -1,12 +1,15 @@
 
+from novaagent import novaagent as agent
 from novaagent.libs import centos
 
 
 import novaagent
 import logging
+import fcntl
 import time
+import stat
 import sys
-
+import os
 
 if sys.version_info[:2] >= (2, 7):
     from unittest import TestCase
@@ -26,6 +29,20 @@ class TestHelpers(TestCase):
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
+        if os.path.exists('/tmp/.nova-agent.lock'):
+            os.remove('/tmp/.nova-agent.lock')
+
+    def setup_lock_file(self):
+        lf_path = os.path.join('/tmp', '.nova-agent.lock')
+        lf_flags = os.O_WRONLY | os.O_CREAT
+        lf_mode = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
+        umask_original = os.umask(0)
+        try:
+            lf_fd = os.open(lf_path, lf_flags, lf_mode)
+        finally:
+            os.umask(umask_original)
+
+        fcntl.lockf(lf_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
     def test_xen_action_no_action(self):
         temp_os = centos.ServerOS()
@@ -114,8 +131,12 @@ class TestHelpers(TestCase):
                             ):
                                 try:
                                     novaagent.novaagent.main()
-                                except:
+                                except KeyboardInterrupt:
                                     pass
+                                except:
+                                    assert False, (
+                                        'An unknown exception was thrown'
+                                    )
 
     def test_main_success_no_fork(self):
         class Test(object):
@@ -146,8 +167,10 @@ class TestHelpers(TestCase):
                     ):
                         try:
                             novaagent.novaagent.main()
-                        except:
+                        except KeyboardInterrupt:
                             pass
+                        except:
+                            assert False, 'An unknown exception was thrown'
 
     def test_main_success_with_xenbus(self):
         class Test(object):
@@ -163,6 +186,11 @@ class TestHelpers(TestCase):
             time.sleep(1),
             KeyboardInterrupt
         ]
+        mock_exists = mock.Mock()
+        mock_exists.side_effect = [
+            True,
+            False
+        ]
         with mock.patch(
             'novaagent.novaagent.argparse.ArgumentParser.parse_args'
         ) as parse_args:
@@ -175,9 +203,9 @@ class TestHelpers(TestCase):
                     fork.return_value = 20
                     with mock.patch('novaagent.novaagent.os._exit'):
                         with mock.patch(
-                            'novaagent.novaagent.os.path.exists'
-                        ) as exists:
-                            exists.return_value = True
+                            'novaagent.novaagent.os.path.exists',
+                            side_effect=mock_exists
+                        ):
                             with mock.patch('novaagent.novaagent.action'):
                                 with mock.patch(
                                     'novaagent.novaagent.time.sleep',
@@ -185,8 +213,12 @@ class TestHelpers(TestCase):
                                 ):
                                     try:
                                         novaagent.novaagent.main()
-                                    except:
+                                    except StopIteration:
                                         pass
+                                    except:
+                                        assert False, (
+                                            'An unknown exception was thrown'
+                                        )
 
     def test_main_os_error(self):
         class Test(object):
@@ -273,3 +305,20 @@ class TestHelpers(TestCase):
             'novaagent.libs.centos',
             'Did not get expected object for centos'
         )
+
+    def test_create_lock_file(self):
+        agent.create_lock_file()
+        self.assertEqual(
+            os.path.exists('/tmp/.nova-agent.lock'),
+            True,
+            'Could not find lock file in expected place'
+        )
+
+    def test_create_lock_file_exists(self):
+        self.setup_lock_file()
+        with mock.patch(
+            'novaagent.novaagent.fcntl.lockf',
+            side_effect=IOError
+        ):
+            with mock.patch('novaagent.novaagent.os._exit'):
+                novaagent.novaagent.create_lock_file()
