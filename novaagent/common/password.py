@@ -280,6 +280,7 @@ def _create_temp_password_file(user, password, filename):
             enc_pass = crypt.crypt(password, salt)
             f.write("%s:%s:%s\n" % (s_user, enc_pass, s_rest))
 
+        f.flush()
         f.close()
         f = None
         success = True
