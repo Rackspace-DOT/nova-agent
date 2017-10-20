@@ -19,25 +19,18 @@
 JSON password reset handling plugin
 """
 
+from subprocess import PIPE
+from subprocess import Popen
+
+
 import binascii
-import logging
 import base64
-import crypt
+import time
 import sys
 import os
 
 
 from Crypto.Cipher import AES
-
-
-try:
-    import selinux
-    SELINUX = True
-except:
-    SELINUX = False
-
-
-PASSWD_FILES = ['/etc/shadow']
 
 
 if sys.version_info > (3,):
@@ -207,124 +200,45 @@ class PasswordCommands(object):
         return ("0", "")
 
 
-def _make_salt(length):
-    """Create a salt of appropriate length"""
-    salt_chars = 'abcdefghijklmnopqrstuvwxyz'
-    salt_chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    salt_chars += '0123456789./'
-    rand_data = os.urandom(length)
-    salt = ''
-    for c in rand_data:
-        try:
-            salt += salt_chars[ord(c) % len(salt_chars)]
-        except:
-            salt += salt_chars[c % len(salt_chars)]
-
-    return salt
-
-
-def _create_temp_password_file(user, password, filename):
-    """
-    Read original passwd file, generating a new temporary file.
-    Returns: The temporary filename
-    """
-    with open(filename) as f:
-        file_data = f.readlines()
-
-    stat_info = os.stat(filename)
-    tmpfile = '%s.tmp.%d' % (filename, os.getpid())
-
-    # We have to use os.open() so that we can create the file with
-    # the appropriate modes.  If we create it and set modes later,
-    # there's a small point of time where a non-root user could
-    # potentially open the file and wait for data to be written.
-    fd = os.open(
-        tmpfile,
-        os.O_CREAT | os.O_TRUNC | os.O_WRONLY,
-        stat_info.st_mode
-    )
-    f = None
-    success = False
-    try:
-        os.chown(tmpfile, stat_info.st_uid, stat_info.st_gid)
-        f = os.fdopen(fd, 'w')
-        for line in file_data:
-            line = line.strip()
-            if line.startswith('#'):
-                f.write('{0}\n'.format(line))
-                continue
-
-            try:
-                (s_user, s_password, s_rest) = line.split(':', 2)
-            except ValueError as exc:
-                f.write('{0}\n'.format(line))
-                continue
-
-            if s_user != user:
-                f.write('{0}\n'.format(line))
-                continue
-
-            if s_password.startswith('$'):
-                # Format is '$ID$SALT$HASH' where ID defines the
-                # ecnryption type.  We'll re-use that, and make a salt
-                # that's the same size as the old
-                salt_data = s_password[1:].split('$')
-                salt = '$%s$%s$' % (
-                    salt_data[0],
-                    _make_salt(len(salt_data[1]))
-                )
-            else:
-                # Default to MD5 as a minimum level of compatibility
-                salt = '$1$%s$' % _make_salt(8)
-
-            enc_pass = crypt.crypt(password, salt)
-            f.write("%s:%s:%s\n" % (s_user, enc_pass, s_rest))
-
-        f.flush()
-        f.close()
-        f = None
-        success = True
-    except Exception as exc:
-        logging.error("Couldn't create temporary password file: %s" % str(exc))
-        raise
-    finally:
-        if not success:
-            # Close the file if it's open
-            if f:
-                try:
-                    f.close()
-                except Exception:
-                    pass
-            # Make sure to unlink the tmpfile
-            try:
-                os.unlink(tmpfile)
-            except Exception:
-                pass
-
-    return tmpfile
-
-
 def set_password(user, password):
-    """Set the password for a particular user"""
-    for filename in PASSWD_FILES:
-        if not os.path.exists(filename):
-            continue
+    """Set the password for a particular user using passwd"""
+    p = Popen(
+        ['passwd', user],
+        stdout=PIPE,
+        stderr=PIPE,
+        stdin=PIPE
+    )
+    try:
+        p.stdin.write(u'{0}\n{0}\n'.format(password))
+    except TypeError:
+        # Python 3 wants bytes so catch the exception and encode properly
+        p.stdin.write((u'{0}\n{0}\n'.format(password).encode('utf-8')))
 
-        # Get the selinux file context before we do anything with the file
-        if SELINUX:
-            selinux_context = selinux.getfilecon(filename)
+    p.stdin.flush()
+    for x in range(0, 10):
+        if p.poll() is not None:
+            break
+        time.sleep(0.1)
+    else:
+        p.terminate()
+        time.sleep(1)
+        p.kill()
+        raise PasswordError(
+            (
+                500,
+                'Failed to change password as passwd process did not terminate'
+            )
+        )
 
-        tmpfile = _create_temp_password_file(user, password, filename)
-        bakfile = '{0}.bak.{1}'.format(filename, os.getpid())
+    if p.returncode != 0:
+        raise PasswordError(
+            (
+                500,
+                'Failed to change password for {0}: {1}'.format(
+                    user,
+                    p.returncode
+                )
+            )
+        )
 
-        os.rename(filename, bakfile)
-        os.rename(tmpfile, filename)
-        os.remove(bakfile)
-
-        # Update selinux context after the file replace
-        if SELINUX:
-            selinux.setfilecon(filename, selinux_context[1])
-
-        return
-
-    raise PasswordError((500, "No password file found"))
+    return
