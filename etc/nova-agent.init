@@ -24,8 +24,7 @@ do_start() {
     if pidofproc -p $pid_file; then
         return 0
     fi
-    export PATH="/sbin:/bin:/usr/sbin:/usr/bin:/usr/games:/usr/local/sbin:/usr/local/bin"
-    start-stop-daemon --background --pidfile $pid_file --start --exec $exec -- -o /var/log/nova-agent.log
+    start-stop-daemon --background --make-pidfile --pidfile $pid_file --start --exec $exec -- -o /var/log/nova-agent.log -l info --no-fork true
     RETVAL=$?
     echo "Starting $PROG... "
     if [ $RETVAL -eq 0 ]; then
