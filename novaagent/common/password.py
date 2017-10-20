@@ -208,7 +208,12 @@ def set_password(user, password):
         stderr=PIPE,
         stdin=PIPE
     )
-    p.stdin.write(u'{0}\n{0}\n'.format(password))
+    try:
+        p.stdin.write(u'{0}\n{0}\n'.format(password))
+    except TypeError:
+        # Python 3 wants bytes so catch the exception and encode properly
+        p.stdin.write((u'{0}\n{0}\n'.format(password).encode('utf-8')))
+
     p.stdin.flush()
     for x in range(0, 10):
         if p.poll() is not None:

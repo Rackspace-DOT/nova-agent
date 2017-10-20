@@ -289,6 +289,26 @@ class TestHelpers(TestCase):
         except:
             assert False, 'Exception should not have been raised'
 
+    def test_set_password_success_bytes(self):
+        mock_popen = mock.Mock()
+        mock_comm = mock.Mock()
+        mock_comm.return_value = 0
+        mock_stdin = mock.Mock()
+        mock_stdin.return_value = [TypeError, None]
+        mock_popen.side_effect = [
+            mock.Mock(returncode=0, poll=mock_comm, stdin=mock_stdin)
+        ]
+        try:
+            with mock.patch(
+                'novaagent.common.password.Popen',
+                side_effect=mock_popen
+            ):
+                returned = password.set_password('test', 'test')
+
+            self.assertEqual(returned, None, 'Invalid return value on success')
+        except:
+            assert False, 'Exception should not have been raised'
+
     def test_set_password_no_terminate(self):
         mock_popen = mock.Mock()
         mock_comm = mock.Mock()
