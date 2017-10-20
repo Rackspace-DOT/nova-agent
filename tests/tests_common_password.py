@@ -35,19 +35,6 @@ class TestHelpers(TestCase):
         for item in files:
             os.remove(item)
 
-    def setup_test_pw_file(self):
-        write_data = [
-            'root:$1$p9I3huSF$1acAVn1Kn.DWH1ycSknWR.:17333:0:99999:7:::',
-            'bin:*:17110:0:99999:7:::',
-            '#daemon:*:17110:0:99999:7:::',
-            'thisisabadlineinthepasswordfile',
-            'badpass:p9I3huSF$1acAVn1Kn.DWH1ycSknWR.:17113:0:99999:7:::',
-            'testuser:$1$p9I3huSF$1acAVn1Kn.DWH1ycSknWR.:17352:0:99999:7:::'
-        ]
-        with open('/tmp/passwd', 'a+') as f:
-            for item in write_data:
-                f.write('{0}\n'.format(item))
-
     def test_password_error(self):
         test_error = ('000', 'Test Response')
         test = password.PasswordError(test_error)
@@ -220,24 +207,6 @@ class TestHelpers(TestCase):
                 'Incorrect message received on AES error'
             )
 
-    # Commenting out and will update the tests later
-    # def test_decode_password_password_error_bytes(self):
-    #     temp_pass = base64.b64encode(b'this is a test')
-    #     test = password.PasswordCommands()
-    #     test.aes_key = (
-    #         b"\xf8\x05\x98\xbb '\xeeM<=\xe2\x8eU\xf6E\xa1",
-    #         b';\xd1\xacR|:\xc2\xdd#t\x181\xad\x11d\x0b'
-    #     )
-    #     try:
-    #         test._decode_password(temp_pass)
-    #         assert False, 'Exception was not caught'
-    #     except password.PasswordError as e:
-    #         self.assertEqual(
-    #             str(e),
-    #             "500: a bytes-like object is required, not 'int'",
-    #             'Incorrect message received generic password error'
-    #         )
-
     def test_decode_password_password_error_length(self):
         temp_pass = base64.b64encode(b'this is a test')
         test = password.PasswordCommands()
@@ -302,84 +271,65 @@ class TestHelpers(TestCase):
             'Did not receive expected error on invalid password data'
         )
 
-    def test_make_salt(self):
-        length = 16
-        salt_value = password._make_salt(length)
-        self.assertEqual(
-            len(salt_value),
-            length,
-            'Invalid salt length'
-        )
-
-    def test_create_temp_password_file(self):
-        self.setup_test_pw_file()
-        temp_file = password._create_temp_password_file(
-            'testuser', 'password', '/tmp/passwd'
-        )
-        self.assertIn(
-            '/tmp/passwd',
-            temp_file,
-            'Did not find original path in temporary file'
-        )
-
-    def test_create_temp_password_file_create_salt(self):
-        self.setup_test_pw_file()
-
-        temp_file = password._create_temp_password_file(
-            'badpass', 'password', '/tmp/passwd'
-        )
-        self.assertIn(
-            '/tmp/passwd',
-            temp_file,
-            'Did not find original path in temporary file'
-        )
-
-    def test_create_temp_password_file_exception(self):
-        self.setup_test_pw_file()
-        with mock.patch('novaagent.common.password._make_salt') as salt:
-            salt.side_effect = ValueError
-            try:
-                password._create_temp_password_file(
-                    'badpass', 'password', '/tmp/passwd'
-                )
-                assert False, 'Exception should have been raised'
-            except Exception:
-                pass
-
-    def test_set_password_invalid_file(self):
-        password.PASSWD_FILES = ['/tmp/bad_password_file']
+    def test_set_password_success(self):
+        mock_popen = mock.Mock()
+        mock_comm = mock.Mock()
+        mock_comm.return_value = 0
+        mock_popen.side_effect = [
+            mock.Mock(returncode=0, poll=mock_comm)
+        ]
         try:
-            password.set_password('test', 'test')
+            with mock.patch(
+                'novaagent.common.password.Popen',
+                side_effect=mock_popen
+            ):
+                returned = password.set_password('test', 'test')
+
+            self.assertEqual(returned, None, 'Invalid return value on success')
+        except:
+            assert False, 'Exception should not have been raised'
+
+    def test_set_password_no_terminate(self):
+        mock_popen = mock.Mock()
+        mock_comm = mock.Mock()
+        mock_comm.return_value = None
+        mock_popen.side_effect = [
+            mock.Mock(returncode=0, poll=mock_comm)
+        ]
+        try:
+            with mock.patch(
+                'novaagent.common.password.Popen',
+                side_effect=mock_popen
+            ):
+                password.set_password('test', 'test')
+
             assert False, 'Exception should have been raised'
         except Exception as e:
             self.assertEqual(
                 str(e),
-                '500: No password file found',
-                'Invalid message received for bad file'
+                '500: Failed to change password as passwd '
+                'process did not terminate',
+                'Invalid message received for failure to terminate'
             )
 
-    def test_set_password_change_password_success(self):
-        self.setup_test_pw_file()
-        original_line = (
-            'testuser:$1$p9I3huSF$1acAVn1Kn.DWH1ycSknWR.:17352:0:99999:7:::'
-        )
-        password.PASSWD_FILES = ['/tmp/passwd']
+    def test_set_password_bad_return(self):
+        mock_popen = mock.Mock()
+        mock_comm = mock.Mock()
+        mock_comm.return_value = 0
+        mock_popen.side_effect = [
+            mock.Mock(returncode=999, poll=mock_comm)
+        ]
         try:
-            password.set_password('testuser', 'test')
+            with mock.patch(
+                'novaagent.common.password.Popen',
+                side_effect=mock_popen
+            ):
+                password.set_password('test', 'test')
+
+            assert False, 'Exception should have been raised'
         except Exception as e:
-            assert False, (
-                'Exception raised when should not have: {0}'.format(e)
+            self.assertEqual(
+                str(e),
+                '500: Failed to change password for test: 999',
+                'Invalid message received for failure on passwd cmd'
             )
-
-        files = glob.glob('/tmp/passwd*')
-        self.assertEqual(len(files), 1, 'Invalid number of files found')
-        with open('/tmp/passwd') as f:
-            file_data = f.readlines()
-
-        for line in file_data:
-            if 'testuser:' in line:
-                self.assertNotEqual(
-                    line,
-                    original_line,
-                    'Password was not updated and should have been'
-                )
