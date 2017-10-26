@@ -49,7 +49,7 @@ def _write_file(filename, data):
     try:
         os.chown(tempfilename, owner, group)
         os.chmod(tempfilename, permission)
-    except:
+    except Exception:
         pass
 
     if os.path.exists(filename):
@@ -66,7 +66,7 @@ class FileInject(object):
     def injectfile_cmd(self, data):
         try:
             b64_decoded = base64.b64decode(data)
-        except:
+        except Exception:
             return ("500", "Error doing base64 decoding of data")
 
         filename, data = b64_decoded.decode('utf-8').split(',', 1)

@@ -38,7 +38,7 @@ class TestHelpers(TestCase):
 
         try:
             shutil.rmtree('/tmp/tests')
-        except:
+        except Exception:
             pass
 
     def test_file_permission(self):

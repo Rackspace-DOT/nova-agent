@@ -78,7 +78,7 @@ class TestHelpers(TestCase):
         with mock.patch('novaagent.common.password.set_password'):
             try:
                 test._change_password(test_password)
-            except:
+            except Exception:
                 assert False, 'An error was generated when should not have'
 
     def test_change_password_string(self):
@@ -87,7 +87,7 @@ class TestHelpers(TestCase):
         with mock.patch('novaagent.common.password.set_password'):
             try:
                 test._change_password(test_password)
-            except:
+            except Exception:
                 assert False, 'An error was generated when should not have'
 
     def test_make_private_key(self):
@@ -139,7 +139,7 @@ class TestHelpers(TestCase):
         try:
             print(test.aes_key)
             assert False, 'AES key was not removed as expected'
-        except:
+        except Exception:
             pass
 
     def test_wipe_aes_key_error(self):
@@ -148,14 +148,14 @@ class TestHelpers(TestCase):
         try:
             print(test.aes_key)
             assert False, 'AES key was not removed as expected'
-        except:
+        except Exception:
             pass
 
     def test_key_init(self):
         test = password.PasswordCommands()
         try:
             keyinit = test.keyinit_cmd(242416858127415443985927051233248666254)
-        except:
+        except Exception:
             assert False, 'Key init caused an error'
 
         self.assertEqual(
@@ -286,7 +286,7 @@ class TestHelpers(TestCase):
                 returned = password.set_password('test', 'test')
 
             self.assertEqual(returned, None, 'Invalid return value on success')
-        except:
+        except Exception:
             assert False, 'Exception should not have been raised'
 
     def test_set_password_success_bytes(self):
@@ -306,7 +306,7 @@ class TestHelpers(TestCase):
                 returned = password.set_password('test', 'test')
 
             self.assertEqual(returned, None, 'Invalid return value on success')
-        except:
+        except Exception:
             assert False, 'Exception should not have been raised'
 
     def test_set_password_no_terminate(self):

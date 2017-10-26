@@ -40,7 +40,7 @@ def backup_file(config):
 def encode_to_bytes(data_string):
     try:
         return bytes(data_string)
-    except:
+    except Exception:
         return bytes(data_string, 'utf-8')
 
 
@@ -94,7 +94,7 @@ def get_hw_addr(ifname):
             hw_address = ''.join(
                 ['%02x' % ord(char) for char in info[18:24]]
             ).upper()
-        except:
+        except Exception:
             hw_address = ''.join(
                 ['%02x' % char for char in info[18:24]]
             ).upper()
@@ -153,7 +153,7 @@ def get_hostname(client):
         xen_hostname = xenstore.xenstore_read(b'vm-data/hostname', client)
         if xen_hostname is None:
             raise ValueError('Shell to xenstore-read for hostname failed')
-    except:
+    except Exception:
         xen_hostname = socket.gethostname()
 
     log.info('hostname: {0}'.format(xen_hostname))

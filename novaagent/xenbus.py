@@ -38,7 +38,7 @@ class XenGuestRouter(Router):
                     try:
                         self.rvars[packet.rq_id]
                         rvar = self.rvars.pop(packet.rq_id, None)
-                    except:
+                    except Exception:
                         temp_rq_id = list(self.rvars.keys())[0]
                         rvar = self.rvars.pop(temp_rq_id, None)
 

@@ -9,6 +9,6 @@ python:
 install:
   - pip install -e .[tests]
 before_script:
-  - flake8 --ignore=E722 .
+  - flake8 .
 script:
   - nosetests -v --cover-erase --with-coverage --cover-package=novaagent
