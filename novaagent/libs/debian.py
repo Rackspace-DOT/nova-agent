@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 
+import logging
 import time
 import os
 
@@ -15,13 +16,15 @@ from novaagent import utils
 from novaagent.libs import DefaultOS
 
 
+log = logging.getLogger(__name__)
+
+
 class ServerOS(DefaultOS):
     def __init__(self):
         self.netconfig_file = '/etc/network/interfaces'
         self.hostname_file = '/etc/hostname'
 
     def _setup_loopback(self):
-        utils.backup_file(self.netconfig_file)
         with open(self.netconfig_file, 'w') as iffile:
             iffile.write('# The loopback network interface\n')
             iffile.write('auto lo\n')
@@ -49,6 +52,9 @@ class ServerOS(DefaultOS):
                 stdin=PIPE
             )
             out, err = p.communicate()
+
+        if p.returncode != 0:
+            log.error('Error on hostname set: {0}'.format(err))
 
         return p.returncode, hostname
 
@@ -145,7 +151,9 @@ class ServerOS(DefaultOS):
         ifaces = {}
         hostname_return_code, hostname = self._setup_hostname(client)
         if hostname_return_code != 0:
-            return (str(hostname_return_code), 'Error setting hostname')
+            log.error(
+                'Error setting hostname: {0}'.format(hostname_return_code)
+            )
 
         xen_macs = utils.list_xenstore_macaddrs(client)
         for iface in utils.list_hw_interfaces():
@@ -155,7 +163,8 @@ class ServerOS(DefaultOS):
 
             ifaces[iface] = utils.get_interface(mac, client)
 
-        # Setup interface file for all interfaces
+        # Backup original and setup interface file for all interfaces
+        utils.backup_file(self.netconfig_file)
         self._setup_loopback()
         for ifname, iface in ifaces.items():
             self._setup_interface(ifname, iface)
@@ -185,6 +194,7 @@ class ServerOS(DefaultOS):
             )
             out, err = p.communicate()
             if p.returncode != 0:
+                log.error('Error received on network restart: {0}'.format(err))
                 return (
                     str(p.returncode),
                     'Error starting network: {0}'.format(ifname)

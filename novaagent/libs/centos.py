@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 
+import logging
 import os
 
 
@@ -12,6 +13,9 @@ from subprocess import PIPE
 
 from novaagent import utils
 from novaagent.libs import DefaultOS
+
+
+log = logging.getLogger(__name__)
 
 
 class ServerOS(DefaultOS):
@@ -136,13 +140,18 @@ class ServerOS(DefaultOS):
             )
             out, err = p.communicate()
 
+        if p.returncode != 0:
+            log.error('Error on hostname set: {0}'.format(err))
+
         return p.returncode, hostname
 
     def resetnetwork(self, name, value, client):
         ifaces = {}
         hostname_return_code, hostname = self._setup_hostname(client)
         if hostname_return_code != 0:
-            return (str(hostname_return_code), 'Error setting hostname')
+            log.error(
+                'Error setting hostname: {0}'.format(hostname_return_code)
+            )
 
         xen_macs = utils.list_xenstore_macaddrs(client)
         for iface in utils.list_hw_interfaces():
@@ -191,6 +200,7 @@ class ServerOS(DefaultOS):
 
         out, err = p.communicate()
         if p.returncode != 0:
+            log.error('Error received on network restart: {0}'.format(err))
             return (str(p.returncode), 'Error restarting network')
 
         return ('0', '')

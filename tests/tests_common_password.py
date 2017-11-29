@@ -28,12 +28,16 @@ if sys.version_info > (3,):
 class TestHelpers(TestCase):
     def setUp(self):
         logging.disable(logging.ERROR)
+        self.time_patcher = mock.patch('novaagent.common.password.time.sleep')
+        self.time_patcher.start()
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
         files = glob.glob('/tmp/passwd*')
         for item in files:
             os.remove(item)
+
+        self.time_patcher.stop()
 
     def test_password_error(self):
         test_error = ('000', 'Test Response')

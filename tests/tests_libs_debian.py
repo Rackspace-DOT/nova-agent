@@ -6,6 +6,7 @@ from .fixtures import network
 
 import logging
 import glob
+import copy
 import sys
 import os
 
@@ -25,17 +26,22 @@ except ImportError:
 class TestHelpers(TestCase):
     def setUp(self):
         logging.disable(logging.ERROR)
+        self.time_patcher = mock.patch('novaagent.libs.debian.time.sleep')
+        self.time_patcher.start()
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
         file_searches = [
             '/tmp/hostname*',
-            '/tmp/interfaces*'
+            '/tmp/interfaces*',
+            '/tmp/network*'
         ]
         for search in file_searches:
             route_files = glob.glob(search)
             for item in route_files:
                 os.remove(item)
+
+        self.time_patcher.stop()
 
     def setup_temp_hostname(self):
         with open('/tmp/hostname', 'a+') as f:
@@ -65,18 +71,81 @@ class TestHelpers(TestCase):
         self.setup_temp_interfaces()
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
-        temp.netconfig_file = '/tmp/network'
+        temp.netconfig_file = '/tmp/interfaces'
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
             hostname.return_value = 1, 'test_hostname'
-            result = temp.resetnetwork('name', 'value', 'dummy_client')
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E207572', 'BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth0', 'eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E207572',
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            network.ETH0_INTERFACE,
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            mock_popen = mock.Mock()
+                            mock_comm = mock.Mock()
+                            mock_comm.return_value = ('out', 'error')
+                            mock_popen.side_effect = [
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm)
+                            ]
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen',
+                                side_effect=mock_popen
+                            ):
+                                result = temp.resetnetwork(
+                                    'name',
+                                    'value',
+                                    'dummy_client'
+                                )
 
         self.assertEqual(
             result,
-            ('1', 'Error setting hostname'),
+            ('0', ''),
             'Result was not the expected value'
         )
+        interface_files = glob.glob('/tmp/interfaces*')
+        self.assertEqual(
+            len(interface_files),
+            2,
+            'Incorrect number of interface files'
+        )
+        with open('/tmp/interfaces') as f:
+            written_data = f.readlines()
+
+        update_config = copy.deepcopy(network.DEBIAN_INTERFACES_CONFIG)
+        del update_config[0]
+        loopback = [
+            '# The loopback network interface\n',
+            'auto lo\n',
+            'iface lo inet loopback\n',
+            '\n'
+        ]
+        check_success = loopback + update_config
+        for index, line in enumerate(written_data):
+            self.assertIn(
+                line,
+                check_success,
+                'Written file did not match expected value'
+            )
 
     def test_reset_network_error_down(self):
         self.setup_temp_hostname()
@@ -257,7 +326,7 @@ class TestHelpers(TestCase):
         with open('/tmp/interfaces') as f:
             written_data = f.readlines()
 
-        update_config = network.DEBIAN_INTERFACES_CONFIG
+        update_config = copy.deepcopy(network.DEBIAN_INTERFACES_CONFIG)
         del update_config[0]
         loopback = [
             '# The loopback network interface\n',

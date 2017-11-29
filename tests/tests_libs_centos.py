@@ -96,12 +96,70 @@ class TestHelpers(TestCase):
             'novaagent.libs.centos.ServerOS._setup_hostname'
         ) as hostname:
             hostname.return_value = 1, 'test_hostname'
-            result = temp.resetnetwork('name', 'value', 'dummy_client')
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth1', 'lo']
+                    mock_response = mock.Mock()
+                    mock_response.side_effect = [
+                        'BC764E206C5B',
+                        None
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_response
+                    ):
+                        with mock.patch(
+                            'novaagent.utils.get_interface'
+                        ) as inter:
+                            inter.return_value = (
+                                xen_data.check_network_interface()
+                            )
+                            with mock.patch(
+                                'novaagent.utils.get_ifcfg_files_to_remove'
+                            ) as ifcfg_files:
+                                ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
+                                with mock.patch(
+                                    'novaagent.libs.centos.Popen'
+                                ) as p:
+                                    p.return_value.communicate.return_value = (
+                                        'out', 'error'
+                                    )
+                                    p.return_value.returncode = 0
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
-            ('1', 'Error setting hostname'),
+            ('0', ''),
             'Result was not the expected value'
+        )
+        network_files = glob.glob('/tmp/network*')
+        self.assertEqual(
+            len(network_files),
+            2,
+            'Incorrect number of network files'
+        )
+        ifcfg_files = glob.glob('/tmp/ifcfg-eth*')
+        self.assertEqual(
+            len(ifcfg_files),
+            2,
+            'Incorrect number of ifcfg files'
+        )
+        route_files = glob.glob('/tmp/route*')
+        self.assertEqual(
+            len(route_files),
+            2,
+            'Incorrect number of route files'
+        )
+        localhost = glob.glob('/tmp/ifcfg-lo')
+        self.assertEqual(
+            len(localhost),
+            1,
+            'Localhost ifcfg file was moved out of the way and should not have'
         )
 
     def test_reset_network_success(self):
