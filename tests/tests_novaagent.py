@@ -26,11 +26,15 @@ except ImportError:
 class TestHelpers(TestCase):
     def setUp(self):
         logging.disable(logging.ERROR)
+        self.time_patcher = mock.patch('novaagent.novaagent.time.sleep')
+        self.time_patcher.start()
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
         if os.path.exists('/tmp/.nova-agent.lock'):
             os.remove('/tmp/.nova-agent.lock')
+
+        self.time_patcher.stop()
 
     def setup_lock_file(self):
         lf_path = os.path.join('/tmp', '.nova-agent.lock')
