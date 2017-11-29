@@ -121,7 +121,7 @@ class PasswordCommands(object):
         passwd = aes.decrypt(data)
         try:
             cut_off_sz = ord(passwd[len(passwd) - 1])
-        except:
+        except Exception:
             cut_off_sz = passwd[len(passwd) - 1]
 
         if cut_off_sz > 16 or len(passwd) < 16:

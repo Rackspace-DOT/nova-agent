@@ -64,7 +64,7 @@ class TestHelpers(TestCase):
                         update.return_value = True
                         try:
                             novaagent.novaagent.action(temp_os, 'dummy_client')
-                        except:
+                        except Exception:
                             assert False, (
                                 'An exception was thrown during action'
                             )
@@ -94,7 +94,7 @@ class TestHelpers(TestCase):
                                     temp_os,
                                     'dummy_client'
                                 )
-                            except:
+                            except Exception:
                                 assert False, (
                                     'An exception was thrown during action'
                                 )
@@ -137,7 +137,7 @@ class TestHelpers(TestCase):
                                         novaagent.novaagent.main()
                                     except KeyboardInterrupt:
                                         pass
-                                    except:
+                                    except Exception:
                                         assert False, (
                                             'An unknown exception was thrown'
                                         )
@@ -177,7 +177,7 @@ class TestHelpers(TestCase):
                                 novaagent.novaagent.main()
                             except KeyboardInterrupt:
                                 pass
-                            except:
+                            except Exception:
                                 assert False, 'An unknown exception was thrown'
 
     def test_main_success_with_xenbus(self):
@@ -219,7 +219,7 @@ class TestHelpers(TestCase):
                                             novaagent.novaagent.main()
                                         except KeyboardInterrupt:
                                             pass
-                                        except:
+                                        except Exception:
                                             assert False, (
                                                 'An unknown exception'
                                                 'was thrown'
@@ -257,7 +257,7 @@ class TestHelpers(TestCase):
                             novaagent.novaagent.main()
                         except OSError:
                             pass
-                        except:
+                        except Exception:
                             assert False, (
                                 'An unknown exception has been thrown on start'
                             )
