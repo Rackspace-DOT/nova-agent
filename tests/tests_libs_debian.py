@@ -380,15 +380,10 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 0
-                    return_code, hostname = temp._setup_hostname(
+                    return_code = temp._setup_hostname(
                         'dummy_client'
                     )
 
-        self.assertEqual(
-            hostname,
-            test_hostname,
-            'Did not receive expected host from function'
-        )
         self.assertEqual(
             return_code,
             0,
@@ -409,15 +404,10 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 1
-                    return_code, hostname = temp._setup_hostname(
+                    return_code = temp._setup_hostname(
                         'dummy_client'
                     )
 
-        self.assertEqual(
-            hostname,
-            test_hostname,
-            'Did not receive expected host from function'
-        )
         self.assertEqual(
             return_code,
             1,
@@ -438,22 +428,17 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 0
-                    return_code, hostname = temp._setup_hostname(
+                    return_code = temp._setup_hostname(
                         'dummy_client'
                     )
 
-        self.assertEqual(
-            hostname,
-            test_hostname,
-            'Did not receive expected host from function'
-        )
         self.assertEqual(
             return_code,
             0,
             'Return code received was not expected value'
         )
 
-    def test_setup_hostname_hostnamectl_failure(self):
+    def test_setup_hostname_hostnamectl_and_hostname_failure(self):
         self.setup_temp_hostname()
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
@@ -467,15 +452,10 @@ class TestHelpers(TestCase):
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 1
-                    return_code, hostname = temp._setup_hostname(
+                    return_code = temp._setup_hostname(
                         'dummy_client'
                     )
 
-        self.assertEqual(
-            hostname,
-            test_hostname,
-            'Did not receive expected host from function'
-        )
         self.assertEqual(
             return_code,
             1,
