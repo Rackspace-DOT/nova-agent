@@ -24,6 +24,7 @@ from subprocess import Popen
 
 
 import binascii
+import logging
 import base64
 import time
 import sys
@@ -35,6 +36,9 @@ from Crypto.Cipher import AES
 
 if sys.version_info > (3,):
     long = int
+
+
+log = logging.getLogger(__name__)
 
 
 # This is to support older python versions that don't have hashlib
@@ -217,12 +221,16 @@ def set_password(user, password):
     p.stdin.flush()
     for x in range(0, 10):
         if p.poll() is not None:
+            log.error('Poll is not not: {0}'.format(p.poll()))
             break
         time.sleep(0.1)
     else:
         p.terminate()
         time.sleep(1)
         p.kill()
+
+        log.error('Password not set for {0}: {1}'.format(user, password))
+
         raise PasswordError(
             (
                 500,
