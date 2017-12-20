@@ -221,7 +221,7 @@ def set_password(user, password):
     p.stdin.flush()
     for x in range(0, 10):
         if p.poll() is not None:
-            log.error('Poll is not not: {0}'.format(p.poll()))
+            log.error('Poll is not none: {0}'.format(p.poll()))
             break
         time.sleep(0.1)
     else:
@@ -239,6 +239,7 @@ def set_password(user, password):
         )
 
     if p.returncode != 0:
+        log.error('Returncode is not 0: {0}'.format(p.returncode))
         raise PasswordError(
             (
                 500,
