@@ -219,12 +219,18 @@ def set_password(user, password):
         p.stdin.write((u'{0}\n{0}\n'.format(password).encode('utf-8')))
 
     p.stdin.flush()
+    failure = False
     for x in range(0, 10):
         if p.poll() is not None:
             log.error('Poll is not none: {0}'.format(p.poll()))
+            log.error('Password not set for {0}: {1}'.format(user, password))
+            failure = True
             break
         time.sleep(0.1)
     else:
+
+        log.info('Got to the else side of the loop')
+
         p.terminate()
         time.sleep(1)
         p.kill()
@@ -249,5 +255,8 @@ def set_password(user, password):
                 )
             )
         )
+
+    if failure:
+        log.error('Failure occurred but error was not logged')
 
     return
