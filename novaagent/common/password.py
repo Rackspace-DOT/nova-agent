@@ -219,44 +219,40 @@ def set_password(user, password):
         p.stdin.write((u'{0}\n{0}\n'.format(password).encode('utf-8')))
 
     p.stdin.flush()
-    failure = False
-    for x in range(0, 10):
-        if p.poll() is not None:
-            log.error('Poll is not none: {0}'.format(p.poll()))
-            log.error('Password not set for {0}: {1}'.format(user, password))
-            failure = True
-            break
-        time.sleep(0.1)
-    else:
-
-        log.info('Got to the else side of the loop')
-
-        p.terminate()
-        time.sleep(1)
-        p.kill()
-
-        log.error('Password not set for {0}: {1}'.format(user, password))
-
-        raise PasswordError(
-            (
-                500,
-                'Failed to change password as passwd process did not terminate'
-            )
-        )
+    out, err = p.communicate()
+    # if p.returncode != 0:
+    #     log.error('Error using hostname: {0}'.format(err))
+    # else:
+    #
+    #     log.info('Got to the else side of the loop')
+    #
+    #     p.terminate()
+    #     time.sleep(1)
+    #     p.kill()
+    #
+    #     log.error('Password not set for {0}: {1}'.format(user, password))
+    #
+    #     raise PasswordError(
+    #         (
+    #             500,
+    #             'Failed to change password as passwd process did not terminate'
+    #         )
+    #     )
 
     if p.returncode != 0:
-        log.error('Returncode is not 0: {0}'.format(p.returncode))
+        log.error('Returncode is not 0: {0} - {1}'.format(p.returncode, err))
         raise PasswordError(
             (
                 500,
-                'Failed to change password for {0}: {1}'.format(
+                'Failed to change password for {0}: {1} - {2}'.format(
                     user,
-                    p.returncode
+                    p.returncode,
+                    err
                 )
             )
         )
 
-    if failure:
-        log.error('Failure occurred but error was not logged')
+    # if failure:
+    #     log.error('Failure occurred but error was not logged')
 
     return
