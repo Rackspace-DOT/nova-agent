@@ -24,9 +24,7 @@ from subprocess import Popen
 
 
 import binascii
-import logging
 import base64
-import time
 import sys
 import os
 
@@ -36,9 +34,6 @@ from Crypto.Cipher import AES
 
 if sys.version_info > (3,):
     long = int
-
-
-log = logging.getLogger(__name__)
 
 
 # This is to support older python versions that don't have hashlib
@@ -220,39 +215,16 @@ def set_password(user, password):
 
     p.stdin.flush()
     out, err = p.communicate()
-    # if p.returncode != 0:
-    #     log.error('Error using hostname: {0}'.format(err))
-    # else:
-    #
-    #     log.info('Got to the else side of the loop')
-    #
-    #     p.terminate()
-    #     time.sleep(1)
-    #     p.kill()
-    #
-    #     log.error('Password not set for {0}: {1}'.format(user, password))
-    #
-    #     raise PasswordError(
-    #         (
-    #             500,
-    #             'Failed to change password as passwd process did not terminate'
-    #         )
-    #     )
-
     if p.returncode != 0:
-        log.error('Returncode is not 0: {0} - {1}'.format(p.returncode, err))
         raise PasswordError(
             (
                 500,
-                'Failed to change password for {0}: {1} - {2}'.format(
+                'Failed to change password for {0}: {1} : {2}'.format(
                     user,
                     p.returncode,
                     err
                 )
             )
         )
-
-    # if failure:
-    #     log.error('Failure occurred but error was not logged')
 
     return

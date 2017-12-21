@@ -28,16 +28,12 @@ if sys.version_info > (3,):
 class TestHelpers(TestCase):
     def setUp(self):
         logging.disable(logging.ERROR)
-        self.time_patcher = mock.patch('novaagent.common.password.time.sleep')
-        self.time_patcher.start()
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
         files = glob.glob('/tmp/passwd*')
         for item in files:
             os.remove(item)
-
-        self.time_patcher.stop()
 
     def test_password_error(self):
         test_error = ('000', 'Test Response')
@@ -278,29 +274,27 @@ class TestHelpers(TestCase):
     def test_set_password_success(self):
         mock_popen = mock.Mock()
         mock_comm = mock.Mock()
-        mock_comm.return_value = 0
+        mock_comm.return_value = ('out', 'error')
         mock_popen.side_effect = [
-            mock.Mock(returncode=0, poll=mock_comm)
+            mock.Mock(returncode=0, communicate=mock_comm)
         ]
         try:
             with mock.patch(
                 'novaagent.common.password.Popen',
                 side_effect=mock_popen
             ):
-                returned = password.set_password('test', 'test')
-
-            self.assertEqual(returned, None, 'Invalid return value on success')
+                password.set_password('test', 'test')
         except Exception:
             assert False, 'Exception should not have been raised'
 
     def test_set_password_success_bytes(self):
         mock_popen = mock.Mock()
         mock_comm = mock.Mock()
-        mock_comm.return_value = 0
+        mock_comm.return_value = ('out', 'error')
         mock_stdin = mock.Mock()
         mock_stdin.return_value = [TypeError, None]
         mock_popen.side_effect = [
-            mock.Mock(returncode=0, poll=mock_comm, stdin=mock_stdin)
+            mock.Mock(returncode=0, communicate=mock_comm, stdin=mock_stdin)
         ]
         try:
             with mock.patch(
@@ -313,35 +307,12 @@ class TestHelpers(TestCase):
         except Exception:
             assert False, 'Exception should not have been raised'
 
-    def test_set_password_no_terminate(self):
-        mock_popen = mock.Mock()
-        mock_comm = mock.Mock()
-        mock_comm.return_value = None
-        mock_popen.side_effect = [
-            mock.Mock(returncode=0, poll=mock_comm)
-        ]
-        try:
-            with mock.patch(
-                'novaagent.common.password.Popen',
-                side_effect=mock_popen
-            ):
-                password.set_password('test', 'test')
-
-            assert False, 'Exception should have been raised'
-        except Exception as e:
-            self.assertEqual(
-                str(e),
-                '500: Failed to change password as passwd '
-                'process did not terminate',
-                'Invalid message received for failure to terminate'
-            )
-
     def test_set_password_bad_return(self):
         mock_popen = mock.Mock()
         mock_comm = mock.Mock()
-        mock_comm.return_value = 0
+        mock_comm.return_value = ('out', 'error')
         mock_popen.side_effect = [
-            mock.Mock(returncode=999, poll=mock_comm)
+            mock.Mock(returncode=999, communicate=mock_comm)
         ]
         try:
             with mock.patch(
@@ -354,6 +325,6 @@ class TestHelpers(TestCase):
         except Exception as e:
             self.assertEqual(
                 str(e),
-                '500: Failed to change password for test: 999',
+                '500: Failed to change password for test: 999 : error',
                 'Invalid message received for failure on passwd cmd'
             )
