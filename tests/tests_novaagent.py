@@ -271,7 +271,7 @@ class TestHelpers(TestCase):
     def test_server_type_debian(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, False, False, True
+            False, False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -288,7 +288,7 @@ class TestHelpers(TestCase):
     def test_server_type_redhat(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, False, True
+            False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -305,7 +305,7 @@ class TestHelpers(TestCase):
     def test_server_type_centos(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, True
+            False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',

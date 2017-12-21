@@ -78,8 +78,7 @@ def get_server_type():
     server_type = None
     if (
         os.path.exists('/etc/centos-release') or
-        os.path.exists('/etc/fedora-release') or
-        os.path.exists('/etc/sl-release')
+        os.path.exists('/etc/fedora-release')
     ):
         server_type = centos
     elif os.path.exists('/etc/redhat-release'):
