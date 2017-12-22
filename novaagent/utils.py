@@ -8,7 +8,6 @@ from novaagent.xenstore import xenstore
 import logging
 import socket
 import struct
-import shutil
 import fcntl
 import json
 import time
@@ -26,17 +25,6 @@ except ImportError as exc:
     HAS_NETIFACES = False
 
 
-# Why is this function and move_file both here as they do the same thing
-def backup_file(config):
-    if not os.path.exists(config):
-        return
-
-    bakfile_suffix = '{0}.bak'.format(time.time())
-    bakfile = '{0}.{1}'.format(config, bakfile_suffix)
-    log.info('Backing up -> {0} ({1})'.format(config, bakfile_suffix))
-    shutil.copyfile(config, bakfile)
-
-
 def encode_to_bytes(data_string):
     try:
         return bytes(data_string)
@@ -48,16 +36,16 @@ def netmask_to_prefix(netmask):
     return sum([bin(int(x)).count('1') for x in netmask.split('.')])
 
 
-def move_file(interface_config):
-    if not os.path.exists(interface_config):
+def backup_file(backup_file):
+    if not os.path.exists(backup_file):
         return
 
-    bakfile_suffix = '{0}.bak'.format(time.time())
-    log.info('Moving {0} -> {0}.{1}'.format(interface_config, bakfile_suffix))
+    backup_file_suffix = '{0}.bak'.format(time.time())
+    log.info('Backing up -> {0} ({1})'.format(backup_file, backup_file_suffix))
     os.rename(
-        interface_config, '{0}.{1}'.format(
-            interface_config,
-            bakfile_suffix
+        backup_file, '{0}.{1}'.format(
+            backup_file,
+            backup_file_suffix
         )
     )
 

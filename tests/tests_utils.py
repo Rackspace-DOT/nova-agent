@@ -674,7 +674,7 @@ class TestHelpers(TestCase):
 
     def test_move_interface_file_for_backup(self):
         rename_file = '/tmp/ifcfg-eth0'
-        utils.move_file(rename_file)
+        utils.backup_file(rename_file)
 
         files = glob.glob('/tmp/ifcfg-eth0.*.*.bak')
         self.assertEqual(
@@ -691,7 +691,7 @@ class TestHelpers(TestCase):
     def test_move_interface_file_for_backup_no_file(self):
         rename_file = '/tmp/ifcfg-eth0'
         os.remove(rename_file)
-        utils.move_file(rename_file)
+        utils.backup_file(rename_file)
         assert True, 'Move interface did not generate error'
 
     def test_rename_interface_file_success(self):
