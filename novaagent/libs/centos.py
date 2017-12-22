@@ -181,7 +181,7 @@ class ServerOS(DefaultOS):
             '{0}-'.format(self.interface_file_prefix)
         )
         for interface_config in move_files:
-            utils.move_file(interface_config)
+            utils.backup_file(interface_config)
 
         # setup interface files
         for ifname, iface in ifaces.items():
