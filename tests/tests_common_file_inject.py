@@ -5,8 +5,9 @@ from novaagent.common import file_inject
 import logging
 import base64
 import shutil
-import sys
+import stat
 import glob
+import sys
 import os
 
 
@@ -29,6 +30,12 @@ class TestHelpers(TestCase):
             with open('/tmp/test_file', 'a+') as f:
                 f.write('This is a test file')
                 os.utime('/tmp/test_file', None)
+
+            fd = os.open('/tmp/test_file', os.O_RDONLY)
+            os.fchmod(
+                fd,
+                stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+            )
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
@@ -61,7 +68,7 @@ class TestHelpers(TestCase):
     def test_file_permission_exception(self):
         os.remove('/tmp/test_file')
         mode, uid, gid = file_inject._get_file_permissions('/tmp/test_file')
-        self.assertEqual(mode, 0o644, 'Mode is not expected value')
+        self.assertEqual(mode, None, 'Mode is not expected value')
         self.assertEqual(uid, 0, 'UID is not expected value')
         self.assertEqual(gid, 0, 'GID is not expected value')
 
@@ -91,6 +98,12 @@ class TestHelpers(TestCase):
             'File Contents',
             'Written data in file is not what was expected'
         )
+        permissions = os.stat('/tmp/test_file_write')
+        self.assertEqual(
+            stat.filemode(permissions.st_mode),
+            '-rw-------',
+            'Permissions are not 600 as expected'
+        )
 
     def test_write_file_existing_file(self):
         file_inject._write_file(
@@ -117,6 +130,12 @@ class TestHelpers(TestCase):
             temp_contents,
             'File Contents',
             'Written data in file is not what was expected'
+        )
+        permissions = os.stat('/tmp/test_file')
+        self.assertEqual(
+            stat.filemode(permissions.st_mode),
+            '-rw-r--r--',
+            'Permissions are not 644 as expected'
         )
 
     def test_instantiate_file_inject(self):
@@ -155,6 +174,12 @@ class TestHelpers(TestCase):
             temp_contents,
             'Testing the inject',
             'Written data in file is not what was expected'
+        )
+        permissions = os.stat('/tmp/tests/test_file_write')
+        self.assertEqual(
+            stat.filemode(permissions.st_mode),
+            '-rw-------',
+            'Permissions are not 600 as expected'
         )
 
     def test_inject_file_cmd_exception(self):
