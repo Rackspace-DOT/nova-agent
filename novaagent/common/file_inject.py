@@ -35,7 +35,11 @@ def _get_file_permissions(filename):
     try:
         _stat = os.stat(filename)
         return (_stat.st_mode, _stat.st_uid, _stat.st_gid)
-    except FileNotFoundError:
+    except Exception:
+        """
+        Catching base exception as Python 2.x does not have FileNotFoundError
+        exception as python 3.X
+        """
         return (None, 0, 0)
 
 
