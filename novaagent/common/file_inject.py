@@ -54,7 +54,7 @@ def _write_file(filename, data):
     Create temporary file in the directory we want to place the file into
 
     https://docs.python.org/2/library/tempfile.html
-    From the documentation: There are no race conditions in the file’s
+    From the documentation: There are no race conditions in the file's
     creation, assuming that the platform properly implements the os.O_EXCL
     flag for os.open(). The file is readable and writable only by the
     creating user ID.
