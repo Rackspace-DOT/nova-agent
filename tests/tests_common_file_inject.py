@@ -48,6 +48,22 @@ class TestHelpers(TestCase):
         except Exception:
             pass
 
+    # Fix for python 2.x
+    def permissions_to_unix_name(self, os_stat):
+        is_dir = 'd' if stat.S_ISDIR(os_stat.st_mode) else '-'
+        permissions_dict = {
+            '7': 'rwx',
+            '6': 'rw-',
+            '5': 'r-x',
+            '4': 'r--',
+            '0': '---'
+        }
+        perms = str(oct(os_stat.st_mode)[-3:])
+        readable_perms = is_dir + ''.join(
+            permissions_dict.get(x, x) for x in perms
+        )
+        return readable_perms
+
     def test_file_permission(self):
         class MockStat(object):
             def __init__(self):
@@ -99,8 +115,13 @@ class TestHelpers(TestCase):
             'Written data in file is not what was expected'
         )
         permissions = os.stat('/tmp/test_file_write')
+        try:
+            readable_perms = stat.filemode(permissions.st_mode)
+        except Exception:
+            readable_perms = self.permissions_to_unix_name(permissions)
+
         self.assertEqual(
-            stat.filemode(permissions.st_mode),
+            readable_perms,
             '-rw-------',
             'Permissions are not 600 as expected'
         )
@@ -132,8 +153,13 @@ class TestHelpers(TestCase):
             'Written data in file is not what was expected'
         )
         permissions = os.stat('/tmp/test_file')
+        try:
+            readable_perms = stat.filemode(permissions.st_mode)
+        except Exception:
+            readable_perms = self.permissions_to_unix_name(permissions)
+
         self.assertEqual(
-            stat.filemode(permissions.st_mode),
+            readable_perms,
             '-rw-r--r--',
             'Permissions are not 644 as expected'
         )
@@ -176,8 +202,13 @@ class TestHelpers(TestCase):
             'Written data in file is not what was expected'
         )
         permissions = os.stat('/tmp/tests/test_file_write')
+        try:
+            readable_perms = stat.filemode(permissions.st_mode)
+        except Exception:
+            readable_perms = self.permissions_to_unix_name(permissions)
+
         self.assertEqual(
-            stat.filemode(permissions.st_mode),
+            readable_perms,
             '-rw-------',
             'Permissions are not 600 as expected'
         )
