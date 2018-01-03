@@ -70,47 +70,41 @@ class PasswordCommands(object):
     """
     Class for password related commands
     """
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         # prime to use
         self.prime = 162259276829213363391578010288127
         self.base = 5
-        self.kwargs = {}
-        self.kwargs.update(kwargs)
+        self._public = None
+        self._private = None
+        self._shared = None
+        self.aes_key = None
 
-    def _mod_exp(self, num, exp, mod):
-        result = 1
-        while exp > 0:
-            if (exp & 1) == 1:
-                result = (result * num) % mod
-            exp = exp >> 1
-            num = (num * num) % mod
-        return result
-
-    def _make_private_key(self):
+    def generate_private_key(self):
         """Create a private key using /dev/urandom"""
-        return int(binascii.hexlify(os.urandom(16)), 16)
+        self._private = int(binascii.hexlify(os.urandom(32)), 32)
 
-    def _dh_compute_public_key(self, private_key):
+    def _dh_compute_public_key(self):
         """Given a private key, compute a public key"""
-        return self._mod_exp(self.base, private_key, self.prime)
+        self._public = pow(self.base, self._private, self.prime)
 
-    def _dh_compute_shared_key(self, public_key, private_key):
+    def _dh_compute_shared_key(self, remote_public_key):
         """Given public and private keys, compute the shared key"""
-        return self._mod_exp(public_key, private_key, self.prime)
+        self._shared = pow(remote_public_key, self._private, self.prime)
 
-    def _compute_aes_key(self, key):
+    def _compute_aes_key(self):
         """
         Given a key, compute the corresponding key that can be used
         with AES
         """
+        shared_string = str(self._shared)
         m = hashlib.md5()
-        m.update(key.encode('utf-8'))
+        m.update(shared_string.encode('utf-8'))
 
         aes_key = m.digest()
 
         m = hashlib.md5()
         m.update(aes_key)
-        m.update(key.encode('utf-8'))
+        m.update(shared_string.encode('utf-8'))
 
         aes_iv = m.digest()
         return (aes_key, aes_iv)
@@ -135,13 +129,11 @@ class PasswordCommands(object):
         except Exception as exc:
             raise PasswordError((500, "Couldn't decode base64 data"))
 
-        try:
-            aes_key = self.aes_key
-        except AttributeError as exc:
+        if self.aes_key is None:
             raise PasswordError((500, "Password without key exchange"))
 
         try:
-            passwd = self._decrypt_password(aes_key, real_data)
+            passwd = self._decrypt_password(self.aes_key, real_data)
         except PasswordError as exc:
             raise exc
         except Exception as exc:
@@ -150,11 +142,6 @@ class PasswordCommands(object):
         return passwd
 
     def _change_password(self, passwd):
-        """Actually change the password"""
-
-        if self.kwargs.get('testmode', False):
-            return None
-
         if isinstance(passwd, bytes):
             string_passwd = passwd.decode('utf-8')
         else:
@@ -164,29 +151,34 @@ class PasswordCommands(object):
         set_password('root', string_passwd.strip('\n'))
 
     def _wipe_key(self):
-        """Remove key from a previous keyinit command"""
-        try:
-            del self.aes_key
-        except AttributeError:
-            pass
+        """
+        Reset Values from previous keyinit command as each password keyinit is
+        called again and new values are generated
+        """
+        self.aes_key = None
+        self._private = None
+        self._public = None
+        self._shared = None
 
     def keyinit_cmd(self, data):
-        # Remote pubkey comes in as large number
-        # Or well, it should come in as a large number.  It's possible
-        # that some legacy client code will send it as a string.  So,
-        # we'll make sure to always convert it to long.
+        """
+        Remote public key should come in as a large number. Set it to long in
+        case it comes in as a string
+        """
         remote_public_key = long(data)
 
-        my_private_key = self._make_private_key()
-        my_public_key = self._dh_compute_public_key(my_private_key)
+        # Sets self._private
+        self.generate_private_key()
 
-        shared_key = str(
-            self._dh_compute_shared_key(remote_public_key, my_private_key)
-        )
-        self.aes_key = self._compute_aes_key(shared_key)
+        # Sets self._public
+        self._dh_compute_public_key()
 
-        # The key needs to be a string response right now
-        return ("D0", str(my_public_key))
+        # Sets self._shared
+        self._dh_compute_shared_key(remote_public_key)
+        self.aes_key = self._compute_aes_key()
+
+        # Return the public key as a string
+        return ("D0", str(self._public))
 
     def password_cmd(self, data):
         try:
