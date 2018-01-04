@@ -71,9 +71,9 @@ class PasswordCommands(object):
     Class for password related commands
     """
     def __init__(self):
-        # prime to use
         self.prime = 162259276829213363391578010288127
         self.base = 5
+        self.key_length = 540
         self._public = None
         self._private = None
         self._shared = None
@@ -81,7 +81,8 @@ class PasswordCommands(object):
 
     def generate_private_key(self):
         """Create a private key using /dev/urandom"""
-        self._private = int(binascii.hexlify(os.urandom(32)), 32)
+        _bytes = self.key_length // 8 + 8
+        self._private = int(binascii.hexlify(os.urandom(_bytes)), 16)
 
     def _dh_compute_public_key(self):
         """Given a private key, compute a public key"""
@@ -97,30 +98,25 @@ class PasswordCommands(object):
         with AES
         """
         shared_string = str(self._shared)
-        m = hashlib.md5()
+        self.aes_key = (hashlib.md5(shared_string.encode('utf-8'))).digest()
+
+        m = hashlib.md5(self.aes_key)
         m.update(shared_string.encode('utf-8'))
+        self.aes_iv = m.digest()
 
-        aes_key = m.digest()
+    def _decrypt_password(self, data):
+        aes = AES.new(self.aes_key, AES.MODE_CBC, self.aes_iv)
+        decrypted_passwd = aes.decrypt(data)
 
-        m = hashlib.md5()
-        m.update(aes_key)
-        m.update(shared_string.encode('utf-8'))
-
-        aes_iv = m.digest()
-        return (aes_key, aes_iv)
-
-    def _decrypt_password(self, aes_key, data):
-        aes = AES.new(aes_key[0], AES.MODE_CBC, aes_key[1])
-        passwd = aes.decrypt(data)
         try:
-            cut_off_sz = ord(passwd[len(passwd) - 1])
+            cut_off_sz = ord(decrypted_passwd[len(decrypted_passwd) - 1])
         except Exception:
-            cut_off_sz = passwd[len(passwd) - 1]
+            cut_off_sz = decrypted_passwd[len(decrypted_passwd) - 1]
 
-        if cut_off_sz > 16 or len(passwd) < 16:
+        if cut_off_sz > 16 or len(decrypted_passwd) < 16:
             raise PasswordError((500, "Invalid password data received"))
 
-        passwd = passwd[: - cut_off_sz]
+        passwd = decrypted_passwd[: - cut_off_sz]
         return passwd
 
     def _decode_password(self, data):
@@ -133,7 +129,7 @@ class PasswordCommands(object):
             raise PasswordError((500, "Password without key exchange"))
 
         try:
-            passwd = self._decrypt_password(self.aes_key, real_data)
+            passwd = self._decrypt_password(real_data)
         except PasswordError as exc:
             raise exc
         except Exception as exc:
@@ -156,6 +152,7 @@ class PasswordCommands(object):
         called again and new values are generated
         """
         self.aes_key = None
+        self.aes_iv = None
         self._private = None
         self._public = None
         self._shared = None
@@ -175,7 +172,9 @@ class PasswordCommands(object):
 
         # Sets self._shared
         self._dh_compute_shared_key(remote_public_key)
-        self.aes_key = self._compute_aes_key()
+
+        # Sets self.aes_key and self.aes_iv
+        self._compute_aes_key()
 
         # Return the public key as a string
         return ("D0", str(self._public))
