@@ -73,22 +73,23 @@ class PasswordCommands(object):
     def __init__(self):
         self.prime = 162259276829213363391578010288127
         self.base = 5
-        self.key_length = 540
+        self.min_key_length = 540
         self._public = None
         self._private = None
         self._shared = None
-        self.aes_key = None
+        self._aes_key = None
+        self._aes_iv = None
 
-    def generate_private_key(self):
+    def _generate_private_key(self):
         """Create a private key using /dev/urandom"""
-        _bytes = self.key_length // 8 + 8
+        _bytes = self.min_key_length // 8 + 8
         self._private = int(binascii.hexlify(os.urandom(_bytes)), 16)
 
-    def _dh_compute_public_key(self):
+    def _compute_public_key(self):
         """Given a private key, compute a public key"""
         self._public = pow(self.base, self._private, self.prime)
 
-    def _dh_compute_shared_key(self, remote_public_key):
+    def _compute_shared_key(self, remote_public_key):
         """Given public and private keys, compute the shared key"""
         self._shared = pow(remote_public_key, self._private, self.prime)
 
@@ -98,16 +99,15 @@ class PasswordCommands(object):
         with AES
         """
         shared_string = str(self._shared)
-        self.aes_key = (hashlib.md5(shared_string.encode('utf-8'))).digest()
+        self._aes_key = (hashlib.md5(shared_string.encode('utf-8'))).digest()
 
-        m = hashlib.md5(self.aes_key)
+        m = hashlib.md5(self._aes_key)
         m.update(shared_string.encode('utf-8'))
-        self.aes_iv = m.digest()
+        self._aes_iv = m.digest()
 
     def _decrypt_password(self, data):
-        aes = AES.new(self.aes_key, AES.MODE_CBC, self.aes_iv)
+        aes = AES.new(self._aes_key, AES.MODE_CBC, self._aes_iv)
         decrypted_passwd = aes.decrypt(data)
-
         try:
             cut_off_sz = ord(decrypted_passwd[len(decrypted_passwd) - 1])
         except Exception:
@@ -125,7 +125,7 @@ class PasswordCommands(object):
         except Exception as exc:
             raise PasswordError((500, "Couldn't decode base64 data"))
 
-        if self.aes_key is None:
+        if self._aes_key is None:
             raise PasswordError((500, "Password without key exchange"))
 
         try:
@@ -146,13 +146,13 @@ class PasswordCommands(object):
         # Make sure there are no newlines at the end
         set_password('root', string_passwd.strip('\n'))
 
-    def _wipe_key(self):
+    def _wipe_keys(self):
         """
         Reset Values from previous keyinit command as each password keyinit is
         called again and new values are generated
         """
-        self.aes_key = None
-        self.aes_iv = None
+        self._aes_key = None
+        self._aes_iv = None
         self._private = None
         self._public = None
         self._shared = None
@@ -165,15 +165,15 @@ class PasswordCommands(object):
         remote_public_key = long(data)
 
         # Sets self._private
-        self.generate_private_key()
+        self._generate_private_key()
 
         # Sets self._public
-        self._dh_compute_public_key()
+        self._compute_public_key()
 
         # Sets self._shared
-        self._dh_compute_shared_key(remote_public_key)
+        self._compute_shared_key(remote_public_key)
 
-        # Sets self.aes_key and self.aes_iv
+        # Sets self._aes_key and self._aes_iv
         self._compute_aes_key()
 
         # Return the public key as a string
@@ -186,7 +186,7 @@ class PasswordCommands(object):
         except PasswordError as exc:
             return exc.get_response()
 
-        self._wipe_key()
+        self._wipe_keys()
         return ("0", "")
 
 
