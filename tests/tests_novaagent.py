@@ -1,13 +1,10 @@
 
-from novaagent import novaagent as agent
 from novaagent.libs import centos
 
 
 import novaagent
 import logging
-import fcntl
 import time
-import stat
 import sys
 import os
 
@@ -35,18 +32,6 @@ class TestHelpers(TestCase):
             os.remove('/tmp/.nova-agent.lock')
 
         self.time_patcher.stop()
-
-    def setup_lock_file(self):
-        lf_path = os.path.join('/tmp', '.nova-agent.lock')
-        lf_flags = os.O_WRONLY | os.O_CREAT
-        lf_mode = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
-        umask_original = os.umask(0)
-        try:
-            lf_fd = os.open(lf_path, lf_flags, lf_mode)
-        finally:
-            os.umask(umask_original)
-
-        fcntl.lockf(lf_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
     def test_xen_action_no_action(self):
         temp_os = centos.ServerOS()
@@ -271,7 +256,7 @@ class TestHelpers(TestCase):
     def test_server_type_debian(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, False, False, True
+            False, False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -288,7 +273,7 @@ class TestHelpers(TestCase):
     def test_server_type_redhat(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, False, True
+            False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -305,7 +290,7 @@ class TestHelpers(TestCase):
     def test_server_type_centos(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, True
+            False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -318,20 +303,3 @@ class TestHelpers(TestCase):
             'novaagent.libs.centos',
             'Did not get expected object for centos'
         )
-
-    def test_create_lock_file(self):
-        agent.create_lock_file()
-        self.assertEqual(
-            os.path.exists('/tmp/.nova-agent.lock'),
-            True,
-            'Could not find lock file in expected place'
-        )
-
-    def test_create_lock_file_exists(self):
-        self.setup_lock_file()
-        with mock.patch(
-            'novaagent.novaagent.fcntl.lockf',
-            side_effect=IOError
-        ):
-            with mock.patch('novaagent.novaagent.os._exit'):
-                novaagent.novaagent.create_lock_file()

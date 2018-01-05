@@ -122,6 +122,7 @@ class ServerOS(DefaultOS):
 
     def _setup_hostname(self, client):
         hostname = utils.get_hostname(client)
+        completed = False
         if os.path.exists('/usr/bin/hostnamectl'):
             utils.backup_file(self.hostname_file)
             p = Popen(
@@ -131,7 +132,13 @@ class ServerOS(DefaultOS):
                 stdin=PIPE
             )
             out, err = p.communicate()
-        else:
+            if p.returncode != 0:
+                log.error('Error using hostnamectl: {0}'.format(err))
+            else:
+                # Do not run hostname since it was successful
+                completed = True
+
+        if not completed:
             p = Popen(
                 ['hostname', hostname],
                 stdout=PIPE,
@@ -139,9 +146,8 @@ class ServerOS(DefaultOS):
                 stdin=PIPE
             )
             out, err = p.communicate()
-
-        if p.returncode != 0:
-            log.error('Error on hostname set: {0}'.format(err))
+            if p.returncode != 0:
+                log.error('Error using hostname: {0}'.format(err))
 
         return p.returncode, hostname
 
@@ -175,7 +181,7 @@ class ServerOS(DefaultOS):
             '{0}-'.format(self.interface_file_prefix)
         )
         for interface_config in move_files:
-            utils.move_file(interface_config)
+            utils.backup_file(interface_config)
 
         # setup interface files
         for ifname, iface in ifaces.items():
