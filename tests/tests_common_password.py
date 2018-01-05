@@ -94,11 +94,18 @@ class TestHelpers(TestCase):
             long,
             'Invalid return type from make key'
         )
-        self.assertGreaterEqual(
-            test._private.bit_length(),
-            test.min_key_length,
-            'Incorrect bit length in private key'
-        )
+        try:
+            self.assertGreaterEqual(
+                test._private.bit_length(),
+                test.min_key_length,
+                'Incorrect bit length in private key'
+            )
+        except AttributeError:
+            self.assertGreaterEqual(
+                len(bin(test._private.bit_length())) -2,
+                test.min_key_length,
+                'Incorrect bit length in private key'
+            )
 
     def test_compute_public_key(self):
         test = password.PasswordCommands()
