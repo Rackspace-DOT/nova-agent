@@ -102,7 +102,7 @@ class TestHelpers(TestCase):
             )
         except AttributeError:
             self.assertGreaterEqual(
-                len(bin(test._private.bit_length())) - 2,
+                len(bin(test._private())) - 2,
                 test.min_key_length,
                 'Incorrect bit length in private key'
             )
