@@ -65,6 +65,20 @@ def get_ifcfg_files_to_remove(net_config_dir, interface_file_prefix):
     return remove_files
 
 
+def get_provider(client=None):
+    provider = None
+    try:
+        provider_path = encode_to_bytes('vm-data/provider_data/provider')
+        provider = xenstore.xenstore_read(provider_path, client)
+    except Exception as e:
+        log.error(
+            'Exception occurred trying to get provider: {0}'.format(str(e))
+        )
+
+    log.info('Provider: {0}'.format(provider))
+    return provider
+
+
 def get_hw_addr(ifname):
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -121,7 +135,7 @@ def get_interface(mac_address, client):
             'Exception was caught getting the interface: {0}'.format(str(e))
         )
 
-    log.info('interface {0}: {1}'.format(mac_address, interface))
+    log.info('Interface {0}: {1}'.format(mac_address, interface))
     return interface
 
 
@@ -144,7 +158,7 @@ def get_hostname(client):
     except Exception:
         xen_hostname = socket.gethostname()
 
-    log.info('hostname: {0}'.format(xen_hostname))
+    log.info('Hostname: {0}'.format(xen_hostname))
     return xen_hostname
 
 

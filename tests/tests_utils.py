@@ -454,6 +454,73 @@ class TestHelpers(TestCase):
             'Network info returned was not the expected value'
         )
 
+    def test_network_get_provider_success(self):
+        client = ClientTest(b'Test Provider')
+        provider = utils.get_provider(client)
+        self.assertEqual(
+            provider,
+            'Test Provider',
+            'Providers do not match expected value'
+        )
+
+    def test_network_get_provider_exception(self):
+        client = ClientTest(None)
+        provider = utils.get_provider(client)
+        self.assertEqual(
+            provider,
+            None,
+            'Provider should have been None'
+        )
+
+    def test_network_get_provider_empty(self):
+        client = ClientTest(b'')
+        provider = utils.get_provider(client)
+        self.assertEqual(
+            provider,
+            '',
+            'Provider should have been an empty string'
+        )
+
+    def test_network_get_provider_success_popen(self):
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (
+                b'Test Provider', b''
+            )
+            popen.return_value.returncode = 0
+            provider = utils.get_provider(None)
+
+        self.assertEqual(
+            provider,
+            'Test Provider',
+            'Provider does not match expected value'
+        )
+
+    def test_network_get_provider_exception_popen(self):
+        with mock.patch(
+            'novaagent.xenstore.xenstore.Popen',
+            side_effect=ValueError
+        ):
+            provider = utils.get_provider(None)
+
+        self.assertEqual(
+            provider,
+            None,
+            'Provider returned should be None'
+        )
+
+    def test_network_get_provider_failure_popen(self):
+        with mock.patch('novaagent.xenstore.xenstore.Popen') as popen:
+            popen.return_value.communicate.return_value = (b'', '')
+            popen.return_value.returncode = 1
+
+            provider = utils.get_provider(None)
+
+        self.assertEqual(
+            provider,
+            None,
+            'Provider returned should be None'
+        )
+
     def test_network_get_mac_addresses_success(self):
         check_mac_addrs = ['BC764E206C5B', 'BC764E206C5A']
         client = ClientTest(xen_data.get_mac_addresses())
