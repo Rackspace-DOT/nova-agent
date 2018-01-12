@@ -28,8 +28,8 @@ class TestHelpers(TestCase):
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
-        if os.path.exists('/tmp/.nova-agent.lock'):
-            os.remove('/tmp/.nova-agent.lock')
+        if os.path.exists('/tmp/log'):
+            os.remove('/tmp/log')
 
         self.time_patcher.stop()
 
@@ -91,7 +91,7 @@ class TestHelpers(TestCase):
     def test_main_success(self):
         class Test(object):
             def __init__(self):
-                self.logfile = '-'
+                self.logfile = '/tmp/log'
                 self.loglevel = 'info'
                 self.no_fork = False
 
@@ -119,17 +119,20 @@ class TestHelpers(TestCase):
                             ) as exists:
                                 exists.return_value = False
                                 with mock.patch(
-                                    'novaagent.novaagent.time.sleep',
-                                    side_effect=mock_response
+                                    'novaagent.novaagent.check_provider'
                                 ):
-                                    try:
-                                        novaagent.novaagent.main()
-                                    except KeyboardInterrupt:
-                                        pass
-                                    except Exception:
-                                        assert False, (
-                                            'An unknown exception was thrown'
-                                        )
+                                    with mock.patch(
+                                        'novaagent.novaagent.time.sleep',
+                                        side_effect=mock_response
+                                    ):
+                                        try:
+                                            novaagent.novaagent.main()
+                                        except KeyboardInterrupt:
+                                            pass
+                                        except Exception:
+                                            assert False, (
+                                                'An exception was thrown'
+                                            )
 
     def test_main_success_no_fork(self):
         class Test(object):
@@ -159,15 +162,20 @@ class TestHelpers(TestCase):
                     ) as exists:
                         exists.return_value = False
                         with mock.patch(
-                            'novaagent.novaagent.time.sleep',
-                            side_effect=mock_response
+                            'novaagent.novaagent.check_provider'
                         ):
-                            try:
-                                novaagent.novaagent.main()
-                            except KeyboardInterrupt:
-                                pass
-                            except Exception:
-                                assert False, 'An unknown exception was thrown'
+                            with mock.patch(
+                                'novaagent.novaagent.time.sleep',
+                                side_effect=mock_response
+                            ):
+                                try:
+                                    novaagent.novaagent.main()
+                                except KeyboardInterrupt:
+                                    pass
+                                except Exception:
+                                    assert False, (
+                                        'An unknown exception was thrown'
+                                    )
 
     def test_main_success_with_xenbus(self):
         class Test(object):
@@ -199,20 +207,25 @@ class TestHelpers(TestCase):
                         ) as exists:
                             exists.return_value = True
                             with mock.patch('novaagent.novaagent.Client'):
-                                with mock.patch('novaagent.novaagent.action'):
+                                with mock.patch(
+                                    'novaagent.novaagent.check_provider'
+                                ):
                                     with mock.patch(
-                                        'novaagent.novaagent.time.sleep',
-                                        side_effect=mock_response
+                                        'novaagent.novaagent.action'
                                     ):
-                                        try:
-                                            novaagent.novaagent.main()
-                                        except KeyboardInterrupt:
-                                            pass
-                                        except Exception:
-                                            assert False, (
-                                                'An unknown exception'
-                                                'was thrown'
-                                            )
+                                        with mock.patch(
+                                            'novaagent.novaagent.time.sleep',
+                                            side_effect=mock_response
+                                        ):
+                                            try:
+                                                novaagent.novaagent.main()
+                                            except KeyboardInterrupt:
+                                                pass
+                                            except Exception:
+                                                assert False, (
+                                                    'An unknown exception'
+                                                    'was thrown'
+                                                )
 
     def test_main_os_error(self):
         class Test(object):
@@ -303,3 +316,27 @@ class TestHelpers(TestCase):
             'novaagent.libs.centos',
             'Did not get expected object for centos'
         )
+
+    def test_provider_failure(self):
+        try:
+            with mock.patch(
+                'novaagent.novaagent.os._exit',
+                side_effect=sys.exit
+            ):
+                novaagent.novaagent.check_provider('billy_bobs_computers')
+        except SystemExit:
+            pass
+        except Exception:
+            assert False, 'Exit was not called when it should have been'
+
+    def test_provider_success(self):
+        try:
+            with mock.patch(
+                'novaagent.novaagent.os._exit',
+                side_effect=sys.exit
+            ):
+                novaagent.novaagent.check_provider('RacKSpaCe')
+        except SystemExit:
+            assert False, 'A system exit happened and should not have'
+        except Exception:
+            assert False, 'A general exception happened and should not have'

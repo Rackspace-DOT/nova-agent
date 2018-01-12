@@ -57,14 +57,16 @@ def action(server_os, client=None):
 
 
 def nova_agent_listen(server_type, server_os):
-    log.info('Starting actions for {0}...'.format(server_type.__name__))
+    log.info('Starting actions for {0}'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
     if os.path.exists('/dev/xen/xenbus'):
         with Client(router=XENBUS_ROUTER) as xenbus_client:
+            check_provider(utils.get_provider(client=xenbus_client))
             while True:
                 action(server_os, client=xenbus_client)
                 time.sleep(1)
     else:
+        check_provider(utils.get_provider())
         while True:
             action(server_os)
             time.sleep(1)
@@ -110,6 +112,14 @@ def create_parser():
         help='Perform os.fork when starting agent'
     )
     return parser
+
+
+def check_provider(provider):
+    if provider is None or provider.lower() != 'rackspace':
+        log.error('Invalid provider for instance, agent will exit')
+        os._exit(1)
+
+    return
 
 
 def main():
