@@ -75,7 +75,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 1, 'test_hostname'
+            hostname.return_value = 1
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E207572', 'BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -102,6 +102,8 @@ class TestHelpers(TestCase):
                             mock_comm = mock.Mock()
                             mock_comm.return_value = ('out', 'error')
                             mock_popen.side_effect = [
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
                                 mock.Mock(returncode=0, communicate=mock_comm),
                                 mock.Mock(returncode=0, communicate=mock_comm),
                                 mock.Mock(returncode=0, communicate=mock_comm),
@@ -202,7 +204,7 @@ class TestHelpers(TestCase):
             'Incorrect number of interface files'
         )
 
-    def test_reset_network_error_up(self):
+    def test_reset_network_error_flush(self):
         self.setup_temp_hostname()
         self.setup_temp_interfaces()
         temp = debian.ServerOS()
@@ -251,6 +253,66 @@ class TestHelpers(TestCase):
 
         self.assertEqual(
             result,
+            ('1', 'Error flushing network: eth1'),
+            'Result was not the expected value'
+        )
+        interface_files = glob.glob('/tmp/interfaces*')
+        self.assertEqual(
+            len(interface_files),
+            2,
+            'Incorrect number of interface files'
+        )
+
+    def test_reset_network_error_up(self):
+        self.setup_temp_hostname()
+        self.setup_temp_interfaces()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netconfig_file = '/tmp/interfaces'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0, 'test_hostname'
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            mock_popen = mock.Mock()
+                            mock_comm = mock.Mock()
+                            mock_comm.return_value = ('out', 'error')
+                            mock_popen.side_effect = [
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=1, communicate=mock_comm)
+                            ]
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen',
+                                side_effect=mock_popen
+                            ):
+                                result = temp.resetnetwork(
+                                    'name',
+                                    'value',
+                                    'dummy_client'
+                                )
+
+        self.assertEqual(
+            result,
             ('1', 'Error starting network: eth1'),
             'Result was not the expected value'
         )
@@ -270,7 +332,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E207572', 'BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -297,6 +359,8 @@ class TestHelpers(TestCase):
                             mock_comm = mock.Mock()
                             mock_comm.return_value = ('out', 'error')
                             mock_popen.side_effect = [
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
                                 mock.Mock(returncode=0, communicate=mock_comm),
                                 mock.Mock(returncode=0, communicate=mock_comm),
                                 mock.Mock(returncode=0, communicate=mock_comm),
