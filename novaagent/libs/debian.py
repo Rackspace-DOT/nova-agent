@@ -188,6 +188,27 @@ class ServerOS(DefaultOS):
                     'Error stopping network: {0}'.format(ifname)
                 )
 
+            """
+            In some cases interfaces may retain old IP addresses especially
+            when building from a custom image. To prevent that we will do a
+            flush of the interface before bringing it back up.
+
+            Refer to bug:
+            https://bugs.launchpad.net/ubuntu/+source/ifupdown/+bug/1584682
+            """
+            p = Popen(
+                ['ip', 'addr', 'flush', 'dev', ifname],
+                stdout=PIPE,
+                stderr=PIPE,
+                stdin=PIPE
+            )
+            out, err = p.communicate()
+            if p.returncode != 0:
+                return (
+                    str(p.returncode),
+                    'Error flushing network: {0}'.format(ifname)
+                )
+
             # Sleep for one second
             time.sleep(1)
             p = Popen(
