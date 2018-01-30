@@ -189,6 +189,22 @@ class ServerOS(DefaultOS):
             if 'routes' in iface:
                 self._setup_routes(ifname, iface)
 
+            """
+                Creating servers from custom images may leave IP information
+                from the image source. Flush the interface before restart of
+                the network to clear out source image IP information
+            """
+            p = Popen(
+                ['ip', 'addr', 'flush', 'dev', ifname],
+                stdout=PIPE,
+                stderr=PIPE,
+                stdin=PIPE
+            )
+            out, err = p.communicate()
+            if p.returncode != 0:
+                # Log error and continue to restart network
+                log.error('Error flushing interface: {0}'.format(ifname))
+
         if os.path.exists('/usr/bin/systemctl'):
             p = Popen(
                 ['systemctl', 'restart', 'network.service'],
