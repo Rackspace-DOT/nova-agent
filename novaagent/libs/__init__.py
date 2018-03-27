@@ -32,7 +32,7 @@ class DefaultOS(object):
         return (
             '0',
             'kmsactivate,resetnetwork,version,keyinit,'
-            'features,password,agentupdate,injectfile'
+            'features,password,injectfile'
         )
 
     def version(self, name, value, client):

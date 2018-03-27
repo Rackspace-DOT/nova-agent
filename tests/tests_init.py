@@ -29,7 +29,7 @@ class TestHelpers(TestCase):
     def test_version(self):
         self.assertEqual(
             novaagent.__version__,
-            '2.1.12',
+            '2.1.13',
             'Version expected was not returned correctly'
         )
 
@@ -37,7 +37,7 @@ class TestHelpers(TestCase):
         temp = libs.DefaultOS()
         self.assertEqual(
             temp.version('Name', 'Value', 'Client'),
-            ('0', '2.1.12'),
+            ('0', '2.1.13'),
             'Did not get expected value on version'
         )
 
@@ -48,7 +48,7 @@ class TestHelpers(TestCase):
             (
                 '0',
                 'kmsactivate,resetnetwork,version,keyinit,'
-                'features,password,agentupdate,injectfile'
+                'features,password,injectfile'
             ),
             'Did not get expected value on features'
         )
