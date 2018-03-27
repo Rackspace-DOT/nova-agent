@@ -34,7 +34,8 @@ class TestHelpers(TestCase):
         file_searches = [
             '/tmp/hostname*',
             '/tmp/interfaces*',
-            '/tmp/network*'
+            '/tmp/network*',
+            '/tmp/rackspace-cloud*'
         ]
         for search in file_searches:
             route_files = glob.glob(search)
@@ -49,6 +50,10 @@ class TestHelpers(TestCase):
 
     def setup_temp_interfaces(self):
         with open('/tmp/interfaces', 'a+') as f:
+            f.write('#This is a test file\n')
+
+    def setup_temp_netplan(self):
+        with open('/tmp/rackspace-cloud.yaml', 'a+') as f:
             f.write('#This is a test file\n')
 
     def test_setup_loopback(self):
@@ -411,9 +416,9 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         temp.netconfig_file = '/tmp/interfaces'
         temp_iface = network.ETH0_INTERFACE
-        temp._setup_interface('eth0', temp_iface)
+        temp._setup_interfaces('eth0', temp_iface)
         temp_iface = xen_data.check_network_interface()
-        temp._setup_interface('eth1', temp_iface)
+        temp._setup_interfaces('eth1', temp_iface)
         files = glob.glob('/tmp/interfaces*')
         self.assertEqual(
             len(files),
@@ -429,6 +434,166 @@ class TestHelpers(TestCase):
                 network.DEBIAN_INTERFACES_CONFIG[index],
                 'Written file did not match expected value'
             )
+
+    def test_netplan_setup(self):
+        self.setup_temp_netplan()
+        temp = debian.ServerOS()
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+        temp._setup_netplan(network.ALL_INTERFACES)
+        files = glob.glob('/tmp/rackspace-cloud*')
+        self.assertEqual(
+            len(files),
+            1,
+            'Did not find correct number of files'
+        )
+        with open('/tmp/rackspace-cloud.yaml') as f:
+            written_data = f.readlines()
+
+        for index, line in enumerate(written_data):
+            self.assertEqual(
+                line,
+                network.UBUNTU_NETPLAN_CONFIG[index],
+                'Written file did not match expected value'
+            )
+
+    def test_reset_network_netplan_success(self):
+        self.setup_temp_hostname()
+        self.setup_temp_netplan()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E207572', 'BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth0', 'eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E207572',
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            network.ETH0_INTERFACE,
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            with mock.patch(
+                                'novaagent.libs.debian.os.path.exists'
+                            ) as exists:
+                                exists.return_value = True
+
+                                mock_popen = mock.Mock()
+                                mock_comm = mock.Mock()
+                                mock_comm.return_value = ('out', 'error')
+                                mock_popen.side_effect = [
+                                    mock.Mock(
+                                        returncode=0,
+                                        communicate=mock_comm
+                                    )
+                                ]
+                                with mock.patch(
+                                    'novaagent.libs.debian.Popen',
+                                    side_effect=mock_popen
+                                ):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('0', ''),
+            'Result was not the expected value'
+        )
+        netplan_files = glob.glob('/tmp/rackspace-cloud*')
+        self.assertEqual(
+            len(netplan_files),
+            2,
+            'Incorrect number of rackspace yaml files'
+        )
+        with open('/tmp/rackspace-cloud.yaml') as f:
+            written_data = f.readlines()
+
+        for index, line in enumerate(written_data):
+            self.assertEqual(
+                line,
+                network.DEBIAN_NETPLAN_CONFIG[index],
+                'Written file did not match expected value'
+            )
+
+    def test_reset_network_netplan_failure(self):
+        self.setup_temp_hostname()
+        self.setup_temp_netplan()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E207572', 'BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth0', 'eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E207572',
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            network.ETH0_INTERFACE,
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            with mock.patch(
+                                'novaagent.libs.debian.os.path.exists'
+                            ) as exists:
+                                exists.return_value = True
+
+                                with mock.patch(
+                                    'novaagent.libs.debian.Popen'
+                                ) as p:
+                                    p.return_value.communicate.return_value = (
+                                        'out', 'error'
+                                    )
+                                    p.return_value.returncode = 1
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('1', 'Error applying netplan: error'),
+            'Result was not the expected value'
+        )
+        netplan_files = glob.glob('/tmp/rackspace-cloud*')
+        self.assertEqual(
+            len(netplan_files),
+            2,
+            'Incorrect number of rackspace yaml files'
+        )
 
     def test_setup_hostname_hostname_success(self):
         self.setup_temp_hostname()

@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import logging
 import time
+import yaml
 import os
 
 
@@ -21,6 +22,7 @@ log = logging.getLogger(__name__)
 
 class ServerOS(DefaultOS):
     def __init__(self):
+        self.netplan_file = '/etc/netplan/rackspace-cloud.yaml'
         self.netconfig_file = '/etc/network/interfaces'
         self.hostname_file = '/etc/hostname'
 
@@ -64,7 +66,7 @@ class ServerOS(DefaultOS):
 
         return p.returncode
 
-    def _setup_interface(self, ifname, iface):
+    def _setup_interfaces(self, ifname, iface):
         with open(self.netconfig_file, 'a') as iffile:
             iffile.write('# Label {0}\n'.format(iface['label']))
             for count, x in enumerate(iface['ips']):
@@ -153,6 +155,61 @@ class ServerOS(DefaultOS):
 
             iffile.write('\n')
 
+    def _setup_netplan(self, ifaces):
+        # Setup netplan file from xenstore network info
+        temp_network = {
+            'version': 2,
+            'renderer': 'networkd',
+            'ethernets': {}
+        }
+        for ifname, iface in ifaces.items():
+            temp_net = {'addresses': [], 'dhcp4': False}
+
+            ipv4_details = iface['ips'][0]
+            temp_net['addresses'].append(
+                '{0}/{1}'.format(
+                    ipv4_details.get('ip'),
+                    utils.netmask_to_prefix(ipv4_details.get('netmask'))
+                )
+            )
+
+            if iface.get('gateway'):
+                temp_net['gateway4'] = iface.get('gateway')
+
+            if iface.get('ip6s'):
+                ipv6_details = iface['ip6s'][0]
+                temp_net['dhcp6'] = False
+                temp_net['gateway6'] = iface.get('gateway_v6')
+                temp_net['addresses'].append(
+                    '{0}/{1}'.format(
+                        ipv6_details.get('ip'),
+                        ipv6_details.get('netmask')
+                    )
+                )
+
+            if iface.get('dns'):
+                temp_net['nameservers'] = {
+                    'addresses': iface.get('dns')
+                }
+
+            if iface.get('routes'):
+                temp_net['routes'] = []
+                for route in iface.get('routes'):
+                    temp_route = {}
+                    temp_route['to'] = '{0}/{1}'.format(
+                        route.get('route'),
+                        utils.netmask_to_prefix(route.get('netmask'))
+                    )
+                    temp_route['via'] = route.get('gateway')
+                    temp_net['routes'].append(temp_route)
+
+            temp_network['ethernets'][ifname] = temp_net
+
+        # Setup full dictionary and write to yaml file
+        netplan_data = {'network': temp_network}
+        with open(self.netplan_file, 'w') as netplan_file:
+            yaml.dump(netplan_data, netplan_file, default_flow_style=False)
+
     def resetnetwork(self, name, value, client):
         ifaces = {}
         hostname_return_code = self._setup_hostname(client)
@@ -167,16 +224,28 @@ class ServerOS(DefaultOS):
 
             ifaces[iface] = utils.get_interface(mac, client)
 
-        # Backup original and setup interface file for all interfaces
-        utils.backup_file(self.netconfig_file)
-        self._setup_loopback()
-        for ifname, iface in ifaces.items():
-            self._setup_interface(ifname, iface)
+        use_netplan = False
+        config_file = self.netconfig_file
+        if os.path.exists('/usr/sbin/netplan'):
+            use_netplan = True
+            config_file = self.netplan_file
 
-        # Loop through the interfaces and restart networking
-        for ifname in ifaces.keys():
+        # Backup original configuration file
+        utils.backup_file(config_file)
+
+        # Check if system is using netplan or not
+        if use_netplan:
+            # Setup netplan config file
+            self._setup_netplan(ifaces)
+        else:
+            # Setup interfaces file
+            self._setup_loopback()
+            for ifname, iface in ifaces.items():
+                self._setup_interfaces(ifname, iface)
+
+        if use_netplan:
             p = Popen(
-                ['ifdown', ifname],
+                ['netplan', 'apply'],
                 stdout=PIPE,
                 stderr=PIPE,
                 stdin=PIPE
@@ -185,44 +254,61 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 return (
                     str(p.returncode),
-                    'Error stopping network: {0}'.format(ifname)
+                    'Error applying netplan: {0}'.format(str(err))
                 )
-
-            """
-            In some cases interfaces may retain old IP addresses especially
-            when building from a custom image. To prevent that we will do a
-            flush of the interface before bringing it back up.
-
-            Refer to bug:
-            https://bugs.launchpad.net/ubuntu/+source/ifupdown/+bug/1584682
-            """
-            p = Popen(
-                ['ip', 'addr', 'flush', 'dev', ifname],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
-            out, err = p.communicate()
-            if p.returncode != 0:
-                return (
-                    str(p.returncode),
-                    'Error flushing network: {0}'.format(ifname)
+        else:
+            # Loop through the interfaces and restart networking
+            for ifname in ifaces.keys():
+                p = Popen(
+                    ['ifdown', ifname],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
                 )
+                out, err = p.communicate()
+                if p.returncode != 0:
+                    return (
+                        str(p.returncode),
+                        'Error stopping network: {0}'.format(ifname)
+                    )
 
-            # Sleep for one second
-            time.sleep(1)
-            p = Popen(
-                ['ifup', ifname],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
-            out, err = p.communicate()
-            if p.returncode != 0:
-                log.error('Error received on network restart: {0}'.format(err))
-                return (
-                    str(p.returncode),
-                    'Error starting network: {0}'.format(ifname)
+                """
+                In some cases interfaces may retain old IP addresses especially
+                when building from a custom image. To prevent that we will do a
+                flush of the interface before bringing it back up.
+
+                Refer to bug:
+                https://bugs.launchpad.net/ubuntu/+source/ifupdown/+bug/1584682
+                """
+                p = Popen(
+                    ['ip', 'addr', 'flush', 'dev', ifname],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
                 )
+                out, err = p.communicate()
+                if p.returncode != 0:
+                    return (
+                        str(p.returncode),
+                        'Error flushing network: {0}'.format(ifname)
+                    )
+
+                # Sleep for one second
+                time.sleep(1)
+                p = Popen(
+                    ['ifup', ifname],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
+                )
+                out, err = p.communicate()
+                if p.returncode != 0:
+                    log.error(
+                        'Error received on network restart: {0}'.format(err)
+                    )
+                    return (
+                        str(p.returncode),
+                        'Error starting network: {0}'.format(ifname)
+                    )
 
         return ('0', '')

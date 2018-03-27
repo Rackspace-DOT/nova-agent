@@ -79,6 +79,72 @@ ETH0_INTERFACE = {
     'gateway': '104.130.4.1'
 }
 
+ALL_INTERFACES = {
+    'eth2': {
+        'broadcast': '192.168.5.255',
+        'ips': [
+            {
+                'ip': '192.168.5.4',
+                'netmask': '255.255.255.0',
+                'enabled': '1',
+                'gateway': None
+            }
+        ],
+        'mac': 'BC:76:4E:20:3B:70',
+        'gateway': None,
+        'label': 'test-interface-2'
+    },
+    'eth0': {
+        'ip6s': [
+            {
+                'ip': '2001:4802:7803:104:be76:4eff:fe20:5eb2',
+                'netmask': 64,
+                'enabled': '1',
+                'gateway': 'fe80::def'
+            }
+        ],
+        'label': 'public',
+        'broadcast': '104.130.169.255',
+        'ips': [
+            {
+                'ip': '104.130.169.159',
+                'netmask': '255.255.255.0',
+                'enabled': '1',
+                'gateway': '104.130.169.1'
+            }
+        ],
+        'mac': 'BC:76:4E:20:5E:B2',
+        'gateway_v6': 'fe80::def',
+        'dns': ['69.20.0.164', '69.20.0.196'],
+        'gateway': '104.130.169.1'
+    },
+    'eth1': {
+        'label': 'private',
+        'broadcast': '10.176.223.255',
+        'ips': [
+            {
+                'ip': '10.176.195.183',
+                'netmask': '255.255.224.0',
+                'enabled': '1',
+                'gateway': None
+            }
+        ],
+        'mac': 'BC:76:4E:20:5E:FB',
+        'routes': [
+            {
+                'route': '10.208.0.0',
+                'netmask': '255.240.0.0',
+                'gateway': '10.176.192.1'
+            }, {
+                'route': '10.176.0.0',
+                'netmask': '255.240.0.0',
+                'gateway': '10.176.192.1'
+            }
+        ],
+        'gateway': None
+    }
+}
+
 CENTOS_NETWORK_FILE = [
     'NETWORKING=yes\n',
     'NOZEROCONF=yes\n',
@@ -135,9 +201,69 @@ DEBIAN_INTERFACES_CONFIG = [
     '\n'
 ]
 
+DEBIAN_NETPLAN_CONFIG = [
+    'network:\n',
+    '  ethernets:\n',
+    '    eth0:\n',
+    '      addresses:\n',
+    '      - 104.130.4.72/24\n',
+    '      - 2001:4802:7802:104:be76:4eff:fe20:7572/64\n',
+    '      dhcp4: false\n',
+    '      dhcp6: false\n',
+    '      gateway4: 104.130.4.1\n',
+    '      gateway6: fe80::def\n',
+    '      nameservers:\n',
+    '        addresses:\n',
+    '        - 69.20.0.164\n',
+    '        - 69.20.0.196\n',
+    '    eth1:\n',
+    '      addresses:\n',
+    '      - 10.208.227.239/19\n',
+    '      dhcp4: false\n',
+    '      routes:\n',
+    '      - to: 10.208.0.0/12\n',
+    '        via: 10.208.224.1\n',
+    '      - to: 10.176.0.0/12\n',
+    '        via: 10.208.224.1\n',
+    '  renderer: networkd\n',
+    '  version: 2\n'
+]
+
 DEBIAN_INTERFACES_LOOPBACK = [
     '# The loopback network interface\n',
     'auto lo\n',
     'iface lo inet loopback\n',
     '\n'
+]
+
+UBUNTU_NETPLAN_CONFIG = [
+    'network:\n',
+    '  ethernets:\n',
+    '    eth0:\n',
+    '      addresses:\n',
+    '      - 104.130.169.159/24\n',
+    '      - 2001:4802:7803:104:be76:4eff:fe20:5eb2/64\n',
+    '      dhcp4: false\n',
+    '      dhcp6: false\n',
+    '      gateway4: 104.130.169.1\n',
+    '      gateway6: fe80::def\n',
+    '      nameservers:\n',
+    '        addresses:\n',
+    '        - 69.20.0.164\n',
+    '        - 69.20.0.196\n',
+    '    eth1:\n',
+    '      addresses:\n',
+    '      - 10.176.195.183/19\n',
+    '      dhcp4: false\n',
+    '      routes:\n',
+    '      - to: 10.208.0.0/12\n',
+    '        via: 10.176.192.1\n',
+    '      - to: 10.176.0.0/12\n',
+    '        via: 10.176.192.1\n',
+    '    eth2:\n',
+    '      addresses:\n',
+    '      - 192.168.5.4/24\n',
+    '      dhcp4: false\n',
+    '  renderer: networkd\n',
+    '  version: 2\n'
 ]
