@@ -5,7 +5,7 @@ import novaagent
 import sys
 
 
-requirements = ['netifaces', 'pyxs', 'pycrypto']
+requirements = ['netifaces', 'pyxs', 'pycrypto', 'PyYaml']
 if sys.version_info[:2] < (2, 7):
     requirements.append('argparse')
 
