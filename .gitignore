@@ -6,3 +6,5 @@ __pycache__
 /*.egg-info
 .coverage
 .DS_Store
+coverage.xml
+.scannerwork
