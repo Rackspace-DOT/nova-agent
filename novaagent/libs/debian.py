@@ -75,14 +75,14 @@ class ServerOS(DefaultOS):
                     iffile.write('iface {0} inet static\n'.format(ifname))
                     iffile.write('\taddress {0}\n'.format(x['ip']))
                     iffile.write('\tnetmask {0}\n'.format(x['netmask']))
-                    if 'gateway' in iface and iface['gateway']:
+                    if iface.get('gateway'):
                         iffile.write(
                             '\tgateway {0}\n'.format(
                                 iface['gateway']
                             )
                         )
 
-                    if 'dns' in iface and iface['dns']:
+                    if iface.get('dns'):
                         iffile.write(
                             '\tdns-nameservers {0}\n'.format(
                                 ' '.join(iface['dns'])
@@ -119,7 +119,7 @@ class ServerOS(DefaultOS):
                     iffile.write('\taddress {0}\n'.format(x['ip']))
                     iffile.write('\tnetmask {0}\n'.format(x['netmask']))
 
-            if 'ip6s' in iface and iface['ip6s']:
+            if iface.get('ip6s'):
                 for count, ip_info in enumerate(iface['ip6s']):
                     if count == 0:
                         iffile.write(
@@ -237,13 +237,8 @@ class ServerOS(DefaultOS):
         if use_netplan:
             # Setup netplan config file
             self._setup_netplan(ifaces)
-        else:
-            # Setup interfaces file
-            self._setup_loopback()
-            for ifname, iface in ifaces.items():
-                self._setup_interfaces(ifname, iface)
 
-        if use_netplan:
+            # Apply the netplan policy
             p = Popen(
                 ['netplan', 'apply'],
                 stdout=PIPE,
@@ -257,6 +252,11 @@ class ServerOS(DefaultOS):
                     'Error applying netplan: {0}'.format(str(err))
                 )
         else:
+            # Setup interfaces file
+            self._setup_loopback()
+            for ifname, iface in ifaces.items():
+                self._setup_interfaces(ifname, iface)
+
             # Loop through the interfaces and restart networking
             for ifname in ifaces.keys():
                 p = Popen(
