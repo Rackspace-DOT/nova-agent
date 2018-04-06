@@ -68,8 +68,8 @@ def configure_up2date(domains):
         domains = [domains]
 
     domains = ['//%s/XMLRPC' % d for d in domains]
-    serverURL = ';'.join(['https:%s' % h for h in domains])
-    noSSLServerURL = ';'.join(['http:%s' % h for h in domains])
+    server_url = ';'.join(['https:%s' % h for h in domains])
+    no_ssl_server_url = ';'.join(['http:%s' % h for h in domains])
 
     data = """
 # Automatically generated Red Hat Update Agent config file, do not edit.
@@ -91,13 +91,13 @@ enableProxy[comment]=Use a HTTP Proxy
 enableProxy=0
 
 serverURL[comment]=Remote server URL
-serverURL=%(serverURL)s;
+serverURL=%s;
 
 proxyPassword[comment]=The password to use for an authenticated proxy
 proxyPassword=
 
 noSSLServerURL[comment]=None
-noSSLServerURL=%(noSSLServerURL)s;
+noSSLServerURL=%s;
 
 proxyUser[comment]=The username for an authenticated proxy
 proxyUser=
@@ -121,7 +121,7 @@ systemIdPath=/etc/sysconfig/rhn/systemid
 
 noReboot[comment]=Disable the reboot action
 noReboot=0
-""" % {'serverURL': serverURL, 'noSSLServerURL': noSSLServerURL}
+""" % (server_url, no_ssl_server_url)
 
     return {UP2DATE_PATH: data}
 
