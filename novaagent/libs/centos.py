@@ -56,10 +56,10 @@ class ServerOS(DefaultOS):
                         )
                     )
 
-            if 'gateway' in iface and iface['gateway']:
+            if iface.get('gateway'):
                 iffile.write('GATEWAY={0}\n'.format(iface['gateway']))
 
-            if 'ip6s' in iface and iface['ip6s']:
+            if iface.get('ip6s'):
                 iffile.write('IPV6INIT=yes\n')
                 for count, ip6_info in enumerate(iface['ip6s']):
                     if count == 0:
@@ -85,7 +85,7 @@ class ServerOS(DefaultOS):
                     )
                 )
 
-            if 'dns' in iface and iface['dns']:
+            if iface.get('dns'):
                 for count, dns in enumerate(iface['dns']):
                     iffile.write('DNS{0}={1}\n'.format(count + 1, dns))
 
