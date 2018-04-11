@@ -1,9 +1,8 @@
 [Unit]
 Description=Nova Agent for xenstore
 Wants=local-fs.target
-Before=cloud-init-local.service network-pre.target
-After=xe-daemon.service
-Requires=xe-daemon.service
+Before=network-pre.target
+After=cloud-init-local.service
 
 [Service]
 Type=forking
