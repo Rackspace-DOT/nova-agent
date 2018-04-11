@@ -1,0 +1,13 @@
+[Unit]
+Description=Nova Agent for xenstore
+Wants=local-fs.target
+Before=cloud-init-local.service network-pre.target
+After=xe-daemon.service
+Requires=xe-daemon.service
+
+[Service]
+Type=forking
+ExecStart=/usr/bin/nova-agent -o /var/log/nova-agent.log -l info
+
+[Install]
+WantedBy=multi-user.target
