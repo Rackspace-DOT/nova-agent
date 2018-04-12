@@ -56,6 +56,40 @@ def action(server_os, client=None):
         )
 
 
+_ready = False
+def notify_ready():
+    """
+    Use systemd notify protocol, or upstart sigstop, to notify
+    rediness of the nova-agent.
+    """
+
+    global _ready
+
+    if _ready:
+        return
+
+    # PyPI edition of python-systemd
+    try:
+        from systemd.daemon import notify, Notification
+        notify(Notification.READY)
+        _ready = True
+        return
+    # Older v234 python-systemd
+    except ImportError:
+        try:
+            from systemd.daemon import notify
+            notify('READY=1')
+        except ImportError:
+            pass
+
+    # Upstart notification type
+    if os.environ.get('UPSTART_JOB'):
+        import signal
+        os.kill(os.getpid(), signal.SIGSTOP)
+
+    _ready = True
+
+
 def nova_agent_listen(server_type, server_os):
     log.info('Starting actions for {0}'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
@@ -64,11 +98,13 @@ def nova_agent_listen(server_type, server_os):
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
                 action(server_os, client=xenbus_client)
+                notify_ready()
                 time.sleep(1)
     else:
         check_provider(utils.get_provider())
         while True:
             action(server_os)
+            notify_ready()
             time.sleep(1)
 
 
