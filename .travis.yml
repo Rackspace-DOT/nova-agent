@@ -20,7 +20,7 @@ matrix:
         - "3.5"
         - "3.6"
       install:
-        - sudo apt get update -qq
+        - sudo apt update -qq
         - sudo apt install libsystemd-dev
         - pip install -e .[systemd]
     # System systemd
@@ -29,11 +29,9 @@ matrix:
         - TYPE='xenial-systemd-distro'
       python:
         - "2.7"
-        - "3.4"
         - "3.5"
-        - "3.6"
       install:
-        - sudo apt get update -qq
+        - sudo apt update -qq
         - sudo apt install python-systemd python3-systemd
     # No systemd
     - dist: trusty
