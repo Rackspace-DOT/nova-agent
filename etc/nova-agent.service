@@ -1,6 +1,5 @@
 [Unit]
 Description=Nova Agent for xenstore
-Wants=local-fs.target
 Before=network-pre.target
 After=cloud-init-local.service
 

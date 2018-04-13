@@ -56,7 +56,7 @@ def action(server_os, client=None):
         )
 
 
-def nova_agent_listen(server_type, server_os):
+def nova_agent_listen(server_type, server_os, once_only=False):
     log.info('Starting actions for {0}'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
     if os.path.exists('/dev/xen/xenbus'):
@@ -64,11 +64,15 @@ def nova_agent_listen(server_type, server_os):
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
                 action(server_os, client=xenbus_client)
+                if once_only:
+                    break
                 time.sleep(1)
     else:
         check_provider(utils.get_provider())
         while True:
             action(server_os)
+            if once_only:
+                break
             time.sleep(1)
 
 
@@ -143,6 +147,10 @@ def main():
     server_type = get_server_type()
     server_os = server_type.ServerOS()
     if args.no_fork is False:
+        # Process any pending events once, before forking
+        # such that upstart/systemd do not consider this service as started
+        # until after networking is configured on first boot.
+        nova_agent_listen(server_type, server_os, once_only=True)
         log.info('Starting daemon')
         try:
             pid = os.fork()
