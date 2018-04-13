@@ -9,8 +9,8 @@ python:
 addons:
   apt:
     packages:
-      - build-essential
-      - libsystemd-daemon-dev
+      - python-systemd
+      - python3-systemd
 install:
   - pip install -e .[tests]
 before_script:
