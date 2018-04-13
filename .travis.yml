@@ -1,7 +1,5 @@
 
 language: python
-install:
-  - pip install -e .[tests]
 before_script:
   - flake8 .
 script:
@@ -22,6 +20,7 @@ matrix:
         - sudo apt update -qq
         - sudo apt install libsystemd-dev
         - pip install -e .[systemd]
+        - pip install -e .[tests]
     # System systemd
     - dist: xenial
       env:
@@ -32,6 +31,7 @@ matrix:
       install:
         - sudo apt update -qq
         - sudo apt install python-systemd python3-systemd
+        - pip install -e .[tests]
     # No systemd
     - dist: trusty
       env:
@@ -42,3 +42,5 @@ matrix:
         - "3.4"
         - "3.5"
         - "3.6"
+      install:
+        - pip install -e .[tests]
