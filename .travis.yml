@@ -1,14 +1,28 @@
 
 language: python
+before_script:
+  - flake8 .
+script:
+  - nosetests -v --cover-erase --with-coverage --cover-package=novaagent
+
 python:
   - "2.6"
   - "2.7"
   - "3.4"
   - "3.5"
   - "3.6"
+
+env:
+  - TYPE=pypi
+  - TYPE=distro
+  - TYPE=nosystemd
+
+dist: xenial
+
 install:
+  - env
   - pip install -e .[tests]
-before_script:
-  - flake8 .
-script:
-  - nosetests -v --cover-erase --with-coverage --cover-package=novaagent
+  - sudo apt update -qq
+  - if [ $TYPE = pypi ]; then sudo apt install libsystemd-dev; fi
+  - if [ $TYPE = pypi ]; then pip install -e .[systemd]; fi
+  - if [ $TYPE = distro ]; then sudo apt install python-systemd python3-systemd; fi

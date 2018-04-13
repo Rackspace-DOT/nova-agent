@@ -28,7 +28,8 @@ setuptools.setup(
     author_email='david.kludt@rackspace.com',
     install_requires=requirements,
     extras_require={
-        'tests': test_requirements
+        'tests': test_requirements,
+        'systemd': ['systemd'],
     },
     entry_points={
         'console_scripts': [
