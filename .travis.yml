@@ -1,20 +1,45 @@
 
 language: python
-dist: xenial
-python:
-  - "2.6"
-  - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-addons:
-  apt:
-    packages:
-      - python-systemd
-      - python3-systemd
 install:
   - pip install -e .[tests]
 before_script:
   - flake8 .
 script:
   - nosetests -v --cover-erase --with-coverage --cover-package=novaagent
+
+matrix:
+  include:
+    # PyPI systemd
+    - dist: xenial
+      python:
+        - "2.6"
+        - "2.7"
+        - "3.4"
+        - "3.5"
+        - "3.6"
+      addons:
+        apt:
+          packages:
+            - libsystemd-dev
+      install:
+        - pip install -e .[systemd]
+    # System systemd
+    - dist: xenial
+      python:
+        - "2.7"
+        - "3.4"
+        - "3.5"
+        - "3.6"
+      addons:
+        apt:
+          packages:
+            - python-systemd
+            - python3-systemd
+    # No systemd
+    - dist: trusty
+      python:
+        - "2.6"
+        - "2.7"
+        - "3.4"
+        - "3.5"
+        - "3.6"
