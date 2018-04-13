@@ -13,9 +13,9 @@ python:
   - "3.6"
 
 env:
-  - TYPE='pypi'
-  - TYPE='distro'
-  - TYPE='nosystemd'
+  - TYPE=pypi
+  - TYPE=distro
+  - TYPE=nosystemd
 
 dist: xenial
 
@@ -23,6 +23,6 @@ install:
   - env
   - pip install -e .[tests]
   - sudo apt update -qq
-  - [ "$TYPE" == "pypi" ] && sudo apt install libsystemd-dev
-  - [ "$TYPE" == "pypi" ] && pip install -e .[systemd]
-  - [ "$TYPE" == "distro" ] && sudo apt install python-systemd python3-systemd
+  - if [ $TYPE = pypi ]; then sudo apt install libsystemd-dev; fi
+  - if [ $TYPE = pypi ]; then pip install -e .[systemd]; fi
+  - if [ $TYPE = distro ]; then sudo apt install python-systemd python3-systemd; fi
