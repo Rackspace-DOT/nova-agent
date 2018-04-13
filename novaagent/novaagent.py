@@ -57,6 +57,8 @@ def action(server_os, client=None):
 
 
 _ready = False
+
+
 def notify_ready():
     """
     Use systemd notify protocol, or upstart sigstop, to notify
