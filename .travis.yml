@@ -9,6 +9,7 @@ python:
 addons:
   apt:
     packages:
+      - build-essential
       - libsystemd-daemon-dev
 install:
   - pip install -e .[tests]
