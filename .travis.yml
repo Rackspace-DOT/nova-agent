@@ -17,9 +17,7 @@ env:
   - TYPE='distro'
   - TYPE='nosystemd'
 
-dist:
-  - xenial
-  - trusty
+dist: xenial
 
 install:
   - env
