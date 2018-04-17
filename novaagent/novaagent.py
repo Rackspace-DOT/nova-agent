@@ -29,6 +29,7 @@ XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
 
 def action(server_os, client=None):
+    event = False
     for uuid in utils.list_xen_events(client):
         event = utils.get_xen_event(uuid, client)
         log.info('Event: {0} -> {1}'.format(uuid, event['name']))
@@ -54,9 +55,11 @@ def action(server_os, client=None):
                 return_code
             )
         )
+    return event
 
 
 _ready = False
+_count = 3
 
 
 def notify_ready():
@@ -66,8 +69,14 @@ def notify_ready():
     """
 
     global _ready
+    global _count
 
     if _ready:
+        return
+
+    if _count > 0:
+        log.info("No event received")
+        _count = _count - 1
         return
 
     # PyPI edition of python-systemd
@@ -97,8 +106,8 @@ def nova_agent_listen(server_type, server_os):
         with Client(router=XENBUS_ROUTER) as xenbus_client:
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
-                action(server_os, client=xenbus_client)
-                notify_ready()
+                if not action(server_os, client=xenbus_client):
+                    notify_ready()
                 time.sleep(1)
     else:
         check_provider(utils.get_provider())
