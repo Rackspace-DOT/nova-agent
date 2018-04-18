@@ -29,6 +29,7 @@ XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
 
 def action(server_os, client=None):
+    event = False
     for uuid in utils.list_xen_events(client):
         event = utils.get_xen_event(uuid, client)
         log.info('Event: {0} -> {1}'.format(uuid, event['name']))
@@ -54,6 +55,42 @@ def action(server_os, client=None):
                 return_code
             )
         )
+    return event
+
+
+_count = 3
+
+
+def notify_ready():
+    """
+    Use systemd notify protocol, or upstart sigstop, to notify
+    rediness of the nova-agent.
+    """
+
+    global _count
+
+    if _count > 0:
+        log.info("No event received")
+        _count = _count - 1
+        return
+
+    notify_socket = os.environ.pop('NOTIFY_SOCKET', False)
+    upstart = os.environ.pop('UPSTART_JOB', False)
+
+    # Systemd ready notification
+    if notify_socket:
+        import socket
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        if notify_socket.startswith('@'):
+            notify_socket = '\0' + notify_socket[1:]
+        s.connect(notify_socket)
+        s.sendall(b'READY=1')
+        s.close()
+
+    # Upstart ready notification
+    if upstart:
+        import signal
+        os.kill(os.getpid(), signal.SIGSTOP)
 
 
 def nova_agent_listen(server_type, server_os):
@@ -63,12 +100,14 @@ def nova_agent_listen(server_type, server_os):
         with Client(router=XENBUS_ROUTER) as xenbus_client:
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
-                action(server_os, client=xenbus_client)
+                if not action(server_os, client=xenbus_client):
+                    notify_ready()
                 time.sleep(1)
     else:
         check_provider(utils.get_provider())
         while True:
             action(server_os)
+            notify_ready()
             time.sleep(1)
 
 
@@ -108,7 +147,7 @@ def create_parser():
         '--no-fork',
         dest='no_fork',
         default=False,
-        type=bool,
+        action='store_true',
         help='Perform os.fork when starting agent'
     )
     return parser
