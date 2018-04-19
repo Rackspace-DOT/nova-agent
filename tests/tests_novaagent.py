@@ -5,6 +5,7 @@ from novaagent.libs import centos
 import novaagent
 import logging
 import time
+import socket
 import sys
 import os
 
@@ -340,3 +341,18 @@ class TestHelpers(TestCase):
             assert False, 'A system exit happened and should not have'
         except Exception:
             assert False, 'A general exception happened and should not have'
+
+    def test_notify_ready_systemd(self):
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+        s.bind(b'\0novaagenttest')
+        with mock.patch.dict(os.environ, {'NOTIFY_SOCKET': '@novaagenttest'}):
+            novaagent.novaagent.notify_ready()
+        response = s.recv(4096)
+        self.assertEqual(response, b'READY=1')
+
+    def test_notify_ready_upstart(self):
+        novaagent.novaagent._ready = False
+        with mock.patch('os.kill') as mock_kill:
+            with mock.patch.dict(os.environ, {'UPSTART_JOB': 'novaagenttest'}):
+                novaagent.novaagent.notify_ready()
+            self.assertTrue(mock_kill.called)
