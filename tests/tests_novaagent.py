@@ -30,6 +30,7 @@ class TestHelpers(TestCase):
         logging.disable(logging.NOTSET)
         if os.path.exists('/tmp/log'):
             os.remove('/tmp/log')
+        os.environ.pop('UPSTART_JOB', True)
 
         self.time_patcher.stop()
 
@@ -340,3 +341,20 @@ class TestHelpers(TestCase):
             assert False, 'A system exit happened and should not have'
         except Exception:
             assert False, 'A general exception happened and should not have'
+
+    def test_notify_ready_systemd(self):
+        novaagent.novaagent._ready = False
+        try:
+            with mock.patch('systemd.daemon.notify') as mock_notify:
+                mock_notify.return_value = False
+                novaagent.novaagent.notify_ready()
+                self.assertTrue(mock_notify.called)
+        except ImportError:
+            pass
+
+    def test_notify_ready_upstart(self):
+        novaagent.novaagent._ready = False
+        os.environ['UPSTART_JOB'] = 'novaagent_test'
+        with mock.patch('os.kill') as mock_kill:
+            novaagent.novaagent.notify_ready()
+            self.assertTrue(mock_kill.called)
