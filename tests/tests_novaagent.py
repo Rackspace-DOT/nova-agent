@@ -110,29 +110,33 @@ class TestHelpers(TestCase):
                 'novaagent.novaagent.get_server_type'
             ) as server_type:
                 server_type.return_value = centos
-                with mock.patch('novaagent.novaagent.os.fork') as fork:
-                    fork.return_value = 20
-                    with mock.patch('novaagent.novaagent.os._exit'):
-                        with mock.patch('novaagent.novaagent.action'):
-                            with mock.patch(
-                                'novaagent.novaagent.os.path.exists'
-                            ) as exists:
-                                exists.return_value = False
+                with mock.patch(
+                    'novaagent.novaagent.get_init_system'
+                ) as init_system:
+                    init_system.return_value = None
+                    with mock.patch('novaagent.novaagent.os.fork') as fork:
+                        fork.return_value = 20
+                        with mock.patch('novaagent.novaagent.os._exit'):
+                            with mock.patch('novaagent.novaagent.action'):
                                 with mock.patch(
-                                    'novaagent.novaagent.check_provider'
-                                ):
+                                    'novaagent.novaagent.os.path.exists'
+                                ) as exists:
+                                    exists.return_value = False
                                     with mock.patch(
-                                        'novaagent.novaagent.time.sleep',
-                                        side_effect=mock_response
+                                        'novaagent.novaagent.check_provider'
                                     ):
-                                        try:
-                                            novaagent.novaagent.main()
-                                        except KeyboardInterrupt:
-                                            pass
-                                        except Exception:
-                                            assert False, (
-                                                'An exception was thrown'
-                                            )
+                                        with mock.patch(
+                                            'novaagent.novaagent.time.sleep',
+                                            side_effect=mock_response
+                                        ):
+                                            try:
+                                                novaagent.novaagent.main()
+                                            except KeyboardInterrupt:
+                                                pass
+                                            except Exception:
+                                                assert False, (
+                                                    'An exception was thrown'
+                                                )
 
     def test_main_success_no_fork(self):
         class Test(object):
@@ -156,26 +160,30 @@ class TestHelpers(TestCase):
                 'novaagent.novaagent.get_server_type'
             ) as server_type:
                 server_type.return_value = centos
-                with mock.patch('novaagent.novaagent.action'):
-                    with mock.patch(
-                        'novaagent.novaagent.os.path.exists'
-                    ) as exists:
-                        exists.return_value = False
+                with mock.patch(
+                    'novaagent.novaagent.get_init_system'
+                ) as init_system:
+                    init_system.return_value = 'None'
+                    with mock.patch('novaagent.novaagent.action'):
                         with mock.patch(
-                            'novaagent.novaagent.check_provider'
-                        ):
+                            'novaagent.novaagent.os.path.exists'
+                        ) as exists:
+                            exists.return_value = False
                             with mock.patch(
-                                'novaagent.novaagent.time.sleep',
-                                side_effect=mock_response
+                                'novaagent.novaagent.check_provider'
                             ):
-                                try:
-                                    novaagent.novaagent.main()
-                                except KeyboardInterrupt:
-                                    pass
-                                except Exception:
-                                    assert False, (
-                                        'An unknown exception was thrown'
-                                    )
+                                with mock.patch(
+                                    'novaagent.novaagent.time.sleep',
+                                    side_effect=mock_response
+                                ):
+                                    try:
+                                        novaagent.novaagent.main()
+                                    except KeyboardInterrupt:
+                                        pass
+                                    except Exception:
+                                        assert False, (
+                                            'An unknown exception was thrown'
+                                        )
 
     def test_main_success_with_xenbus(self):
         class Test(object):
@@ -199,33 +207,38 @@ class TestHelpers(TestCase):
                 'novaagent.novaagent.get_server_type'
             ) as server_type:
                 server_type.return_value = centos
-                with mock.patch('novaagent.novaagent.os.fork') as fork:
-                    fork.return_value = 20
-                    with mock.patch('novaagent.novaagent.os._exit'):
-                        with mock.patch(
-                            'novaagent.novaagent.os.path.exists'
-                        ) as exists:
-                            exists.return_value = True
-                            with mock.patch('novaagent.novaagent.Client'):
-                                with mock.patch(
-                                    'novaagent.novaagent.check_provider'
-                                ):
+                with mock.patch(
+                    'novaagent.novaagent.get_init_system'
+                ) as init_system:
+                    init_system.return_value = None
+                    with mock.patch('novaagent.novaagent.os.fork') as fork:
+                        fork.return_value = 20
+                        with mock.patch('novaagent.novaagent.os._exit'):
+                            with mock.patch(
+                                'novaagent.novaagent.os.path.exists'
+                            ) as exists:
+                                exists.return_value = True
+                                with mock.patch('novaagent.novaagent.Client'):
                                     with mock.patch(
-                                        'novaagent.novaagent.action'
+                                        'novaagent.novaagent.check_provider'
                                     ):
                                         with mock.patch(
-                                            'novaagent.novaagent.time.sleep',
-                                            side_effect=mock_response
+                                            'novaagent.novaagent.action'
                                         ):
-                                            try:
-                                                novaagent.novaagent.main()
-                                            except KeyboardInterrupt:
-                                                pass
-                                            except Exception:
-                                                assert False, (
-                                                    'An unknown exception'
-                                                    'was thrown'
-                                                )
+                                            with mock.patch(
+                                                'novaagent.novaagent.'
+                                                'time.sleep',
+                                                side_effect=mock_response
+                                            ):
+                                                try:
+                                                    novaagent.novaagent.main()
+                                                except KeyboardInterrupt:
+                                                    pass
+                                                except Exception:
+                                                    assert False, (
+                                                        'An unknown exception'
+                                                        'was thrown'
+                                                    )
 
     def test_main_os_error(self):
         class Test(object):
@@ -249,22 +262,69 @@ class TestHelpers(TestCase):
                 'novaagent.novaagent.get_server_type'
             ) as server_type:
                 server_type.return_value = centos
-                with mock.patch('novaagent.novaagent.os.fork') as fork:
-                    fork.side_effect = OSError
+                with mock.patch(
+                    'novaagent.novaagent.get_init_system'
+                ) as init_system:
+                    init_system.return_value = None
+                    with mock.patch('novaagent.novaagent.os.fork') as fork:
+                        fork.side_effect = OSError
+                        with mock.patch(
+                            'novaagent.novaagent.os._exit',
+                            side_effect=OSError
+                        ):
+                            try:
+                                novaagent.novaagent.main()
+                            except OSError:
+                                pass
+                            except Exception:
+                                assert False, (
+                                    'An unknown exception has been'
+                                    ' thrown on start'
+                                )
+                            finally:
+                                return
+
+    def test_main_success_systemd(self):
+        class Test(object):
+            def __init__(self):
+                self.logfile = '-'
+                self.loglevel = 'info'
+                self.no_fork = True
+
+        test_args = Test()
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            time.sleep(1),
+            time.sleep(1),
+            KeyboardInterrupt
+        ]
+        with mock.patch(
+            'novaagent.novaagent.argparse.ArgumentParser.parse_args'
+        ) as parse_args:
+            parse_args.return_value = test_args
+            with mock.patch(
+                'novaagent.novaagent.get_server_type'
+            ) as server_type:
+                server_type.return_value = centos
+                with mock.patch(
+                    'novaagent.novaagent.get_init_system'
+                ) as init_system:
+                    init_system.return_value = 'systemd'
                     with mock.patch(
-                        'novaagent.novaagent.os._exit',
-                        side_effect=OSError
-                    ):
-                        try:
-                            novaagent.novaagent.main()
-                        except OSError:
-                            pass
-                        except Exception:
-                            assert False, (
-                                'An unknown exception has been thrown on start'
-                            )
-                        finally:
-                            return
+                        'novaagent.novaagent.get_init_system'
+                    ) as notify:
+                        notify.return_value = ('test', 'test')
+                        with mock.patch(
+                            'novaagent.novaagent.nova_agent_listen'
+                        ):
+                            try:
+                                novaagent.novaagent.main()
+                            except KeyboardInterrupt:
+                                pass
+                            except Exception:
+                                assert False, (
+                                    'An unknown exception was thrown'
+                                )
 
     def test_server_type_debian(self):
         mock_response = mock.Mock()
@@ -340,3 +400,78 @@ class TestHelpers(TestCase):
             assert False, 'A system exit happened and should not have'
         except Exception:
             assert False, 'A general exception happened and should not have'
+
+    def test_get_init_systemd(self):
+        with mock.patch('novaagent.novaagent.os.stat') as stat:
+            stat.return_value = True
+            init_system = novaagent.novaagent.get_init_system()
+
+        self.assertEqual(
+            init_system,
+            'systemd',
+            'Did not get expected init system'
+        )
+
+    def test_get_init_upstart(self):
+        with mock.patch('novaagent.novaagent.os.stat', side_effect=ValueError):
+            with mock.patch.dict(os.environ, {'UPSTART_JOB': 'novaagenttest'}):
+                init_system = novaagent.novaagent.get_init_system()
+
+        self.assertEqual(
+            init_system,
+            'upstart',
+            'Did not get expected init system'
+        )
+
+    def test_get_init_default(self):
+        with mock.patch('novaagent.novaagent.os.stat', side_effect=ValueError):
+            with mock.patch.dict(os.environ, {}):
+                init_system = novaagent.novaagent.get_init_system()
+
+        self.assertEqual(
+            init_system,
+            None,
+            'Did not get expected init system'
+        )
+
+    def test_nova_agent_listen_systemd(self):
+        class Test(object):
+            def __init__(self):
+                pass
+
+            def __name__(self):
+                return 'test'
+
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            time.sleep(1),
+            time.sleep(1),
+            KeyboardInterrupt
+        ]
+        with mock.patch('novaagent.utils.systemd_status'):
+            with mock.patch('novaagent.novaagent.os.path.exists') as exists:
+                exists.return_value = True
+                with mock.patch('novaagent.novaagent.Client'):
+                    with mock.patch('novaagent.novaagent.check_provider'):
+                        with mock.patch('novaagent.novaagent.action'):
+                            with mock.patch(
+                                'novaagent.utils.send_notification'
+                            ):
+                                with mock.patch(
+                                    'novaagent.novaagent.time.sleep',
+                                    side_effect=mock_response
+                                ):
+                                    try:
+                                        novaagent.novaagent.nova_agent_listen(
+                                            Test(),
+                                            'centos',
+                                            'notify',
+                                            'systemd'
+                                        )
+                                    except KeyboardInterrupt:
+                                        pass
+                                    except Exception:
+                                        assert False, (
+                                            'An unknown exception'
+                                            'was thrown'
+                                        )
