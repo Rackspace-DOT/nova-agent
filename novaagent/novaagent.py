@@ -169,6 +169,7 @@ def main():
             format=log_format
         )
 
+    log.info('Agent is starting up')
     server_type = get_server_type()
     server_os = server_type.ServerOS()
     server_init = get_init_system()
