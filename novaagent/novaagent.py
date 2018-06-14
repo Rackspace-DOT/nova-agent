@@ -60,10 +60,6 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
     log.info('Starting actions for {0}'.format(server_type.__name__))
     log.info('Checking for existence of /dev/xen/xenbus')
 
-    # Giving systemd a status of starting up if using it
-    if server_init == 'systemd':
-        utils.systemd_status(*notify, status='nova-agent is starting up')
-
     send_notification = True
     if os.path.exists('/dev/xen/xenbus'):
         with Client(router=XENBUS_ROUTER) as xenbus_client:

@@ -448,30 +448,29 @@ class TestHelpers(TestCase):
             time.sleep(1),
             KeyboardInterrupt
         ]
-        with mock.patch('novaagent.utils.systemd_status'):
-            with mock.patch('novaagent.novaagent.os.path.exists') as exists:
-                exists.return_value = True
-                with mock.patch('novaagent.novaagent.Client'):
-                    with mock.patch('novaagent.novaagent.check_provider'):
-                        with mock.patch('novaagent.novaagent.action'):
+        with mock.patch('novaagent.novaagent.os.path.exists') as exists:
+            exists.return_value = True
+            with mock.patch('novaagent.novaagent.Client'):
+                with mock.patch('novaagent.novaagent.check_provider'):
+                    with mock.patch('novaagent.novaagent.action'):
+                        with mock.patch(
+                            'novaagent.utils.send_notification'
+                        ):
                             with mock.patch(
-                                'novaagent.utils.send_notification'
+                                'novaagent.novaagent.time.sleep',
+                                side_effect=mock_response
                             ):
-                                with mock.patch(
-                                    'novaagent.novaagent.time.sleep',
-                                    side_effect=mock_response
-                                ):
-                                    try:
-                                        novaagent.novaagent.nova_agent_listen(
-                                            Test(),
-                                            'centos',
-                                            'notify',
-                                            'systemd'
-                                        )
-                                    except KeyboardInterrupt:
-                                        pass
-                                    except Exception:
-                                        assert False, (
-                                            'An unknown exception'
-                                            'was thrown'
-                                        )
+                                try:
+                                    novaagent.novaagent.nova_agent_listen(
+                                        Test(),
+                                        'centos',
+                                        'notify',
+                                        'systemd'
+                                    )
+                                except KeyboardInterrupt:
+                                    pass
+                                except Exception:
+                                    assert False, (
+                                        'An unknown exception'
+                                        'was thrown'
+                                    )
