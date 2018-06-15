@@ -1,10 +1,12 @@
 [Unit]
 Description=Nova Agent for xenstore
-Before=network-pre.target
-After=cloud-init-local.service
+Wants=cloud-init-local.service
+Before=network-online.target
+Before=cloud-init.service
 
 [Service]
 Type=notify
+TimeoutStartSec=360
 ExecStart=/usr/bin/nova-agent --no-fork True -o /var/log/nova-agent.log -l info
 
 [Install]
