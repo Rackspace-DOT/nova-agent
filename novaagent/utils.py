@@ -229,10 +229,8 @@ def update_xenguest_event(uuid, data, client):
 def send_notification(server_init, notify):
     # Only need to notify systemd and upstart init systems
     if server_init == 'systemd':
-        log.debug('Tell systemd the agent has completed startup')
         systemd_status(*notify, status='', completed=True)
     elif server_init == 'upstart':
-        log.debug('Tell upstart the agent has completed startup')
         os.kill(os.getpid(), signal.SIGSTOP)
 
 
