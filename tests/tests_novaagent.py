@@ -52,7 +52,15 @@ class TestHelpers(TestCase):
                     ) as update:
                         update.return_value = True
                         try:
-                            novaagent.novaagent.action(temp_os, 'dummy_client')
+                            notify = novaagent.novaagent.action(
+                                temp_os,
+                                'dummy_client'
+                            )
+                            self.assertEqual(
+                                notify,
+                                False,
+                                'Unexpected value for notify'
+                            )
                         except Exception:
                             assert False, (
                                 'An exception was thrown during action'
@@ -79,14 +87,75 @@ class TestHelpers(TestCase):
                         ) as update:
                             update.return_value = True
                             try:
-                                novaagent.novaagent.action(
+                                notify = novaagent.novaagent.action(
                                     temp_os,
                                     'dummy_client'
+                                )
+                                self.assertEqual(
+                                    notify,
+                                    False,
+                                    'Notify value should have been False'
                                 )
                             except Exception:
                                 assert False, (
                                     'An exception was thrown during action'
                                 )
+
+    def test_xen_action_action_success_network(self):
+        temp_os = centos.ServerOS()
+        test_xen_event = {
+            "name": "resetnetwork",
+            "value": "68436575764933852815830951574296"
+        }
+        with mock.patch('novaagent.utils.list_xen_events') as xen_list:
+            xen_list.return_value = ['748dee41-c47f-4ec7-b2cd-037e51da4031']
+            with mock.patch('novaagent.utils.get_xen_event') as xen_event:
+                xen_event.return_value = test_xen_event
+                with mock.patch(
+                    'novaagent.libs.centos.ServerOS.resetnetwork'
+                ) as reset:
+                    reset.return_value = ('0', '')
+                    with mock.patch(
+                        'novaagent.utils.remove_xenhost_event'
+                    ) as remove:
+                        remove.return_value = True
+                        with mock.patch(
+                            'novaagent.utils.update_xenguest_event'
+                        ) as update:
+                            update.return_value = True
+                            try:
+                                notify = novaagent.novaagent.action(
+                                    temp_os,
+                                    'dummy_client'
+                                )
+                                self.assertEqual(
+                                    notify,
+                                    True,
+                                    'Notify value should have been True'
+                                )
+                            except Exception:
+                                assert False, (
+                                    'An exception was thrown during action'
+                                )
+
+    def test_xen_action_action_no_events(self):
+        temp_os = centos.ServerOS()
+        with mock.patch('novaagent.utils.list_xen_events') as xen_list:
+            xen_list.return_value = []
+            try:
+                notify = novaagent.novaagent.action(
+                    temp_os,
+                    'dummy_client'
+                )
+                self.assertEqual(
+                    notify,
+                    True,
+                    'Notify value should have been True'
+                )
+            except Exception:
+                assert False, (
+                    'An exception was thrown during action'
+                )
 
     def test_main_success(self):
         class Test(object):
@@ -453,7 +522,7 @@ class TestHelpers(TestCase):
             with mock.patch('novaagent.novaagent.Client'):
                 with mock.patch('novaagent.novaagent.check_provider'):
                     with mock.patch('novaagent.novaagent.action') as action:
-                        action.return_value = False
+                        action.return_value = True
                         with mock.patch(
                             'novaagent.utils.send_notification'
                         ) as send_notify:
@@ -493,7 +562,7 @@ class TestHelpers(TestCase):
         ]
 
         mock_actions = mock.Mock()
-        mock_actions.side_effect = [True, True, False]
+        mock_actions.side_effect = [False, False, True]
         with mock.patch('novaagent.novaagent.os.path.exists') as exists:
             exists.return_value = True
             with mock.patch('novaagent.novaagent.Client'):

@@ -29,9 +29,15 @@ XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
 
 def action(server_os, client=None):
-    # Return whether or not any action took place to nova_agent_listen
-    performed_action = False
-    for uuid in utils.list_xen_events(client):
+    # Return whether or not to trigger init notification
+    trigger_notify = False
+
+    xen_events = utils.list_xen_events(client)
+    if len(xen_events) == 0:
+        # if no xen_events then trigger the notification
+        trigger_notify = True
+
+    for uuid in xen_events:
         event = utils.get_xen_event(uuid, client)
         log.info('Event: {0} -> {1}'.format(uuid, event['name']))
         command_return = ('', '')
@@ -56,9 +62,11 @@ def action(server_os, client=None):
                 return_code
             )
         )
-        performed_action = True
+        if event['name'] == 'resetnetwork':
+            # If the network has completed setup then trigger the notification
+            trigger_notify = True
 
-    return performed_action
+    return trigger_notify
 
 
 def nova_agent_listen(server_type, server_os, notify, server_init):
@@ -66,14 +74,14 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
     log.info('Checking for existence of /dev/xen/xenbus')
 
     send_notification = True
-    performed_action = False
+    notify_init = False
 
     if os.path.exists('/dev/xen/xenbus'):
         with Client(router=XENBUS_ROUTER) as xenbus_client:
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
-                performed_action = action(server_os, client=xenbus_client)
-                if send_notification and performed_action is False:
+                notify_init = action(server_os, client=xenbus_client)
+                if send_notification and notify_init:
                     log.info('Sending notification startup is complete')
                     utils.send_notification(server_init, notify)
                     send_notification = False
@@ -82,8 +90,8 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
     else:
         check_provider(utils.get_provider())
         while True:
-            performed_action = action(server_os)
-            if send_notification and performed_action is False:
+            notify_init = action(server_os)
+            if send_notification and notify_init:
                 log.info('Sending notification startup is complete')
                 utils.send_notification(server_init, notify)
                 send_notification = False
@@ -110,7 +118,7 @@ def get_init_system():
     # Checking for systemd on OS
     try:
         os.stat('/run/systemd/system')
-        log.info('Systemd was found to be running')
+        log.debug('Systemd is the init system')
         return 'systemd'
     except Exception:
         pass
@@ -122,6 +130,7 @@ def get_init_system():
         return 'upstart'
 
     # return None and no notifications to init system will occur
+    log.debug('SysVinit is the init system')
     return None
 
 
