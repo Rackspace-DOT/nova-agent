@@ -29,6 +29,8 @@ XENBUS_ROUTER = XenGuestRouter(XenBusConnection())
 
 
 def action(server_os, client=None):
+    # Return whether or not any action took place to nova_agent_listen
+    performed_action = False
     for uuid in utils.list_xen_events(client):
         event = utils.get_xen_event(uuid, client)
         log.info('Event: {0} -> {1}'.format(uuid, event['name']))
@@ -54,6 +56,9 @@ def action(server_os, client=None):
                 return_code
             )
         )
+        performed_action = True
+
+    return performed_action
 
 
 def nova_agent_listen(server_type, server_os, notify, server_init):
@@ -61,12 +66,15 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
     log.info('Checking for existence of /dev/xen/xenbus')
 
     send_notification = True
+    performed_action = False
+
     if os.path.exists('/dev/xen/xenbus'):
         with Client(router=XENBUS_ROUTER) as xenbus_client:
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
-                action(server_os, client=xenbus_client)
-                if send_notification:
+                performed_action = action(server_os, client=xenbus_client)
+                if send_notification and performed_action is False:
+                    log.info('Sending notification startup is complete')
                     utils.send_notification(server_init, notify)
                     send_notification = False
 
@@ -74,8 +82,9 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
     else:
         check_provider(utils.get_provider())
         while True:
-            action(server_os)
-            if send_notification:
+            performed_action = action(server_os)
+            if send_notification and performed_action is False:
+                log.info('Sending notification startup is complete')
                 utils.send_notification(server_init, notify)
                 send_notification = False
 

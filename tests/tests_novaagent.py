@@ -452,10 +452,59 @@ class TestHelpers(TestCase):
             exists.return_value = True
             with mock.patch('novaagent.novaagent.Client'):
                 with mock.patch('novaagent.novaagent.check_provider'):
-                    with mock.patch('novaagent.novaagent.action'):
+                    with mock.patch('novaagent.novaagent.action') as action:
+                        action.return_value = False
                         with mock.patch(
                             'novaagent.utils.send_notification'
-                        ):
+                        ) as send_notify:
+                            with mock.patch(
+                                'novaagent.novaagent.time.sleep',
+                                side_effect=mock_response
+                            ):
+                                try:
+                                    novaagent.novaagent.nova_agent_listen(
+                                        Test(),
+                                        'centos',
+                                        'notify',
+                                        'systemd'
+                                    )
+                                    self.assertTrue(send_notify.called)
+                                except KeyboardInterrupt:
+                                    pass
+                                except Exception:
+                                    assert False, (
+                                        'An unknown exception'
+                                        'was thrown'
+                                    )
+
+    def test_nova_agent_listen_systemd_multiple_actions(self):
+        class Test(object):
+            def __init__(self):
+                pass
+
+            def __name__(self):
+                return 'test'
+
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            time.sleep(1),
+            time.sleep(1),
+            KeyboardInterrupt
+        ]
+
+        mock_actions = mock.Mock()
+        mock_actions.side_effect = [True, True, False]
+        with mock.patch('novaagent.novaagent.os.path.exists') as exists:
+            exists.return_value = True
+            with mock.patch('novaagent.novaagent.Client'):
+                with mock.patch('novaagent.novaagent.check_provider'):
+                    with mock.patch(
+                        'novaagent.novaagent.action',
+                        side_effect=mock_actions
+                    ):
+                        with mock.patch(
+                            'novaagent.utils.send_notification'
+                        ) as send_notify:
                             with mock.patch(
                                 'novaagent.novaagent.time.sleep',
                                 side_effect=mock_response
@@ -474,3 +523,5 @@ class TestHelpers(TestCase):
                                         'An unknown exception'
                                         'was thrown'
                                     )
+
+                            self.assertTrue(send_notify.called)
