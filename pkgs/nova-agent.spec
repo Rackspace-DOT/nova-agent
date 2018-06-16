@@ -116,7 +116,7 @@ fi
 
 
 %files
-%license LICENSE.txt
+%license LICENSE
 %if %{with python3}
 %{python3_sitelib}/novaagent*
 %else
