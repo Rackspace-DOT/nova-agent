@@ -1,5 +1,6 @@
 
 from __future__ import absolute_import
+from socket import error as socket_error
 
 
 from novaagent.xenstore import xenstore
@@ -7,6 +8,7 @@ from novaagent.xenstore import xenstore
 
 import logging
 import socket
+import signal
 import struct
 import fcntl
 import json
@@ -222,3 +224,51 @@ def update_xenguest_event(uuid, data, client):
         )
 
     return success
+
+
+def send_notification(server_init, notify):
+    # Only need to notify systemd and upstart init systems
+    if server_init == 'systemd':
+        systemd_status(*notify, status='', completed=True)
+    elif server_init == 'upstart':
+        os.kill(os.getpid(), signal.SIGSTOP)
+
+
+def notify_socket():
+    """Return a tuple of address, socket for future use"""
+    _empty = None, None
+    address = os.environ.pop("NOTIFY_SOCKET", None)
+
+    if not address:
+        return _empty
+
+    if len(address) == 1:
+        return _empty
+
+    if address[0] not in ("@", "/"):
+        return _empty
+
+    if address[0] == "@":
+        address = "\0" + address[1:]
+
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    return address, sock
+
+
+def systemd_status(address, sock, status, completed=False):
+    """Helper function to update the service status."""
+    if completed:
+        message = b"READY=1"
+    else:
+        message = ("STATUS={0}".format(status)).encode('utf8')
+
+    if not (address and sock and message):
+        return
+
+    try:
+        sock.sendto(message, address)
+    except socket_error as serr:
+        log.error('Socket error occurred on message send')
+        raise serr
+
+    return

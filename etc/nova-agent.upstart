@@ -6,7 +6,7 @@ stop on runlevel [!2345]
 
 respawn
 respawn limit 10 5
-expect fork
+expect stop
 umask 022
 
-exec /usr/bin/nova-agent -o /var/log/nova-agent.log -l info
+exec /usr/bin/nova-agent --no-fork True -o /var/log/nova-agent.log -l info

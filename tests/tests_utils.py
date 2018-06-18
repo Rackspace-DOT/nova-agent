@@ -4,7 +4,11 @@ from .fixtures import xen_data
 from novaagent import utils
 
 
+from socket import error as socket_error
+
+
 import logging
+import socket
 import glob
 import sys
 import os
@@ -792,3 +796,121 @@ class TestHelpers(TestCase):
             test,
             'Byte strings do not match as expected'
         )
+
+    def test_notification_systemd(self):
+        with mock.patch('novaagent.utils.systemd_status') as mock_status:
+            try:
+                utils.send_notification('systemd', 'notify')
+                self.assertTrue(mock_status.called)
+            except Exception:
+                assert False, 'systemd notification failed to complete'
+
+    def test_notification_upstart(self):
+        try:
+            with mock.patch('os.kill') as mock_kill:
+                utils.send_notification('upstart', None)
+                self.assertTrue(mock_kill.called)
+        except Exception:
+            assert False, 'upstart notification failed to complete'
+
+    def test_notify_empty_address(self):
+        address = None
+        socket = None
+        bad_address, bad_socket = utils.notify_socket()
+        self.assertEqual(
+            bad_address,
+            address,
+            'Did not get expected value for address'
+        )
+        self.assertEqual(
+            bad_socket,
+            socket,
+            'Did not get expected value for socket'
+        )
+
+    def test_notify_bad_length(self):
+        address = None
+        socket = None
+        with mock.patch.dict(os.environ, {'NOTIFY_SOCKET': '1'}):
+            bad_address, bad_socket = utils.notify_socket()
+
+        self.assertEqual(
+            bad_address,
+            address,
+            'Did not get expected value for address'
+        )
+        self.assertEqual(
+            bad_socket,
+            socket,
+            'Did not get expected value for socket'
+        )
+
+    def test_notify_incorrect_starter(self):
+        address = None
+        socket = None
+        with mock.patch.dict(os.environ, {'NOTIFY_SOCKET': '111'}):
+            bad_address, bad_socket = utils.notify_socket()
+
+        self.assertEqual(
+            bad_address,
+            address,
+            'Did not get expected value for address'
+        )
+        self.assertEqual(
+            bad_socket,
+            socket,
+            'Did not get expected value for socket'
+        )
+
+    def test_notify_complete(self):
+        address = '\x00novaagenttest'
+        socket = 'mock_socket'
+        with mock.patch.dict(os.environ, {'NOTIFY_SOCKET': '@novaagenttest'}):
+            with mock.patch(
+                'novaagent.utils.socket'
+            ) as mock_socket:
+                mock_socket.socket.return_value = 'mock_socket'
+                good_address, good_socket = utils.notify_socket()
+
+        self.assertEqual(
+            good_address,
+            address,
+            'Did not get expected value for address'
+        )
+        self.assertEqual(
+            good_socket,
+            socket,
+            'Did not get expected value for socket'
+        )
+
+    def test_systemd_status_bad_address(self):
+        address = None
+        sock = None
+        status = 'Test'
+        self.assertFalse(
+            utils.systemd_status(address, sock, status),
+            'Error on empty values'
+        )
+
+    def test_systemd_status_completed(self):
+        address = 'address'
+        status = 'Test'
+        mock_socket = mock.Mock()
+        mock_socket.send_to = ''
+        try:
+            utils.systemd_status(address, mock_socket, status, completed=True)
+        except Exception:
+            assert False, 'Exception was caught when should not have'
+
+    def test_systemd_status_socket_error(self):
+        address = 'address'
+        status = 'Test'
+        try:
+            with mock.patch('novaagent.utils.socket') as test:
+                test.sendto.side_effect = socket.error
+                utils.systemd_status(address, test, status, completed=True)
+        except socket_error:
+            # This is the correct error to raise
+            pass
+        except Exception:
+            assert False, 'Exception was caught when should not have'
