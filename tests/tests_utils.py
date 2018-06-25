@@ -816,7 +816,9 @@ class TestHelpers(TestCase):
     def test_notify_empty_address(self):
         address = None
         socket = None
-        bad_address, bad_socket = utils.notify_socket()
+        with mock.patch.dict(os.environ, {'BAD_THINGS': '0'}):
+            bad_address, bad_socket = utils.notify_socket()
+
         self.assertEqual(
             bad_address,
             address,
