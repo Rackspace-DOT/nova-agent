@@ -473,7 +473,7 @@ class TestHelpers(TestCase):
     def test_get_init_systemd(self):
         with mock.patch('novaagent.novaagent.os.stat') as stat:
             stat.return_value = True
-            init_system = novaagent.novaagent.get_init_system('centos')
+            init_system = novaagent.novaagent.get_init_system()
 
         self.assertEqual(
             init_system,
@@ -484,7 +484,7 @@ class TestHelpers(TestCase):
     def test_get_init_upstart(self):
         with mock.patch('novaagent.novaagent.os.stat', side_effect=ValueError):
             with mock.patch.dict(os.environ, {'UPSTART_JOB': 'novaagenttest'}):
-                init_system = novaagent.novaagent.get_init_system('debian')
+                init_system = novaagent.novaagent.get_init_system()
 
         self.assertEqual(
             init_system,
@@ -492,32 +492,10 @@ class TestHelpers(TestCase):
             'Did not get expected init system'
         )
 
-    def test_get_init_upstart_with_centos(self):
-        with mock.patch('novaagent.novaagent.os.stat', side_effect=ValueError):
-            with mock.patch.dict(os.environ, {'UPSTART_JOB': 'novaagenttest'}):
-                init_system = novaagent.novaagent.get_init_system('centos')
-
-        self.assertEqual(
-            init_system,
-            None,
-            'Value should be None for sysvinit'
-        )
-
-    def test_get_init_upstart_with_redhat(self):
-        with mock.patch('novaagent.novaagent.os.stat', side_effect=ValueError):
-            with mock.patch.dict(os.environ, {'UPSTART_JOB': 'novaagenttest'}):
-                init_system = novaagent.novaagent.get_init_system('redhat')
-
-        self.assertEqual(
-            init_system,
-            None,
-            'Value should be None for sysvinit'
-        )
-
     def test_get_init_default(self):
         with mock.patch('novaagent.novaagent.os.stat', side_effect=ValueError):
             with mock.patch.dict(os.environ, {}):
-                init_system = novaagent.novaagent.get_init_system('debian')
+                init_system = novaagent.novaagent.get_init_system()
 
         self.assertEqual(
             init_system,
