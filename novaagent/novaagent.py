@@ -114,7 +114,7 @@ def get_server_type():
     return server_type
 
 
-def get_init_system(server_type):
+def get_init_system():
     # Checking for systemd on OS
     try:
         os.stat('/run/systemd/system')
@@ -124,8 +124,11 @@ def get_init_system(server_type):
         pass
 
     # Check if upstart system was used to start agent
-    upstart_job = os.environ.pop('UPSTART_JOB', None)
-    if upstart_job is not None and server_type == 'debian':
+    upstart_job = os.environ.get('UPSTART_JOB', None)
+
+    # RHEL 6 and CentOS 6 use rc upstart job to start all the SysVinit
+    # emulation layer instead of individual init scripts
+    if upstart_job not in (None, 'rc'):
         log.debug('Upstart job that started script: {0}'.format(upstart_job))
         return 'upstart'
 
@@ -190,7 +193,7 @@ def main():
     log.info('Agent is starting up')
     server_type = get_server_type()
     server_os = server_type.ServerOS()
-    server_init = get_init_system(server_type)
+    server_init = get_init_system()
     if args.no_fork is False:
         log.info('Starting daemon')
         try:
