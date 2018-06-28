@@ -46,7 +46,14 @@ class TestHelpers(TestCase):
 
     def setup_temp_interface_config(self, interface):
         with open('/tmp/ifcfg-{0}'.format(interface), 'a+') as f:
-            f.write('This is a test file')
+            f.write(
+                'IPADDR999=1.1.1.1\n'
+                'ZONE=TestFirewalldZone\n'
+                '# Comment in file\n'
+                ' Starts with a space\n'
+                '      # Mulitple spaces\n'
+                'TEST_OPTION=TEST_VALUE\n'
+            )
 
     def setup_temp_hostname(self):
         with open('/tmp/hostname', 'a+') as f:
@@ -120,17 +127,20 @@ class TestHelpers(TestCase):
                             ) as ifcfg_files:
                                 ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
                                 with mock.patch(
-                                    'novaagent.libs.centos.Popen'
-                                ) as p:
-                                    p.return_value.communicate.return_value = (
-                                        'out', 'error'
-                                    )
-                                    p.return_value.returncode = 0
-                                    result = temp.resetnetwork(
-                                        'name',
-                                        'value',
-                                        'dummy_client'
-                                    )
+                                    'novaagent.libs.centos.ServerOS.'
+                                    '_check_for_extra_settings'
+                                ) as check:
+                                    check.return_value = []
+                                    with mock.patch(
+                                        'novaagent.libs.centos.Popen'
+                                    ) as p:
+                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                        p.return_value.returncode = 0
+                                        result = temp.resetnetwork(
+                                            'name',
+                                            'value',
+                                            'dummy_client'
+                                        )
 
         self.assertEqual(
             result,
@@ -197,29 +207,33 @@ class TestHelpers(TestCase):
                                 'novaagent.utils.get_ifcfg_files_to_remove'
                             ) as ifcfg_files:
                                 ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
-
-                                mock_popen = mock.Mock()
-                                mock_comm = mock.Mock()
-                                mock_comm.return_value = ('out', 'error')
-                                mock_popen.side_effect = [
-                                    mock.Mock(
-                                        returncode=1,
-                                        communicate=mock_comm
-                                    ),
-                                    mock.Mock(
-                                        returncode=0,
-                                        communicate=mock_comm
-                                    )
-                                ]
                                 with mock.patch(
-                                    'novaagent.libs.centos.Popen',
-                                    side_effect=mock_popen
-                                ):
-                                    result = temp.resetnetwork(
-                                        'name',
-                                        'value',
-                                        'dummy_client'
-                                    )
+                                    'novaagent.libs.centos.ServerOS.'
+                                    '_check_for_extra_settings'
+                                ) as check:
+                                    check.return_value = []
+                                    mock_popen = mock.Mock()
+                                    mock_comm = mock.Mock()
+                                    mock_comm.return_value = ('out', 'error')
+                                    mock_popen.side_effect = [
+                                        mock.Mock(
+                                            returncode=1,
+                                            communicate=mock_comm
+                                        ),
+                                        mock.Mock(
+                                            returncode=0,
+                                            communicate=mock_comm
+                                        )
+                                    ]
+                                    with mock.patch(
+                                        'novaagent.libs.centos.Popen',
+                                        side_effect=mock_popen
+                                    ):
+                                        result = temp.resetnetwork(
+                                            'name',
+                                            'value',
+                                            'dummy_client'
+                                        )
 
         self.assertEqual(
             result,
@@ -287,17 +301,20 @@ class TestHelpers(TestCase):
                             ) as ifcfg_files:
                                 ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
                                 with mock.patch(
-                                    'novaagent.libs.centos.Popen'
-                                ) as p:
-                                    p.return_value.communicate.return_value = (
-                                        'out', 'error'
-                                    )
-                                    p.return_value.returncode = 0
-                                    result = temp.resetnetwork(
-                                        'name',
-                                        'value',
-                                        'dummy_client'
-                                    )
+                                    'novaagent.libs.centos.ServerOS.'
+                                    '_check_for_extra_settings'
+                                ) as check:
+                                    check.return_value = []
+                                    with mock.patch(
+                                        'novaagent.libs.centos.Popen'
+                                    ) as p:
+                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                        p.return_value.returncode = 0
+                                        result = temp.resetnetwork(
+                                            'name',
+                                            'value',
+                                            'dummy_client'
+                                        )
 
         self.assertEqual(
             result,
@@ -358,17 +375,20 @@ class TestHelpers(TestCase):
                             ) as ifcfg_files:
                                 ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
                                 with mock.patch(
-                                    'novaagent.libs.centos.Popen'
-                                ) as p:
-                                    p.return_value.communicate.return_value = (
-                                        'out', 'error'
-                                    )
-                                    p.return_value.returncode = 1
-                                    result = temp.resetnetwork(
-                                        'name',
-                                        'value',
-                                        'dummy_client'
-                                    )
+                                    'novaagent.libs.centos.ServerOS.'
+                                    '_check_for_extra_settings'
+                                ) as check:
+                                    check.return_value = []
+                                    with mock.patch(
+                                        'novaagent.libs.centos.Popen'
+                                    ) as p:
+                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                        p.return_value.returncode = 1
+                                        result = temp.resetnetwork(
+                                            'name',
+                                            'value',
+                                            'dummy_client'
+                                        )
 
         self.assertEqual(
             result,
@@ -446,15 +466,20 @@ class TestHelpers(TestCase):
                                         '/tmp/ifcfg-eth1'
                                     ]
                                     with mock.patch(
-                                        'novaagent.libs.centos.Popen'
-                                    ) as p:
-                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                        p.return_value.returncode = 0
-                                        result = temp.resetnetwork(
-                                            'name',
-                                            'value',
-                                            'dummy_client'
-                                        )
+                                        'novaagent.libs.centos.ServerOS.'
+                                        '_check_for_extra_settings'
+                                    ) as check:
+                                        check.return_value = []
+                                        with mock.patch(
+                                            'novaagent.libs.centos.Popen'
+                                        ) as p:
+                                            p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                            p.return_value.returncode = 0
+                                            result = temp.resetnetwork(
+                                                'name',
+                                                'value',
+                                                'dummy_client'
+                                            )
 
         self.assertEqual(
             result,
@@ -531,15 +556,20 @@ class TestHelpers(TestCase):
                                         '/tmp/ifcfg-eth1'
                                     ]
                                     with mock.patch(
-                                        'novaagent.libs.centos.Popen'
-                                    ) as p:
-                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                        p.return_value.returncode = 1
-                                        result = temp.resetnetwork(
-                                            'name',
-                                            'value',
-                                            'dummy_client'
-                                        )
+                                        'novaagent.libs.centos.ServerOS.'
+                                        '_check_for_extra_settings'
+                                    ) as check:
+                                        check.return_value = []
+                                        with mock.patch(
+                                            'novaagent.libs.centos.Popen'
+                                        ) as p:
+                                            p.return_value.communicate.return_value = ('out', 'error')  # noqa
+                                            p.return_value.returncode = 1
+                                            result = temp.resetnetwork(
+                                                'name',
+                                                'value',
+                                                'dummy_client'
+                                            )
 
         self.assertEqual(
             result,
@@ -569,6 +599,23 @@ class TestHelpers(TestCase):
             len(localhost),
             1,
             'Localhost ifcfg file was moved out of the way and should not have'
+        )
+
+    def test_check_extra_args(self):
+        self.setup_temp_interface_config('eth1')
+        temp = centos.ServerOS()
+        interface_file = '/tmp/ifcfg-eth1'
+
+        extra_args = temp._check_for_extra_settings(interface_file)
+        self.assertEqual(
+            len(extra_args),
+            2,
+            'Did not get proper number of arguments from check'
+        )
+        self.assertEqual(
+            extra_args,
+            ['ZONE=TestFirewalldZone', 'TEST_OPTION=TEST_VALUE'],
+            'Did not get proper extra arguments from check'
         )
 
     def test_setup_routes(self):
