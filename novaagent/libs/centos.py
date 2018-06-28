@@ -5,6 +5,7 @@ from __future__ import absolute_import
 
 import logging
 import os
+import re
 
 
 from subprocess import Popen
@@ -32,7 +33,12 @@ class ServerOS(DefaultOS):
             self.interface_file_prefix,
             ifname
         )
+        # Check and see if there are extra arguments in ifcfg file
+        extra_args = self._check_for_extra_settings(interface_file)
+
+        # Backup the interface file
         utils.backup_file(interface_file)
+
         with open(interface_file, 'w') as iffile:
             iffile.write('# Automatically generated, do not edit\n\n')
             iffile.write('# Label {0}\n'.format(iface['label']))
@@ -91,6 +97,33 @@ class ServerOS(DefaultOS):
 
             iffile.write('ONBOOT=yes\n')
             iffile.write('NM_CONTROLLED=no\n')
+
+            if len(extra_args) > 0:
+                for argument in extra_args:
+                    iffile.write('{0}\n'.format(argument))
+
+    def _check_for_extra_settings(self, interface_file):
+        add_args = []
+
+        # The below setting are set in _setup_interface and also ignoring lines
+        # that start with # (comments) and lines with spaces at the beginning
+        known_settings = [
+            '^BOOTPROTO=', '^DEVICE=', '^GATEWAY=', '^IPV6INIT=', '^IPV6ADDR=',
+            '^IPV6_DEFAULTGW=', '^ONBOOT=', '^NM_CONTROLLED=', '^DNS\d+?=',
+            '^IPADDR\d+?=', '^NETMASK\d+?=', '^#', '^\s+'
+        ]
+        log.debug('Checking for additional arguments for ifcfg')
+        pattern = re.compile('|'.join(known_settings))
+        with open(interface_file, 'r') as file:
+            for line in file:
+                if not pattern.search(line):
+                    add_args.append(line.strip())
+
+        log.debug(
+            'Found {0} extra arguments to '
+            'add to ifcfg file'.format(len(add_args))
+        )
+        return add_args
 
     def _setup_routes(self, ifname, iface):
         route_file = '{0}/{1}-{2}'.format(

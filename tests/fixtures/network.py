@@ -17,7 +17,9 @@ CENTOS_IFCFG_ETH1 = [
     'IPADDR=10.208.227.239\n',
     'NETMASK=255.255.224.0\n',
     'ONBOOT=yes\n',
-    'NM_CONTROLLED=no\n'
+    'NM_CONTROLLED=no\n',
+    'ZONE=TestFirewalldZone\n',
+    'TEST_OPTION=TEST_VALUE\n'
 ]
 
 CENTOS_IFCFG_ETH0 = [
@@ -38,7 +40,9 @@ CENTOS_IFCFG_ETH0 = [
     'DNS1=69.20.0.164\n',
     'DNS2=69.20.0.196\n',
     'ONBOOT=yes\n',
-    'NM_CONTROLLED=no\n'
+    'NM_CONTROLLED=no\n',
+    'ZONE=TestFirewalldZone\n',
+    'TEST_OPTION=TEST_VALUE\n'
 ]
 
 ETH0_INTERFACE = {
