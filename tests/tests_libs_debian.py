@@ -492,7 +492,6 @@ class TestHelpers(TestCase):
                                 'novaagent.libs.debian.os.path.exists'
                             ) as exists:
                                 exists.return_value = True
-
                                 mock_popen = mock.Mock()
                                 mock_comm = mock.Mock()
                                 mock_comm.return_value = ('out', 'error')

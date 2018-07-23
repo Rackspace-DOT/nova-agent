@@ -164,28 +164,27 @@ class ServerOS(DefaultOS):
         }
         for ifname, iface in ifaces.items():
             temp_net = {'addresses': [], 'dhcp4': False}
-
-            ipv4_details = iface['ips'][0]
-            temp_net['addresses'].append(
-                '{0}/{1}'.format(
-                    ipv4_details.get('ip'),
-                    utils.netmask_to_prefix(ipv4_details.get('netmask'))
+            for temp_ip in iface['ips']:
+                temp_net['addresses'].append(
+                    '{0}/{1}'.format(
+                        temp_ip.get('ip'),
+                        utils.netmask_to_prefix(temp_ip.get('netmask'))
+                    )
                 )
-            )
 
             if iface.get('gateway'):
                 temp_net['gateway4'] = iface.get('gateway')
 
             if iface.get('ip6s'):
-                ipv6_details = iface['ip6s'][0]
                 temp_net['dhcp6'] = False
                 temp_net['gateway6'] = iface.get('gateway_v6')
-                temp_net['addresses'].append(
-                    '{0}/{1}'.format(
-                        ipv6_details.get('ip'),
-                        ipv6_details.get('netmask')
+                for temp_ipv6 in iface['ip6s']:
+                    temp_net['addresses'].append(
+                        '{0}/{1}'.format(
+                            temp_ipv6.get('ip'),
+                            temp_ipv6.get('netmask')
+                        )
                     )
-                )
 
             if iface.get('dns'):
                 temp_net['nameservers'] = {
