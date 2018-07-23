@@ -176,9 +176,9 @@ class ServerOS(DefaultOS):
                 temp_net['gateway4'] = iface.get('gateway')
 
             if iface.get('ip6s'):
+                temp_net['dhcp6'] = False
+                temp_net['gateway6'] = iface.get('gateway_v6')
                 for temp_ipv6 in iface['ip6s']:
-                    temp_net['dhcp6'] = False
-                    temp_net['gateway6'] = iface.get('gateway_v6')
                     temp_net['addresses'].append(
                         '{0}/{1}'.format(
                             temp_ipv6.get('ip'),
