@@ -1,5 +1,6 @@
 [Unit]
 Description=Nova Agent for xenstore
+DefaultDependencies=no
 Wants=cloud-init-local.service
 Before=network-online.target
 Before=cloud-init.service
