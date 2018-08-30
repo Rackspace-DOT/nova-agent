@@ -1,4 +1,7 @@
 
+from __future__ import absolute_import
+
+
 from novaagent.common import kms
 from novaagent.libs import centos
 
