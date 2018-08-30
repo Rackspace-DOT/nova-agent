@@ -10,7 +10,7 @@ if sys.version_info[:2] < (2, 7):
     requirements.append('argparse')
 
 
-test_requirements = ['mock', 'nose']
+test_requirements = ['mock', 'nose', 'coverage']
 if sys.version_info[:2] < (2, 7):
     test_requirements.extend(['flake8 < 3', 'unittest2'])
 else:
