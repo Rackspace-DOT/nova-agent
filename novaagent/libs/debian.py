@@ -1,8 +1,4 @@
 
-from __future__ import print_function
-from __future__ import absolute_import
-
-
 import logging
 import time
 import yaml
@@ -22,49 +18,15 @@ log = logging.getLogger(__name__)
 
 class ServerOS(DefaultOS):
     def __init__(self):
+        super(ServerOS, self).__init__()
         self.netplan_file = '/etc/netplan/rackspace-cloud.yaml'
         self.netconfig_file = '/etc/network/interfaces'
-        self.hostname_file = '/etc/hostname'
 
     def _setup_loopback(self):
         with open(self.netconfig_file, 'w') as iffile:
             iffile.write('# The loopback network interface\n')
             iffile.write('auto lo\n')
             iffile.write('iface lo inet loopback\n\n')
-
-    def _setup_hostname(self, client):
-        """
-        hostnamectl is available in some Debian systems and depends on dbus
-        """
-        hostname = utils.get_hostname(client)
-        completed = False
-        if os.path.exists('/usr/bin/hostnamectl'):
-            utils.backup_file(self.hostname_file)
-            p = Popen(
-                ['hostnamectl', 'set-hostname', hostname],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
-            out, err = p.communicate()
-            if p.returncode != 0:
-                log.error('Error using hostnamectl: {0}'.format(err))
-            else:
-                # Do not run hostname since it was successful
-                completed = True
-
-        if not completed:
-            p = Popen(
-                ['hostname', hostname],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
-            out, err = p.communicate()
-            if p.returncode != 0:
-                log.error('Error using hostname: {0}'.format(err))
-
-        return p.returncode
 
     def _setup_interfaces(self, ifname, iface):
         with open(self.netconfig_file, 'a') as iffile:
@@ -211,7 +173,7 @@ class ServerOS(DefaultOS):
 
     def resetnetwork(self, name, value, client):
         ifaces = {}
-        hostname_return_code = self._setup_hostname(client)
+        hostname_return_code, _ = self._setup_hostname(client)
         if hostname_return_code != 0:
             log.error('Error setting hostname on system')
 
