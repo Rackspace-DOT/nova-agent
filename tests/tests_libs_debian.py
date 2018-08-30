@@ -46,7 +46,7 @@ class TestHelpers(TestCase):
 
     def setup_temp_hostname(self):
         with open('/tmp/hostname', 'a+') as f:
-            f.write('This is a test file')
+            f.write('test.hostname.local')
 
     def setup_temp_interfaces(self):
         with open('/tmp/interfaces', 'a+') as f:
@@ -55,6 +55,24 @@ class TestHelpers(TestCase):
     def setup_temp_netplan(self):
         with open('/tmp/rackspace-cloud.yaml', 'a+') as f:
             f.write('#This is a test file\n')
+
+    def test_initialization(self):
+        temp = debian.ServerOS()
+        self.assertEqual(
+            temp.netplan_file,
+            '/etc/netplan/rackspace-cloud.yaml',
+            'Initialized netplan file value does not match expected value'
+        )
+        self.assertEqual(
+            temp.netconfig_file,
+            '/etc/network/interfaces',
+            'Initialized netconfig file value does not match expected value'
+        )
+        self.assertEqual(
+            temp.hostname_file,
+            '/etc/hostname',
+            'Initialized hostname file value does not match expected value'
+        )
 
     def test_setup_loopback(self):
         temp = debian.ServerOS()
@@ -80,7 +98,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 1
+            hostname.return_value = 1, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E207572', 'BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -163,7 +181,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -218,7 +236,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -277,7 +295,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -337,7 +355,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E207572', 'BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -465,7 +483,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E207572', 'BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -541,7 +559,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E207572', 'BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -601,14 +619,14 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.debian.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = False
-                with mock.patch('novaagent.libs.debian.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 0
-                    return_code = temp._setup_hostname(
+                    return_code, _ = temp._setup_hostname(
                         'dummy_client'
                     )
 
@@ -618,29 +636,15 @@ class TestHelpers(TestCase):
             'Return code received was not expected value'
         )
 
-    def test_setup_hostname_hostname_failure(self):
-        self.setup_temp_hostname()
-        temp = debian.ServerOS()
-        temp.hostname_file = '/tmp/hostname'
-        test_hostname = 'test.hostname'
-        with mock.patch('novaagent.utils.get_hostname') as hostname:
-            hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.debian.os.path.exists') as exists:
-                exists.return_value = False
-                with mock.patch('novaagent.libs.debian.Popen') as popen:
-                    popen.return_value.communicate.return_value = (
-                        ('out', 'err')
-                    )
-                    popen.return_value.returncode = 1
-                    return_code = temp._setup_hostname(
-                        'dummy_client'
-                    )
+        with open('/tmp/hostname') as f:
+            written_data = f.readlines()
 
-        self.assertEqual(
-            return_code,
-            1,
-            'Return code received was not expected value'
-        )
+        for index, line in enumerate(written_data):
+            self.assertEqual(
+                line,
+                test_hostname,
+                'Did not find expected hostname in file'
+            )
 
     def test_setup_hostname_hostnamectl_success(self):
         self.setup_temp_hostname()
@@ -649,14 +653,14 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.debian.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = True
-                with mock.patch('novaagent.libs.debian.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 0
-                    return_code = temp._setup_hostname(
+                    return_code, _ = temp._setup_hostname(
                         'dummy_client'
                     )
 
@@ -673,14 +677,14 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.debian.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = True
-                with mock.patch('novaagent.libs.debian.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )
                     popen.return_value.returncode = 1
-                    return_code = temp._setup_hostname(
+                    return_code, _ = temp._setup_hostname(
                         'dummy_client'
                     )
 
