@@ -18,6 +18,9 @@
 JSON File injection plugin
 """
 
+from __future__ import absolute_import
+
+
 from novaagent.utils import encode_to_bytes
 from novaagent.utils import backup_file
 from tempfile import mkstemp
