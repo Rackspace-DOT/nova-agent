@@ -17,8 +17,6 @@
 """
 JSON File injection plugin
 """
-from __future__ import print_function
-
 
 from novaagent.utils import encode_to_bytes
 from novaagent.utils import backup_file

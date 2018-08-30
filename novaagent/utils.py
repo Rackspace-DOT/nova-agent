@@ -1,5 +1,4 @@
 
-from __future__ import absolute_import
 from socket import error as socket_error
 
 
