@@ -1,5 +1,4 @@
 
-from __future__ import print_function
 from __future__ import absolute_import
 
 
@@ -21,11 +20,11 @@ log = logging.getLogger(__name__)
 
 class ServerOS(DefaultOS):
     def __init__(self):
+        super(ServerOS, self).__init__()
         self.netconfig_dir = '/etc/sysconfig/network-scripts'
+        self.network_file = '/etc/sysconfig/network'
         self.interface_file_prefix = 'ifcfg'
         self.route_file_prefix = 'route'
-        self.hostname_file = '/etc/hostname'
-        self.network_file = '/etc/sysconfig/network'
 
     def _setup_interface(self, ifname, iface):
         interface_file = '{0}/{1}-{2}'.format(
@@ -152,37 +151,6 @@ class ServerOS(DefaultOS):
                         route['gateway']
                     )
                 )
-
-    def _setup_hostname(self, client):
-        hostname = utils.get_hostname(client)
-        completed = False
-        if os.path.exists('/usr/bin/hostnamectl'):
-            utils.backup_file(self.hostname_file)
-            p = Popen(
-                ['hostnamectl', 'set-hostname', hostname],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
-            out, err = p.communicate()
-            if p.returncode != 0:
-                log.error('Error using hostnamectl: {0}'.format(err))
-            else:
-                # Do not run hostname since it was successful
-                completed = True
-
-        if not completed:
-            p = Popen(
-                ['hostname', hostname],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
-            out, err = p.communicate()
-            if p.returncode != 0:
-                log.error('Error using hostname: {0}'.format(err))
-
-        return p.returncode, hostname
 
     def resetnetwork(self, name, value, client):
         ifaces = {}

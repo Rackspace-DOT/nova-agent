@@ -11,4 +11,4 @@ install:
 before_script:
   - flake8 .
 script:
-  - nosetests -v --cover-erase --with-coverage --cover-package=novaagent
+  - nosetests -v

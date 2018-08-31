@@ -57,7 +57,7 @@ class TestHelpers(TestCase):
 
     def setup_temp_hostname(self):
         with open('/tmp/hostname', 'a+') as f:
-            f.write('This is a test file')
+            f.write('test.hostname.local')
 
     def setup_temp_network(self):
         with open('/tmp/network', 'a+') as f:
@@ -102,7 +102,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.centos.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 1, 'test_hostname'
+            hostname.return_value = 1, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -183,7 +183,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.centos.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -276,7 +276,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.centos.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -357,7 +357,7 @@ class TestHelpers(TestCase):
         with mock.patch(
             'novaagent.libs.centos.ServerOS._setup_hostname'
         ) as hostname:
-            hostname.return_value = 0, 'test_hostname'
+            hostname.return_value = 0, 'temp.hostname'
             with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
                 mac.return_value = ['BC764E206C5B']
                 with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
@@ -440,7 +440,7 @@ class TestHelpers(TestCase):
             with mock.patch(
                 'novaagent.libs.centos.ServerOS._setup_hostname'
             ) as hostname:
-                hostname.return_value = 0, 'test_hostname'
+                hostname.return_value = 0, 'temp.hostname'
                 with mock.patch(
                     'novaagent.utils.list_xenstore_macaddrs'
                 ) as mac:
@@ -530,7 +530,7 @@ class TestHelpers(TestCase):
             with mock.patch(
                 'novaagent.libs.centos.ServerOS._setup_hostname'
             ) as hostname:
-                hostname.return_value = 0, 'test_hostname'
+                hostname.return_value = 0, 'temp.hostname'
                 with mock.patch(
                     'novaagent.utils.list_xenstore_macaddrs'
                 ) as mac:
@@ -693,9 +693,9 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.centos.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = False
-                with mock.patch('novaagent.libs.centos.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )
@@ -722,9 +722,9 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.centos.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = False
-                with mock.patch('novaagent.libs.centos.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )
@@ -751,9 +751,9 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.centos.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = True
-                with mock.patch('novaagent.libs.centos.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )
@@ -780,9 +780,9 @@ class TestHelpers(TestCase):
         test_hostname = 'test.hostname'
         with mock.patch('novaagent.utils.get_hostname') as hostname:
             hostname.return_value = test_hostname
-            with mock.patch('novaagent.libs.centos.os.path.exists') as exists:
+            with mock.patch('novaagent.libs.os.path.exists') as exists:
                 exists.return_value = True
-                with mock.patch('novaagent.libs.centos.Popen') as popen:
+                with mock.patch('novaagent.libs.Popen') as popen:
                     popen.return_value.communicate.return_value = (
                         ('out', 'err')
                     )

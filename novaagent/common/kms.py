@@ -18,8 +18,6 @@
 """
 redhat/centos KMS activation helper module
 """
-from __future__ import print_function
-
 
 import subprocess
 import logging
@@ -133,7 +131,7 @@ def kms_activate(data):
     update_files = configure_up2date(domains)
 
     with open(UP2DATE_PATH, 'w') as up2date:
-        print(update_files[UP2DATE_PATH], file=up2date)
+        up2date.write(update_files[UP2DATE_PATH])
 
     message = register_with_rhn(activation_key, profile)
     if message:
