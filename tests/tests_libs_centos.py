@@ -618,6 +618,22 @@ class TestHelpers(TestCase):
             'Did not get proper extra arguments from check'
         )
 
+    def test_check_extra_args_no_file(self):
+        temp = centos.ServerOS()
+        interface_file = '/tmp/ifcfg-eth1'
+
+        extra_args = temp._check_for_extra_settings(interface_file)
+        self.assertEqual(
+            len(extra_args),
+            0,
+            'Did not get proper number of arguments from check'
+        )
+        self.assertEqual(
+            extra_args,
+            [],
+            'Did not get proper extra arguments from check'
+        )
+
     def test_setup_routes(self):
         self.setup_temp_route()
         temp = centos.ServerOS()

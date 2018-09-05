@@ -113,10 +113,13 @@ class ServerOS(DefaultOS):
         ]
         log.debug('Checking for additional arguments for ifcfg')
         pattern = re.compile('|'.join(known_settings))
-        with open(interface_file, 'r') as file:
-            for line in file:
-                if not pattern.search(line):
-                    add_args.append(line.strip())
+
+        # File will not exist on initial boot so check and make sure exists
+        if os.path.isfile(interface_file):
+            with open(interface_file, 'r') as file:
+                for line in file:
+                    if not pattern.search(line):
+                        add_args.append(line.strip())
 
         log.debug(
             'Found {0} extra arguments to '
