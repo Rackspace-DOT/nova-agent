@@ -9,7 +9,7 @@ Running agent that helps with the setup of the server initially on first boot, a
 
 The agent will check and make sure that the instance is running on Rackspace hosts, and if so it will continue running and complete any tasks that is being requested through xenstore. If it is not then the agent will immediately stop running log the reason.
 
-The agent will also look and see if `/dev/xen/xenbus` is available, and if so will utilize that device to interact with xenstore. If it is not available then the agent will try and utilize xenstore commands that are provided by xenstore-utils.
+The agent will also look and see if `/dev/xen/xenbus` is available, and if so will utilize [pyxs](https://github.com/selectel/pyxs) library to interact with xenstore. If it is not available then the agent will try and utilize xenstore commands that are provided by xenstore-utils.
 
 #### What does the agent do?
 
