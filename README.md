@@ -25,7 +25,7 @@ The agent will also look and see if `/dev/xen/xenbus` is available, and if so wi
   You can learn more about netplan here [https://netplan.io/](https://netplan.io/) and is available on Rackspace cloud in the Ubuntu 18.04 base image.
 
 ##### Hostname
-  * On all systems the agent will try and use `hostnamectl` to set the hostname. If that fails then the agent will fall back and use the `hostname` command, and write to the /etc/hostname so that the hostname persists through a reboot.
+  * On all systems the agent will try and use `hostnamectl` to set the hostname. If that fails then the agent will fall back and use the `hostname` command, and write to the `/etc/hostname` so that the hostname persists through a reboot.
 
 ##### Password
   * Sets the password assigned to the server on initial boot by nova. Also allows for password changes initiated by a user during the life cycle of the server
