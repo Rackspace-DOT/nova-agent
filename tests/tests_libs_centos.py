@@ -47,6 +47,7 @@ class TestHelpers(TestCase):
     def setup_temp_interface_config(self, interface):
         with open('/tmp/ifcfg-{0}'.format(interface), 'a+') as f:
             f.write(
+                'IPADDR=2.2.2.2\n'
                 'IPADDR999=1.1.1.1\n'
                 'ZONE=TestFirewalldZone\n'
                 '# Comment in file\n'
