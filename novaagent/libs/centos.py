@@ -106,7 +106,7 @@ class ServerOS(DefaultOS):
 
         # The below setting are set in _setup_interface and also ignoring lines
         # that start with # (comments) and lines with spaces at the beginning
-        known_settings = [
+        known_settings = [  # noqa
             '^BOOTPROTO=', '^DEVICE=', '^GATEWAY=', '^IPV6INIT=', '^IPV6ADDR=',
             '^IPV6_DEFAULTGW=', '^ONBOOT=', '^NM_CONTROLLED=', '^DNS\d+?=',
             '^IPADDR\d?', '^NETMASK\d?', '^#', '^\s+'
