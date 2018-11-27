@@ -155,6 +155,81 @@ class ServerOS(DefaultOS):
                     )
                 )
 
+    @staticmethod
+    def _compare_version(filename, min_ver):
+        """Compare two versions
+
+        :param ver: Version string ex: 'CentOS Linux release 7.5.1804 (Core)'
+        :param min_ver: List of integers indicating minimum version
+        :rtype: int or None
+        :return: -1 ver < min_ver, 0 ver == min_ver, 1 ver > min_ver
+        """
+        with open(filename, 'r') as f:
+            ver = f.read()
+
+        if not ver:
+            return None
+        ver_str = re.findall(r'\d+', ver)
+        for ver_idx, ver_itm in enumerate(ver_str):
+            if len(min_ver) < ver_idx + 1:
+                # ver_str ['10', '12', '10', '12']
+                # min_ver [10, 12]
+                return 1
+            ver_itm_int = int(ver_itm)
+            if ver_itm_int < ver_str[ver_idx]:
+                # ver_str ['10', '13', '10', '12']
+                # min_ver [10, 12]
+                return 1
+            if ver_itm_int > ver_str[ver_idx]:
+                # ver_str ['10', '11', '10', '12']
+                # min_ver [10, 12]
+                return -1
+            if ver_itm_int == ver_str[ver_idx]:
+                continue
+        return 0
+
+    def is_network_manager(self):
+        """ Is using NetworkManager over network scripts
+
+        :rtype: bool
+        :return: OS Defaults to network manager
+        """
+        result = False
+        os_ver_min = []
+        filename = None
+
+        if os.path.exists('/etc/centos-release'):
+            os_ver_min = [7, 6]
+            filename = '/etc/centos-release'
+        elif os.path.exists('/etc/fedora-release'):
+            os_ver_min = [29]
+            filename = '/etc/fedora-release'
+        elif os.path.exists('/etc/redhat-release'):
+            os_ver_min = [7, 6]
+            filename = '/etc/redhat-release'
+
+        if self._compare_version(filename, os_ver_min) in [-1, None]:
+            return False
+
+        try:
+            p = Popen(
+                ['systemctl', 'is-enabled', 'NetworkManager.service'],
+                stdout=PIPE,
+                stderr=PIPE,
+                stdin=PIPE
+            )
+            out, err = p.communicate()
+            if p.returncode != 0:
+                return False
+            if 'enabled' in out:
+                result = True
+        except Exception as e:
+            log.info(
+                'Error checking if NetworkManager is enabled {}'.format(e))
+            log.info('Falling back to service network restart')
+
+        return result
+
     def resetnetwork(self, name, value, client):
         ifaces = {}
         hostname_return_code, hostname = self._setup_hostname(client)
@@ -208,21 +283,28 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 # Log error and continue to restart network
                 log.error('Error flushing interface: {0}'.format(ifname))
-
-        if os.path.exists('/usr/bin/systemctl'):
+        if self.is_network_manager():
             p = Popen(
-                ['systemctl', 'restart', 'network.service'],
+                ['systemctl', 'restart', 'NetworkManager.service'],
                 stdout=PIPE,
                 stderr=PIPE,
                 stdin=PIPE
             )
         else:
-            p = Popen(
-                ['service', 'network', 'restart'],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
+            if os.path.exists('/usr/bin/systemctl'):
+                p = Popen(
+                    ['systemctl', 'restart', 'network.service'],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
+                )
+            else:
+                p = Popen(
+                    ['service', 'network', 'restart'],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
+                )
 
         out, err = p.communicate()
         if p.returncode != 0:
