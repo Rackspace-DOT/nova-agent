@@ -108,8 +108,8 @@ class ServerOS(DefaultOS):
         # that start with # (comments) and lines with spaces at the beginning
         known_settings = [
             '^BOOTPROTO=', '^DEVICE=', '^GATEWAY=', '^IPV6INIT=', '^IPV6ADDR=',
-            '^IPV6_DEFAULTGW=', '^ONBOOT=', '^NM_CONTROLLED=', '^DNS\d+?=',
-            '^IPADDR\d?', '^NETMASK\d?', '^#', '^\s+'
+            '^IPV6_DEFAULTGW=', '^ONBOOT=', '^NM_CONTROLLED=', '^HWADDR=',
+            '^DNS\d+?=', '^IPADDR\d?', '^NETMASK\d?', '^#', '^\s+'
         ]
         log.debug('Checking for additional arguments for ifcfg')
         pattern = re.compile('|'.join(known_settings))
