@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 try:
     import netifaces
     HAS_NETIFACES = True
-except ImportError as exc:
+except ImportError:
     HAS_NETIFACES = False
 
 

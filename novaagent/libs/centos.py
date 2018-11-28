@@ -6,7 +6,7 @@ import logging
 import os
 import re
 
-
+import distro
 from subprocess import Popen
 from subprocess import PIPE
 
@@ -106,7 +106,7 @@ class ServerOS(DefaultOS):
 
         # The below setting are set in _setup_interface and also ignoring lines
         # that start with # (comments) and lines with spaces at the beginning
-        known_settings = [
+        known_settings = [  # noqa
             '^BOOTPROTO=', '^DEVICE=', '^GATEWAY=', '^IPV6INIT=', '^IPV6ADDR=',
             '^IPV6_DEFAULTGW=', '^ONBOOT=', '^NM_CONTROLLED=', '^DNS\d+?=',
             '^IPADDR\d?', '^NETMASK\d?', '^#', '^\s+'
@@ -154,6 +154,58 @@ class ServerOS(DefaultOS):
                         route['gateway']
                     )
                 )
+
+    @staticmethod
+    def version_tuple():
+        """Tuple representation of os version"""
+        version = distro.version().split('.')
+        version = map(int, version)
+        return tuple(version)
+
+    @staticmethod
+    def _os_defaults_network_manager():
+        """
+        :rtype: bool
+        :return: has network manager only, not network scripts
+        """
+        dist = distro.name()
+
+        if dist in ['rhel', 'centos'] and ServerOS.version_tuple() >= (7, 6):
+            return True
+        if dist == 'fedora' and ServerOS.version_tuple() >= (29,):
+            return True
+
+        return False
+
+    def is_network_manager(self):
+        """ Is using NetworkManager over network scripts
+
+        :rtype: bool
+        :return: OS Defaults to network manager
+        """
+        result = False
+
+        if not self._os_defaults_network_manager():
+            return False
+
+        try:
+            p = Popen(
+                ['systemctl', 'is-enabled', 'NetworkManager.service'],
+                stdout=PIPE,
+                stderr=PIPE,
+                stdin=PIPE
+            )
+            out, err = p.communicate()
+            if p.returncode != 0:
+                return False
+            if 'enabled' in out:
+                result = True
+        except Exception as e:
+            log.info(
+                'Error checking if NetworkManager is enabled {}'.format(e))
+            log.info('Falling back to service network restart')
+
+        return result
 
     def resetnetwork(self, name, value, client):
         ifaces = {}
@@ -208,21 +260,28 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 # Log error and continue to restart network
                 log.error('Error flushing interface: {0}'.format(ifname))
-
-        if os.path.exists('/usr/bin/systemctl'):
+        if self.is_network_manager():
             p = Popen(
-                ['systemctl', 'restart', 'network.service'],
+                ['systemctl', 'restart', 'NetworkManager.service'],
                 stdout=PIPE,
                 stderr=PIPE,
                 stdin=PIPE
             )
         else:
-            p = Popen(
-                ['service', 'network', 'restart'],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
+            if os.path.exists('/usr/bin/systemctl'):
+                p = Popen(
+                    ['systemctl', 'restart', 'network.service'],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
+                )
+            else:
+                p = Popen(
+                    ['service', 'network', 'restart'],
+                    stdout=PIPE,
+                    stderr=PIPE,
+                    stdin=PIPE
+                )
 
         out, err = p.communicate()
         if p.returncode != 0:

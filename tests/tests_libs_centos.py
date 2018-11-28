@@ -100,48 +100,74 @@ class TestHelpers(TestCase):
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
         temp.network_file = '/tmp/network'
-        with mock.patch(
-            'novaagent.libs.centos.ServerOS._setup_hostname'
-        ) as hostname:
-            hostname.return_value = 1, 'temp.hostname'
-            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
-                mac.return_value = ['BC764E206C5B']
-                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
-                    hwint.return_value = ['eth1', 'lo']
-                    mock_response = mock.Mock()
-                    mock_response.side_effect = [
-                        'BC764E206C5B',
-                        None
-                    ]
+        mock_response_exists = mock.Mock()
+        mock_response_exists.side_effect = [
+            True, True, False, True, True, True
+        ]
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
+            with mock.patch(
+                'novaagent.libs.centos.ServerOS._setup_hostname'
+            ) as hostname:
+                hostname.return_value = 1, 'temp.hostname'
+                with mock.patch(
+                        'novaagent.utils.list_xenstore_macaddrs') as mac:
+                    mac.return_value = ['BC764E206C5B']
                     with mock.patch(
-                        'novaagent.utils.get_hw_addr',
-                        side_effect=mock_response
-                    ):
+                            'novaagent.utils.list_hw_interfaces') as hwint:
+                        hwint.return_value = ['eth1', 'lo']
+                        mock_response = mock.Mock()
+                        mock_response.side_effect = [
+                            'BC764E206C5B',
+                            None
+                        ]
                         with mock.patch(
-                            'novaagent.utils.get_interface'
-                        ) as inter:
-                            inter.return_value = (
-                                xen_data.check_network_interface()
-                            )
+                            'novaagent.utils.get_hw_addr',
+                            side_effect=mock_response
+                        ):
                             with mock.patch(
-                                'novaagent.utils.get_ifcfg_files_to_remove'
-                            ) as ifcfg_files:
-                                ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
+                                'novaagent.utils.get_interface'
+                            ) as inter:
+                                inter.return_value = (
+                                    xen_data.check_network_interface()
+                                )
                                 with mock.patch(
-                                    'novaagent.libs.centos.ServerOS.'
-                                    '_check_for_extra_settings'
-                                ) as check:
-                                    check.return_value = []
+                                    'novaagent.utils.get_ifcfg_files_to_remove'
+                                ) as ifcfg_files:
+                                    ifcfg_files.return_value = [
+                                        '/tmp/ifcfg-eth1']
                                     with mock.patch(
-                                        'novaagent.libs.centos.Popen'
-                                    ) as p:
-                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                        p.return_value.returncode = 0
-                                        result = temp.resetnetwork(
-                                            'name',
-                                            'value',
-                                            'dummy_client'
-                                        )
+                                        'novaagent.libs.centos.ServerOS.'
+                                        '_check_for_extra_settings'
+                                    ) as check:
+                                        check.return_value = []
+                                        mock_popen = mock.Mock()
+                                        mock_comm = mock.Mock()
+                                        mock_comm.return_value = ('out',
+                                                                  'error')
+                                        mock_popen.side_effect = [
+                                            mock.Mock(
+                                                returncode=0,
+                                                communicate=mock_comm
+                                            ),
+                                            mock.Mock(
+                                                returncode=0,
+                                                communicate=mock_comm
+                                            ),
+                                            mock.Mock(
+                                                returncode=0,
+                                                communicate=mock_comm
+                                            )
+                                        ]
+                                        with mock.patch(
+                                            'novaagent.libs.centos.Popen',
+                                                side_effect=mock_popen):
+                                            result = temp.resetnetwork(
+                                                'name',
+                                                'value',
+                                                'dummy_client'
+                                            )
 
         self.assertEqual(
             result,
@@ -181,60 +207,81 @@ class TestHelpers(TestCase):
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
         temp.network_file = '/tmp/network'
-        with mock.patch(
-            'novaagent.libs.centos.ServerOS._setup_hostname'
-        ) as hostname:
-            hostname.return_value = 0, 'temp.hostname'
-            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
-                mac.return_value = ['BC764E206C5B']
-                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
-                    hwint.return_value = ['eth1', 'lo']
-                    mock_response = mock.Mock()
-                    mock_response.side_effect = [
-                        'BC764E206C5B',
-                        None
-                    ]
+        mock_response_exists = mock.Mock()
+        mock_response_exists.side_effect = [
+            True, True, False, True, True, True
+        ]
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
+
+            with mock.patch(
+                    'novaagent.libs.centos.os.path.exists',
+                    mock_response_exists
+            ):
+                with mock.patch(
+                    'novaagent.libs.centos.ServerOS._setup_hostname'
+                ) as hostname:
+                    hostname.return_value = 0, 'temp.hostname'
                     with mock.patch(
-                        'novaagent.utils.get_hw_addr',
-                        side_effect=mock_response
-                    ):
+                            'novaagent.utils.list_xenstore_macaddrs') as mac:
+                        mac.return_value = ['BC764E206C5B']
                         with mock.patch(
-                            'novaagent.utils.get_interface'
-                        ) as inter:
-                            inter.return_value = (
-                                xen_data.check_network_interface()
-                            )
+                                'novaagent.utils.list_hw_interfaces') as hwint:
+                            hwint.return_value = ['eth1', 'lo']
+                            mock_response = mock.Mock()
+                            mock_response.side_effect = [
+                                'BC764E206C5B',
+                                None
+                            ]
                             with mock.patch(
-                                'novaagent.utils.get_ifcfg_files_to_remove'
-                            ) as ifcfg_files:
-                                ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
+                                'novaagent.utils.get_hw_addr',
+                                side_effect=mock_response
+                            ):
                                 with mock.patch(
-                                    'novaagent.libs.centos.ServerOS.'
-                                    '_check_for_extra_settings'
-                                ) as check:
-                                    check.return_value = []
-                                    mock_popen = mock.Mock()
-                                    mock_comm = mock.Mock()
-                                    mock_comm.return_value = ('out', 'error')
-                                    mock_popen.side_effect = [
-                                        mock.Mock(
-                                            returncode=1,
-                                            communicate=mock_comm
-                                        ),
-                                        mock.Mock(
-                                            returncode=0,
-                                            communicate=mock_comm
-                                        )
-                                    ]
+                                    'novaagent.utils.get_interface'
+                                ) as inter:
+                                    inter.return_value = (
+                                        xen_data.check_network_interface()
+                                    )
                                     with mock.patch(
-                                        'novaagent.libs.centos.Popen',
-                                        side_effect=mock_popen
-                                    ):
-                                        result = temp.resetnetwork(
-                                            'name',
-                                            'value',
-                                            'dummy_client'
-                                        )
+                                        'novaagent.utils.get_ifcfg_files_to'
+                                        '_remove'
+                                    ) as ifcfg_files:
+                                        ifcfg_files.return_value = [
+                                            '/tmp/ifcfg-eth1']
+                                        with mock.patch(
+                                            'novaagent.libs.centos.ServerOS.'
+                                            '_check_for_extra_settings'
+                                        ) as check:
+                                            check.return_value = []
+                                            mock_popen = mock.Mock()
+                                            mock_comm = mock.Mock()
+                                            mock_comm.return_value = ('out',
+                                                                      'error')
+                                            mock_popen.side_effect = [
+                                                mock.Mock(
+                                                    returncode=1,
+                                                    communicate=mock_comm
+                                                ),
+                                                mock.Mock(
+                                                    returncode=0,
+                                                    communicate=mock_comm
+                                                ),
+                                                mock.Mock(
+                                                    returncode=0,
+                                                    communicate=mock_comm
+                                                )
+                                            ]
+                                            with mock.patch(
+                                                'novaagent.libs.centos.Popen',
+                                                side_effect=mock_popen
+                                            ):
+                                                result = temp.resetnetwork(
+                                                    'name',
+                                                    'value',
+                                                    'dummy_client'
+                                                )
 
         self.assertEqual(
             result,
@@ -274,48 +321,55 @@ class TestHelpers(TestCase):
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
         temp.network_file = '/tmp/network'
-        with mock.patch(
-            'novaagent.libs.centos.ServerOS._setup_hostname'
-        ) as hostname:
-            hostname.return_value = 0, 'temp.hostname'
-            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
-                mac.return_value = ['BC764E206C5B']
-                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
-                    hwint.return_value = ['eth1', 'lo']
-                    mock_response = mock.Mock()
-                    mock_response.side_effect = [
-                        'BC764E206C5B',
-                        None
-                    ]
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
+            with mock.patch(
+                'novaagent.libs.centos.ServerOS._setup_hostname'
+            ) as hostname:
+                hostname.return_value = 0, 'temp.hostname'
+                with mock.patch(
+                        'novaagent.utils.list_xenstore_macaddrs') as mac:
+                    mac.return_value = ['BC764E206C5B']
                     with mock.patch(
-                        'novaagent.utils.get_hw_addr',
-                        side_effect=mock_response
-                    ):
+                            'novaagent.utils.list_hw_interfaces') as hwint:
+                        hwint.return_value = ['eth1', 'lo']
+                        mock_response = mock.Mock()
+                        mock_response.side_effect = [
+                            'BC764E206C5B',
+                            None
+                        ]
                         with mock.patch(
-                            'novaagent.utils.get_interface'
-                        ) as inter:
-                            inter.return_value = (
-                                xen_data.check_network_interface()
-                            )
+                            'novaagent.utils.get_hw_addr',
+                            side_effect=mock_response
+                        ):
                             with mock.patch(
-                                'novaagent.utils.get_ifcfg_files_to_remove'
-                            ) as ifcfg_files:
-                                ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
+                                'novaagent.utils.get_interface'
+                            ) as inter:
+                                inter.return_value = (
+                                    xen_data.check_network_interface()
+                                )
                                 with mock.patch(
-                                    'novaagent.libs.centos.ServerOS.'
-                                    '_check_for_extra_settings'
-                                ) as check:
-                                    check.return_value = []
+                                    'novaagent.utils.get_ifcfg_files_to_remove'
+                                ) as ifcfg_files:
+                                    ifcfg_files.return_value = [
+                                        '/tmp/ifcfg-eth1']
                                     with mock.patch(
-                                        'novaagent.libs.centos.Popen'
-                                    ) as p:
-                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                        p.return_value.returncode = 0
-                                        result = temp.resetnetwork(
-                                            'name',
-                                            'value',
-                                            'dummy_client'
-                                        )
+                                        'novaagent.libs.centos.ServerOS.'
+                                        '_check_for_extra_settings'
+                                    ) as check:
+                                        check.return_value = []
+                                        with mock.patch(
+                                            'novaagent.libs.centos.Popen'
+                                        ) as p:
+                                            p.return_value.communicate.\
+                                                return_value = ('out', 'error')
+                                            p.return_value.returncode = 0
+                                            result = temp.resetnetwork(
+                                                'name',
+                                                'value',
+                                                'dummy_client'
+                                            )
 
         self.assertEqual(
             result,
@@ -355,41 +409,49 @@ class TestHelpers(TestCase):
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
         temp.network_file = '/tmp/network'
-        with mock.patch(
-            'novaagent.libs.centos.ServerOS._setup_hostname'
-        ) as hostname:
-            hostname.return_value = 0, 'temp.hostname'
-            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
-                mac.return_value = ['BC764E206C5B']
-                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
-                    hwint.return_value = ['eth1']
-                    with mock.patch('novaagent.utils.get_hw_addr') as addr:
-                        addr.return_value = 'BC764E206C5B'
-                        with mock.patch(
-                            'novaagent.utils.get_interface'
-                        ) as inter:
-                            inter.return_value = (
-                                xen_data.check_network_interface()
-                            )
+
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
+            with mock.patch(
+                'novaagent.libs.centos.ServerOS._setup_hostname'
+            ) as hostname:
+                hostname.return_value = 0, 'temp.hostname'
+                with mock.patch(
+                        'novaagent.utils.list_xenstore_macaddrs') as mac:
+                    mac.return_value = ['BC764E206C5B']
+                    with mock.patch(
+                            'novaagent.utils.list_hw_interfaces') as hwint:
+                        hwint.return_value = ['eth1']
+                        with mock.patch('novaagent.utils.get_hw_addr') as addr:
+                            addr.return_value = 'BC764E206C5B'
                             with mock.patch(
-                                'novaagent.utils.get_ifcfg_files_to_remove'
-                            ) as ifcfg_files:
-                                ifcfg_files.return_value = ['/tmp/ifcfg-eth1']
+                                'novaagent.utils.get_interface'
+                            ) as inter:
+                                inter.return_value = (
+                                    xen_data.check_network_interface()
+                                )
                                 with mock.patch(
-                                    'novaagent.libs.centos.ServerOS.'
-                                    '_check_for_extra_settings'
-                                ) as check:
-                                    check.return_value = []
+                                    'novaagent.utils.get_ifcfg_files_to_remove'
+                                ) as ifcfg_files:
+                                    ifcfg_files.return_value = [
+                                        '/tmp/ifcfg-eth1']
                                     with mock.patch(
-                                        'novaagent.libs.centos.Popen'
-                                    ) as p:
-                                        p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                        p.return_value.returncode = 1
-                                        result = temp.resetnetwork(
-                                            'name',
-                                            'value',
-                                            'dummy_client'
-                                        )
+                                        'novaagent.libs.centos.ServerOS.'
+                                        '_check_for_extra_settings'
+                                    ) as check:
+                                        check.return_value = []
+                                        with mock.patch(
+                                            'novaagent.libs.centos.Popen'
+                                        ) as p:
+                                            p.return_value.communicate.\
+                                                return_value = ('out', 'error')
+                                            p.return_value.returncode = 1
+                                            result = temp.resetnetwork(
+                                                'name',
+                                                'value',
+                                                'dummy_client'
+                                            )
 
         self.assertEqual(
             result,
@@ -432,55 +494,61 @@ class TestHelpers(TestCase):
 
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            True, True, False, True, True
+            True, True, False, True, True, True
         ]
-        with mock.patch(
-            'novaagent.libs.centos.os.path.exists',
-            mock_response
-        ):
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
-                'novaagent.libs.centos.ServerOS._setup_hostname'
-            ) as hostname:
-                hostname.return_value = 0, 'temp.hostname'
+                'novaagent.libs.centos.os.path.exists',
+                mock_response
+            ):
                 with mock.patch(
-                    'novaagent.utils.list_xenstore_macaddrs'
-                ) as mac:
-                    mac.return_value = ['BC764E206C5B']
+                    'novaagent.libs.centos.ServerOS._setup_hostname'
+                ) as hostname:
+                    hostname.return_value = 0, 'temp.hostname'
                     with mock.patch(
-                        'novaagent.utils.list_hw_interfaces'
-                    ) as hwint:
-                        hwint.return_value = ['eth1']
+                        'novaagent.utils.list_xenstore_macaddrs'
+                    ) as mac:
+                        mac.return_value = ['BC764E206C5B']
                         with mock.patch(
-                            'novaagent.utils.get_hw_addr'
-                        ) as hw_addr:
-                            hw_addr.return_value = 'BC764E206C5B'
+                            'novaagent.utils.list_hw_interfaces'
+                        ) as hwint:
+                            hwint.return_value = ['eth1']
                             with mock.patch(
-                                'novaagent.utils.get_interface'
-                            ) as inter:
-                                inter.return_value = (
-                                    xen_data.check_network_interface()
-                                )
+                                'novaagent.utils.get_hw_addr'
+                            ) as hw_addr:
+                                hw_addr.return_value = 'BC764E206C5B'
                                 with mock.patch(
-                                    'novaagent.utils.get_ifcfg_files_to_remove'
-                                ) as ifcfg_files:
-                                    ifcfg_files.return_value = [
-                                        '/tmp/ifcfg-eth1'
-                                    ]
+                                    'novaagent.utils.get_interface'
+                                ) as inter:
+                                    inter.return_value = (
+                                        xen_data.check_network_interface()
+                                    )
                                     with mock.patch(
-                                        'novaagent.libs.centos.ServerOS.'
-                                        '_check_for_extra_settings'
-                                    ) as check:
-                                        check.return_value = []
+                                        'novaagent.utils.get_ifcfg_files_to'
+                                        '_remove'
+                                    ) as ifcfg_files:
+                                        ifcfg_files.return_value = [
+                                            '/tmp/ifcfg-eth1'
+                                        ]
                                         with mock.patch(
-                                            'novaagent.libs.centos.Popen'
-                                        ) as p:
-                                            p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                            p.return_value.returncode = 0
-                                            result = temp.resetnetwork(
-                                                'name',
-                                                'value',
-                                                'dummy_client'
-                                            )
+                                            'novaagent.libs.centos.ServerOS.'
+                                            '_check_for_extra_settings'
+                                        ) as check:
+                                            check.return_value = []
+                                            with mock.patch(
+                                                'novaagent.libs.centos.Popen'
+                                            ) as p:
+                                                p.return_value.communicate.\
+                                                    return_value = ('out',
+                                                                    'error')
+                                                p.return_value.returncode = 0
+                                                result = temp.resetnetwork(
+                                                    'name',
+                                                    'value',
+                                                    'dummy_client'
+                                                )
 
         self.assertEqual(
             result,
@@ -522,55 +590,65 @@ class TestHelpers(TestCase):
         temp.network_file = '/tmp/network'
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            True, True, False, True, True
+            True, True, False, True, True, True
         ]
-        with mock.patch(
-            'novaagent.libs.centos.os.path.exists',
-            mock_response
-        ):
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
-                'novaagent.libs.centos.ServerOS._setup_hostname'
-            ) as hostname:
-                hostname.return_value = 0, 'temp.hostname'
+                'novaagent.libs.centos.os.path.exists',
+                mock_response
+            ):
                 with mock.patch(
-                    'novaagent.utils.list_xenstore_macaddrs'
-                ) as mac:
-                    mac.return_value = ['BC764E206C5B']
+                    'novaagent.libs.centos.ServerOS._setup_hostname'
+                ) as hostname:
+                    hostname.return_value = 0, 'temp.hostname'
                     with mock.patch(
-                        'novaagent.utils.list_hw_interfaces'
-                    ) as hwint:
-                        hwint.return_value = ['eth1']
+                        'novaagent.utils.list_xenstore_macaddrs'
+                    ) as mac:
+                        mac.return_value = ['BC764E206C5B']
                         with mock.patch(
-                            'novaagent.utils.get_hw_addr'
-                        ) as hw_addr:
-                            hw_addr.return_value = 'BC764E206C5B'
+                            'novaagent.utils.list_hw_interfaces'
+                        ) as hwint:
+                            hwint.return_value = ['eth1']
                             with mock.patch(
-                                'novaagent.utils.get_interface'
-                            ) as inter:
-                                inter.return_value = (
-                                    xen_data.check_network_interface()
-                                )
+                                'novaagent.utils.get_hw_addr'
+                            ) as hw_addr:
+                                hw_addr.return_value = 'BC764E206C5B'
                                 with mock.patch(
-                                    'novaagent.utils.get_ifcfg_files_to_remove'
-                                ) as ifcfg_files:
-                                    ifcfg_files.return_value = [
-                                        '/tmp/ifcfg-eth1'
-                                    ]
+                                    'novaagent.utils.get_interface'
+                                ) as inter:
+                                    inter.return_value = (
+                                        xen_data.check_network_interface()
+                                    )
                                     with mock.patch(
-                                        'novaagent.libs.centos.ServerOS.'
-                                        '_check_for_extra_settings'
-                                    ) as check:
-                                        check.return_value = []
+                                        'novaagent.utils.get_ifcfg_files_'
+                                        'to_remove'
+                                    ) as ifcfg_files:
+                                        ifcfg_files.return_value = [
+                                            '/tmp/ifcfg-eth1'
+                                        ]
                                         with mock.patch(
-                                            'novaagent.libs.centos.Popen'
-                                        ) as p:
-                                            p.return_value.communicate.return_value = ('out', 'error')  # noqa
-                                            p.return_value.returncode = 1
-                                            result = temp.resetnetwork(
-                                                'name',
-                                                'value',
-                                                'dummy_client'
-                                            )
+                                            'novaagent.libs.centos.Server'
+                                            'OS._check_for_extra_settings'
+                                        ) as check:
+                                            check.return_value = []
+                                            with mock.patch(
+                                                'novaagent.libs.centos.'
+                                                'Popen'
+                                            ) as p:
+                                                p.return_value.\
+                                                    communicate.\
+                                                    return_value = (
+                                                        'out', 'error')
+                                                p.return_value.\
+                                                    returncode = 1
+
+                                                result = temp.resetnetwork(
+                                                    'name',
+                                                    'value',
+                                                    'dummy_client'
+                                                )
 
         self.assertEqual(
             result,

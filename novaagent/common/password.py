@@ -39,7 +39,7 @@ if sys.version_info > (3,):
 # This is to support older python versions that don't have hashlib
 try:
     import hashlib
-except ImportError as exc:
+except ImportError:
     import md5
 
     class hashlib(object):
@@ -122,7 +122,7 @@ class PasswordCommands(object):
     def _decode_password(self, data):
         try:
             real_data = base64.b64decode(data)
-        except Exception as exc:
+        except Exception:
             raise PasswordError((500, "Couldn't decode base64 data"))
 
         if self._aes_key is None:
