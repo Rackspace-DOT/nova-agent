@@ -156,23 +156,24 @@ class ServerOS(DefaultOS):
                 )
 
     @staticmethod
+    def version_tuple():
+        """Tuple representation of os version"""
+        version = distro.version().split('.')
+        version = map(int, version)
+        return tuple(version)
+
+    @staticmethod
     def _os_defaults_network_manager():
         """
         :rtype: bool
         :return: has network manager only, not network scripts
         """
-        dist = distro.id()
-        major_s = distro.major_version()
-        major = int(major_s) if major_s else 0
-        minor_s = distro.minor_version()
-        minor = int(minor_s) if minor_s else 0
+        dist = distro.name()
 
-        if dist in ['rhel', 'centos']:
-            if major >= 7 and minor >= 6:
-                return True
-        if dist == 'fedora':
-            if major >= 29:
-                return True
+        if dist in ['rhel', 'centos'] and ServerOS.version_tuple() >= (7, 6):
+            return True
+        if dist == 'fedora' and ServerOS.version_tuple() >= (29,):
+            return True
 
         return False
 
