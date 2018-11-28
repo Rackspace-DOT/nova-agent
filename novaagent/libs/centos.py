@@ -6,7 +6,7 @@ import logging
 import os
 import re
 
-
+import distro
 from subprocess import Popen
 from subprocess import PIPE
 
@@ -156,37 +156,25 @@ class ServerOS(DefaultOS):
                 )
 
     @staticmethod
-    def _compare_version(filename, min_ver):
-        """Compare two versions
-
-        :param ver: Version string ex: 'CentOS Linux release 7.5.1804 (Core)'
-        :param min_ver: List of integers indicating minimum version
-        :rtype: int or None
-        :return: -1 ver < min_ver, 0 ver == min_ver, 1 ver > min_ver
+    def _os_defaults_network_manager():
         """
-        with open(filename, 'r') as f:
-            ver = f.read()
+        :rtype: bool
+        :return: has network manager only, not network scripts
+        """
+        dist = distro.id()
+        major_s = distro.major_version()
+        major = int(major_s) if major_s else 0
+        minor_s = distro.minor_version()
+        minor = int(minor_s) if minor_s else 0
 
-        if not ver:
-            return None
-        ver_str = re.findall(r'\d+', ver)
-        for ver_idx, ver_itm in enumerate(ver_str):
-            if len(min_ver) < ver_idx + 1:
-                # ver_str ['10', '12', '10', '12']
-                # min_ver [10, 12]
-                return 1
-            ver_itm_int = int(ver_itm)
-            if ver_itm_int < ver_str[ver_idx]:
-                # ver_str ['10', '13', '10', '12']
-                # min_ver [10, 12]
-                return 1
-            if ver_itm_int > ver_str[ver_idx]:
-                # ver_str ['10', '11', '10', '12']
-                # min_ver [10, 12]
-                return -1
-            if ver_itm_int == ver_str[ver_idx]:
-                continue
-        return 0
+        if dist in ['rhel', 'centos']:
+            if major >= 7 and minor >= 6:
+                return True
+        if dist == 'fedora':
+            if major >= 29:
+                return True
+
+        return False
 
     def is_network_manager(self):
         """ Is using NetworkManager over network scripts
@@ -195,20 +183,8 @@ class ServerOS(DefaultOS):
         :return: OS Defaults to network manager
         """
         result = False
-        os_ver_min = []
-        filename = None
 
-        if os.path.exists('/etc/centos-release'):
-            os_ver_min = [7, 6]
-            filename = '/etc/centos-release'
-        elif os.path.exists('/etc/fedora-release'):
-            os_ver_min = [29]
-            filename = '/etc/fedora-release'
-        elif os.path.exists('/etc/redhat-release'):
-            os_ver_min = [7, 6]
-            filename = '/etc/redhat-release'
-
-        if self._compare_version(filename, os_ver_min) in [-1, None]:
+        if not self._os_defaults_network_manager():
             return False
 
         try:

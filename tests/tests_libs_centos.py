@@ -104,8 +104,9 @@ class TestHelpers(TestCase):
         mock_response_exists.side_effect = [
             True, True, False, True, True, True
         ]
-        with mock.patch.object(temp, '_compare_version') as mock_cmp_ver:
-            mock_cmp_ver.return_value = False
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
                 'novaagent.libs.centos.ServerOS._setup_hostname'
             ) as hostname:
@@ -210,8 +211,9 @@ class TestHelpers(TestCase):
         mock_response_exists.side_effect = [
             True, True, False, True, True, True
         ]
-        with mock.patch.object(temp, '_compare_version') as mock_cmp_ver:
-            mock_cmp_ver.return_value = False
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
 
             with mock.patch(
                     'novaagent.libs.centos.os.path.exists',
@@ -319,8 +321,9 @@ class TestHelpers(TestCase):
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
         temp.network_file = '/tmp/network'
-        with mock.patch.object(temp, '_compare_version') as mock_cmp_ver:
-            mock_cmp_ver.return_value = False
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
                 'novaagent.libs.centos.ServerOS._setup_hostname'
             ) as hostname:
@@ -407,8 +410,9 @@ class TestHelpers(TestCase):
         temp.netconfig_dir = '/tmp'
         temp.network_file = '/tmp/network'
 
-        with mock.patch.object(temp, '_compare_version') as mock_cmp_ver:
-            mock_cmp_ver.return_value = False
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
                 'novaagent.libs.centos.ServerOS._setup_hostname'
             ) as hostname:
@@ -492,8 +496,9 @@ class TestHelpers(TestCase):
         mock_response.side_effect = [
             True, True, False, True, True, True
         ]
-        with mock.patch.object(temp, '_compare_version') as mock_cmp_ver:
-            mock_cmp_ver.return_value = False
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
                 'novaagent.libs.centos.os.path.exists',
                 mock_response
@@ -587,66 +592,63 @@ class TestHelpers(TestCase):
         mock_response.side_effect = [
             True, True, False, True, True, True
         ]
-        with mock.patch.object(temp, '_compare_version') as mock_cmp_ver:
-            mock_cmp_ver.return_value = False
+        with mock.patch.object(
+                temp, '_os_defaults_network_manager') as mock_def_net_mgr:
+            mock_def_net_mgr.return_value = False
             with mock.patch(
                 'novaagent.libs.centos.os.path.exists',
                 mock_response
             ):
-                with mock.patch.object(
-                        temp, '_compare_version') as mock_comp_ver:
-                    mock_comp_ver.return_value = False
-
+                with mock.patch(
+                    'novaagent.libs.centos.ServerOS._setup_hostname'
+                ) as hostname:
+                    hostname.return_value = 0, 'temp.hostname'
                     with mock.patch(
-                        'novaagent.libs.centos.ServerOS._setup_hostname'
-                    ) as hostname:
-                        hostname.return_value = 0, 'temp.hostname'
+                        'novaagent.utils.list_xenstore_macaddrs'
+                    ) as mac:
+                        mac.return_value = ['BC764E206C5B']
                         with mock.patch(
-                            'novaagent.utils.list_xenstore_macaddrs'
-                        ) as mac:
-                            mac.return_value = ['BC764E206C5B']
+                            'novaagent.utils.list_hw_interfaces'
+                        ) as hwint:
+                            hwint.return_value = ['eth1']
                             with mock.patch(
-                                'novaagent.utils.list_hw_interfaces'
-                            ) as hwint:
-                                hwint.return_value = ['eth1']
+                                'novaagent.utils.get_hw_addr'
+                            ) as hw_addr:
+                                hw_addr.return_value = 'BC764E206C5B'
                                 with mock.patch(
-                                    'novaagent.utils.get_hw_addr'
-                                ) as hw_addr:
-                                    hw_addr.return_value = 'BC764E206C5B'
+                                    'novaagent.utils.get_interface'
+                                ) as inter:
+                                    inter.return_value = (
+                                        xen_data.check_network_interface()
+                                    )
                                     with mock.patch(
-                                        'novaagent.utils.get_interface'
-                                    ) as inter:
-                                        inter.return_value = (
-                                            xen_data.check_network_interface()
-                                        )
+                                        'novaagent.utils.get_ifcfg_files_'
+                                        'to_remove'
+                                    ) as ifcfg_files:
+                                        ifcfg_files.return_value = [
+                                            '/tmp/ifcfg-eth1'
+                                        ]
                                         with mock.patch(
-                                            'novaagent.utils.get_ifcfg_files_'
-                                            'to_remove'
-                                        ) as ifcfg_files:
-                                            ifcfg_files.return_value = [
-                                                '/tmp/ifcfg-eth1'
-                                            ]
+                                            'novaagent.libs.centos.Server'
+                                            'OS._check_for_extra_settings'
+                                        ) as check:
+                                            check.return_value = []
                                             with mock.patch(
-                                                'novaagent.libs.centos.Server'
-                                                'OS._check_for_extra_settings'
-                                            ) as check:
-                                                check.return_value = []
-                                                with mock.patch(
-                                                    'novaagent.libs.centos.'
-                                                    'Popen'
-                                                ) as p:
-                                                    p.return_value.\
-                                                        communicate.\
-                                                        return_value = (
-                                                            'out', 'error')
-                                                    p.return_value.\
-                                                        returncode = 1
+                                                'novaagent.libs.centos.'
+                                                'Popen'
+                                            ) as p:
+                                                p.return_value.\
+                                                    communicate.\
+                                                    return_value = (
+                                                        'out', 'error')
+                                                p.return_value.\
+                                                    returncode = 1
 
-                                                    result = temp.resetnetwork(
-                                                        'name',
-                                                        'value',
-                                                        'dummy_client'
-                                                    )
+                                                result = temp.resetnetwork(
+                                                    'name',
+                                                    'value',
+                                                    'dummy_client'
+                                                )
 
         self.assertEqual(
             result,
