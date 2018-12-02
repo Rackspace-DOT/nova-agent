@@ -177,7 +177,7 @@ class ServerOS(DefaultOS):
         dist = distro.id()
         server_os_version = ServerOS.version_tuple()
 
-        log.info("Linux Distribution Detected: {} Version {}".format(
+        log.info("Linux Distribution Detected: {0} Version {1}".format(
             dist, ServerOS.version_tuple()))
         if dist in ['rhel', 'centos'] and server_os_version >= (8, 0):
             return True
@@ -211,7 +211,7 @@ class ServerOS(DefaultOS):
                 result = True
         except Exception as e:
             log.info(
-                'Error checking if NetworkManager is enabled {}'.format(e))
+                'Error checking if NetworkManager is enabled {0}'.format(e))
             log.info('Falling back to service network restart')
 
         return result
