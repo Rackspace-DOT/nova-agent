@@ -25,6 +25,7 @@ class ServerOS(DefaultOS):
         self.network_file = '/etc/sysconfig/network'
         self.interface_file_prefix = 'ifcfg'
         self.route_file_prefix = 'route'
+        self.use_network_manager = self.is_network_manager()
 
     def _setup_interface(self, ifname, iface):
         interface_file = '{0}/{1}-{2}'.format(
@@ -95,7 +96,8 @@ class ServerOS(DefaultOS):
                     iffile.write('DNS{0}={1}\n'.format(count + 1, dns))
 
             iffile.write('ONBOOT=yes\n')
-            iffile.write('NM_CONTROLLED=no\n')
+            if not self.use_network_manager:
+                iffile.write('NM_CONTROLLED=no\n')
 
             if len(extra_args) > 0:
                 for argument in extra_args:
@@ -159,6 +161,10 @@ class ServerOS(DefaultOS):
     def version_tuple():
         """Tuple representation of os version"""
         version = distro.version().split('.')
+        if len(version) < 2:
+            # Tuple comparision doesn't like comparing different sized tuples.
+            version.append(0)
+
         version = map(int, version)
         return tuple(version)
 
@@ -168,11 +174,14 @@ class ServerOS(DefaultOS):
         :rtype: bool
         :return: has network manager only, not network scripts
         """
-        dist = distro.name()
+        dist = distro.id()
+        server_os_version = ServerOS.version_tuple()
 
-        if dist in ['rhel', 'centos'] and ServerOS.version_tuple() >= (7, 6):
+        log.info("Linux Distribution Detected: {} Version {}".format(
+            dist, ServerOS.version_tuple()))
+        if dist in ['rhel', 'centos'] and server_os_version >= (8, 0):
             return True
-        if dist == 'fedora' and ServerOS.version_tuple() >= (29,):
+        if dist == 'fedora' and server_os_version >= (29, 0):
             return True
 
         return False
@@ -198,7 +207,7 @@ class ServerOS(DefaultOS):
             out, err = p.communicate()
             if p.returncode != 0:
                 return False
-            if 'enabled' in out:
+            if b'enabled' in out:
                 result = True
         except Exception as e:
             log.info(
@@ -260,7 +269,7 @@ class ServerOS(DefaultOS):
             if p.returncode != 0:
                 # Log error and continue to restart network
                 log.error('Error flushing interface: {0}'.format(ifname))
-        if self.is_network_manager():
+        if self.use_network_manager:
             p = Popen(
                 ['systemctl', 'restart', 'NetworkManager.service'],
                 stdout=PIPE,
