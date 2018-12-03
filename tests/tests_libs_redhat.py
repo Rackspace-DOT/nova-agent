@@ -25,7 +25,9 @@ class TestHelpers(TestCase):
     def tearDown(self):
         logging.disable(logging.NOTSET)
 
-    def test_redhat_kmsactivate(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_redhat_kmsactivate(self, mock_distro):
+        mock_distro.return_value = False
         temp = redhat.ServerOS()
         with mock.patch('novaagent.common.kms.kms_activate') as kms:
             kms.return_value = ("0", "")

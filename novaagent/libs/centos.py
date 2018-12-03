@@ -1,6 +1,4 @@
-
 from __future__ import absolute_import
-
 
 import logging
 import os
@@ -10,10 +8,8 @@ import distro
 from subprocess import Popen
 from subprocess import PIPE
 
-
 from novaagent import utils
 from novaagent.libs import DefaultOS
-
 
 log = logging.getLogger(__name__)
 
@@ -161,10 +157,6 @@ class ServerOS(DefaultOS):
     def version_tuple():
         """Tuple representation of os version"""
         version = distro.version().split('.')
-        if len(version) < 2:
-            # Tuple comparision doesn't like comparing different sized tuples.
-            version.append(0)
-
         version = map(int, version)
         return tuple(version)
 
@@ -179,9 +171,9 @@ class ServerOS(DefaultOS):
 
         log.info("Linux Distribution Detected: {0} Version {1}".format(
             dist, ServerOS.version_tuple()))
-        if dist in ['rhel', 'centos'] and server_os_version >= (8, 0):
+        if dist in ['rhel', 'centos'] and server_os_version >= (8,):
             return True
-        if dist == 'fedora' and server_os_version >= (29, 0):
+        if dist == 'fedora' and server_os_version >= (29,):
             return True
 
         return False
@@ -207,7 +199,7 @@ class ServerOS(DefaultOS):
             out, err = p.communicate()
             if p.returncode != 0:
                 return False
-            if b'enabled' in out:
+            if 'enabled'.encode() in out:
                 result = True
         except Exception as e:
             log.info(

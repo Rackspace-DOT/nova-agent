@@ -33,7 +33,9 @@ class TestHelpers(TestCase):
 
         self.time_patcher.stop()
 
-    def test_xen_action_no_action(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_xen_action_no_action(self, mock_distro):
+        mock_distro.return_value = False
         temp_os = centos.ServerOS()
         test_xen_event = {
             "name": "bad_key",
@@ -66,7 +68,9 @@ class TestHelpers(TestCase):
                                 'An exception was thrown during action'
                             )
 
-    def test_xen_action_action_success(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_xen_action_action_success(self, mock_distro):
+        mock_distro.return_value = False
         temp_os = centos.ServerOS()
         test_xen_event = {
             "name": "keyinit",
@@ -101,7 +105,9 @@ class TestHelpers(TestCase):
                                     'An exception was thrown during action'
                                 )
 
-    def test_xen_action_action_success_network(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_xen_action_action_success_network(self, mock_distro):
+        mock_distro.return_value = False
         temp_os = centos.ServerOS()
         test_xen_event = {
             "name": "resetnetwork",
@@ -138,7 +144,9 @@ class TestHelpers(TestCase):
                                     'An exception was thrown during action'
                                 )
 
-    def test_xen_action_action_no_events(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_xen_action_action_no_events(self, mock_distro):
+        mock_distro.return_value = False
         temp_os = centos.ServerOS()
         with mock.patch('novaagent.utils.list_xen_events') as xen_list:
             xen_list.return_value = []
@@ -157,7 +165,10 @@ class TestHelpers(TestCase):
                     'An exception was thrown during action'
                 )
 
-    def test_main_success(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_main_success(self, mock_distro):
+        mock_distro.return_value = False
+
         class Test(object):
             def __init__(self):
                 self.logfile = '/tmp/log'
@@ -207,7 +218,10 @@ class TestHelpers(TestCase):
                                                     'An exception was thrown'
                                                 )
 
-    def test_main_success_no_fork(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_main_success_no_fork(self, mock_distro):
+        mock_distro.return_value = False
+
         class Test(object):
             def __init__(self):
                 self.logfile = '-'
@@ -229,6 +243,7 @@ class TestHelpers(TestCase):
                 'novaagent.novaagent.get_server_type'
             ) as server_type:
                 server_type.return_value = centos
+
                 with mock.patch(
                     'novaagent.novaagent.get_init_system'
                 ) as init_system:
@@ -254,7 +269,10 @@ class TestHelpers(TestCase):
                                             'An unknown exception was thrown'
                                         )
 
-    def test_main_success_with_xenbus(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_main_success_with_xenbus(self, mock_distro):
+        mock_distro.return_value = False
+
         class Test(object):
             def __init__(self):
                 self.logfile = '-'
@@ -353,7 +371,10 @@ class TestHelpers(TestCase):
                             finally:
                                 return
 
-    def test_main_success_systemd(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_main_success_systemd(self, mock_distro):
+        mock_distro.return_value = False
+
         class Test(object):
             def __init__(self):
                 self.logfile = '-'
