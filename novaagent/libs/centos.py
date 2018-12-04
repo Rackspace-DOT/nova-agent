@@ -171,7 +171,7 @@ class ServerOS(DefaultOS):
 
         log.info("Linux Distribution Detected: {0} Version {1}".format(
             dist, ServerOS.version_tuple()))
-        if dist in ['rhel', 'centos'] and server_os_version >= (8,):
+        if dist in ['rhel', 'centos'] and server_os_version >= (8, 0):
             return True
         if dist == 'fedora' and server_os_version >= (29,):
             return True
