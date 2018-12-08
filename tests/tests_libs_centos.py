@@ -15,11 +15,20 @@ if sys.version_info[:2] >= (2, 7):
 else:
     from unittest2 import TestCase
 
-
 try:
     from unittest import mock
 except ImportError:
     import mock
+
+
+class MockDistro(object):
+    def id(self):
+        print("ID Fedora")
+        return 'fedora'
+
+    def vesion(self):
+        print("Version 29")
+        return ['29']
 
 
 class TestHelpers(TestCase):
@@ -64,7 +73,9 @@ class TestHelpers(TestCase):
         with open('/tmp/network', 'a+') as f:
             f.write('This is a test file')
 
-    def test_initialization(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_initialization(self, mock_distro):
+        mock_distro.return_value = False
         temp = centos.ServerOS()
         self.assertEqual(
             temp.netconfig_dir,
@@ -92,7 +103,9 @@ class TestHelpers(TestCase):
             'Network file location is not expected value'
         )
 
-    def test_reset_network_hostname_failure(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_reset_network_hostname_failure(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_route()
         self.setup_temp_interface_config('eth1')
         self.setup_temp_interface_config('lo')
@@ -199,7 +212,9 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
-    def test_reset_network_flush_failure(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_reset_network_flush_failure(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_route()
         self.setup_temp_interface_config('eth1')
         self.setup_temp_interface_config('lo')
@@ -313,7 +328,9 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
-    def test_reset_network_success(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_reset_network_success(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_route()
         self.setup_temp_interface_config('eth1')
         self.setup_temp_interface_config('lo')
@@ -401,7 +418,8 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
-    def test_reset_network_error(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_reset_network_error(self, mock_distro):
         self.setup_temp_route()
         self.setup_temp_interface_config('eth1')
         self.setup_temp_interface_config('lo')
@@ -483,7 +501,9 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
-    def test_reset_network_success_systemctl(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_reset_network_success_systemctl(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_route()
         self.setup_temp_interface_config('eth1')
         self.setup_temp_interface_config('lo')
@@ -580,7 +600,8 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
-    def test_reset_network_error_systemctl(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_reset_network_error_systemctl(self, mock_distro):
         self.setup_temp_route()
         self.setup_temp_interface_config('eth1')
         self.setup_temp_interface_config('lo')
@@ -680,7 +701,8 @@ class TestHelpers(TestCase):
             'Localhost ifcfg file was moved out of the way and should not have'
         )
 
-    def test_check_extra_args(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_check_extra_args(self, mock_distro):
         self.setup_temp_interface_config('eth1')
         temp = centos.ServerOS()
         interface_file = '/tmp/ifcfg-eth1'
@@ -697,7 +719,8 @@ class TestHelpers(TestCase):
             'Did not get proper extra arguments from check'
         )
 
-    def test_check_extra_args_no_file(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_check_extra_args_no_file(self, mock_distro):
         temp = centos.ServerOS()
         interface_file = '/tmp/ifcfg-eth1'
 
@@ -713,7 +736,9 @@ class TestHelpers(TestCase):
             'Did not get proper extra arguments from check'
         )
 
-    def test_setup_routes(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_routes(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_route()
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
@@ -735,7 +760,9 @@ class TestHelpers(TestCase):
                 'Written file did not match expected value'
             )
 
-    def test_setup_interfaces_eth0(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_interfaces_eth0(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_interface_config('eth0')
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
@@ -758,7 +785,9 @@ class TestHelpers(TestCase):
                 'Written file did not match expected value'
             )
 
-    def test_setup_interfaces_eth1(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_interfaces_eth1(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_interface_config('eth1')
         temp = centos.ServerOS()
         temp.netconfig_dir = '/tmp'
@@ -781,7 +810,9 @@ class TestHelpers(TestCase):
                 'Written file did not match expected value'
             )
 
-    def test_setup_hostname_hostname_success(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_hostname_hostname_success(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_hostname()
         temp = centos.ServerOS()
         temp.hostname_file = '/tmp/hostname'
@@ -810,7 +841,9 @@ class TestHelpers(TestCase):
             'Return code received was not expected value'
         )
 
-    def test_setup_hostname_hostname_failure(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_hostname_hostname_failure(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_hostname()
         temp = centos.ServerOS()
         temp.hostname_file = '/tmp/hostname'
@@ -839,7 +872,9 @@ class TestHelpers(TestCase):
             'Return code received was not expected value'
         )
 
-    def test_setup_hostname_hostnamectl_success(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_hostname_hostnamectl_success(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_hostname()
         temp = centos.ServerOS()
         temp.hostname_file = '/tmp/hostname'
@@ -868,7 +903,9 @@ class TestHelpers(TestCase):
             'Return code received was not expected value'
         )
 
-    def test_setup_hostname_hostnamectl_failure(self):
+    @mock.patch('novaagent.libs.centos.ServerOS.is_network_manager')
+    def test_setup_hostname_hostnamectl_failure(self, mock_distro):
+        mock_distro.return_value = False
         self.setup_temp_hostname()
         temp = centos.ServerOS()
         temp.hostname_file = '/tmp/hostname'
@@ -895,4 +932,72 @@ class TestHelpers(TestCase):
             return_code,
             1,
             'Return code received was not expected value'
+        )
+
+    @mock.patch('novaagent.libs.centos.distro.id', return_value='rhel')
+    @mock.patch('novaagent.libs.centos.distro.version', return_value='7.5')
+    def test_os_defaults_network_manager_rhel_pre_8(self, mock_id, mock_ver):
+        temp = centos.ServerOS()
+        results = temp._os_defaults_network_manager()
+        self.assertEqual(
+            results,
+            False,
+            'Should have returned False: {0}'.format(results)
+        )
+
+    @mock.patch('novaagent.libs.centos.distro.id', return_value='rhel')
+    @mock.patch('novaagent.libs.centos.distro.version', return_value='8.0')
+    def test_os_defaults_network_manager_rhel_8(self, mock_id, mock_ver):
+        temp = centos.ServerOS()
+        results = temp._os_defaults_network_manager()
+        self.assertEqual(
+            results,
+            True,
+            'Should have returned True: {0}'.format(results)
+        )
+
+    @mock.patch('novaagent.libs.centos.distro.id', return_value='fedora')
+    @mock.patch('novaagent.libs.centos.distro.version', return_value='28')
+    def test_os_defaults_network_manager_fedora_pre_29(self,
+                                                       mock_id,
+                                                       mock_ver):
+        temp = centos.ServerOS()
+        results = temp._os_defaults_network_manager()
+        self.assertEqual(
+            results,
+            False,
+            'Should have returned False: {0}'.format(results)
+        )
+
+    @mock.patch('novaagent.libs.centos.distro.id', return_value='fedora')
+    @mock.patch('novaagent.libs.centos.distro.version', return_value='29')
+    def test_os_defaults_network_manager_fedora_29(self, mock_id, mock_ver):
+        temp = centos.ServerOS()
+        results = temp._os_defaults_network_manager()
+        self.assertEqual(
+            results,
+            True,
+            'Should have returned True: {0}'.format(results)
+        )
+
+    @mock.patch('novaagent.libs.centos.ServerOS._os_defaults_network_manager')
+    def test_is_network_manager_true(self, mock_default_netman):
+        mock_default_netman.return_value = True
+        temp = centos.ServerOS()
+        results = temp._os_defaults_network_manager()
+        self.assertEqual(
+            results,
+            True,
+            'Should have returned True: {0}'.format(results)
+        )
+
+    @mock.patch('novaagent.libs.centos.ServerOS._os_defaults_network_manager')
+    def test_is_network_manager_false(self, mock_default_netman):
+        mock_default_netman.return_value = False
+        temp = centos.ServerOS()
+        results = temp._os_defaults_network_manager()
+        self.assertEqual(
+            results,
+            False,
+            'Should have returned False: {0}'.format(results)
         )
