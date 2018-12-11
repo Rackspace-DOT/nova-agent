@@ -24,8 +24,8 @@ setuptools.setup(
         'Rackspace utility for reading xenstore and configuring'
         ' guest instance on Xen server'
     ),
-    author='David Kludt',
-    author_email='david.kludt@rackspace.com',
+    author='Brian Metzler',
+    author_email='brian.metzler@rackspace.com',
     install_requires=requirements,
     extras_require={
         'tests': test_requirements
