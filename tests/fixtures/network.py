@@ -149,6 +149,62 @@ ALL_INTERFACES = {
     }
 }
 
+ALPINE_INTERFACES_CONFIG = [
+    '#This is a test file\n',
+    '# Label public\n',
+    '\n',
+    'auto eth0\n',
+    'iface eth0 inet static\n',
+    '\taddress 104.130.4.72\n',
+    '\tnetmask 255.255.255.0\n',
+    '\tgateway 104.130.4.1\n',
+    '\tdns-nameservers 69.20.0.164 69.20.0.196\n',
+    '\n',
+    'auto eth0:1\n',
+    'iface eth0:1 inet static\n',
+    '\taddress 104.130.4.73\n',
+    '\tnetmask 255.255.255.0\n',
+    '\n',
+    'iface eth0 inet6 static\n',
+    '\taddress 2001:4802:7802:104:be76:4eff:fe20:7572\n',
+    '\tnetmask 64\n',
+    '\tgateway fe80::def\n',
+    '\n',
+    'iface eth0:1 inet6 static\n',
+    '\taddress 2001:4802:7802:104:be76:4eff:fe20:7573\tnetmask 64\n',
+    '\n',
+    '# Label private\n',
+    '\n',
+    'auto eth1\n',
+    'iface eth1 inet static\n',
+    '\taddress 10.208.227.239\n',
+    '\tnetmask 255.255.224.0\n',
+    (
+        '\tpost-up route add -net 10.208.0.0 netmask 255.'
+        '240.0.0 gw 10.208.224.1 || true\n'
+    ),
+    (
+        '\tpost-down route add -net 10.208.0.0 netmask 255.'
+        '240.0.0 gw 10.208.224.1 || true\n'
+    ),
+    (
+        '\tpost-up route add -net 10.176.0.0 netmask 255.'
+        '240.0.0 gw 10.208.224.1 || true\n'
+    ),
+    (
+        '\tpost-down route add -net 10.176.0.0 netmask 255.'
+        '240.0.0 gw 10.208.224.1 || true\n'
+    ),
+    '\n'
+]
+
+ALPINE_INTERFACES_LOOPBACK = [
+    '# The loopback network interface\n',
+    'auto lo\n',
+    'iface lo inet loopback\n',
+    '\n'
+]
+
 CENTOS_NETWORK_FILE = [
     'NETWORKING=yes\n',
     'NOZEROCONF=yes\n',
