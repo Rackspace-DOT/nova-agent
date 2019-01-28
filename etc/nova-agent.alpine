@@ -1,0 +1,52 @@
+#!/sbin/openrc-run
+#
+# nova-agent
+#
+
+
+name="nova-agent"
+
+description="Agent for setting up clean servers on Xen"
+description_reload="Restart nova-agent"
+
+command="/usr/bin/$name"
+
+pidfile="/var/run/nova-agent.pid"
+lockfile="/var/lock/subsys/$name"
+logfile="/var/log/nova-agent.log"
+
+loglevel="info"
+
+extra_started_commands="reload"
+
+start() {
+    [ -x $command ] || exit 5
+    echo -n $"Starting $name: "
+    daemon $command -o $logfile -l $loglevel
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $name: "
+    killproc $command
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    restart
+}
+
+force_reload() {
+    restart
+}
