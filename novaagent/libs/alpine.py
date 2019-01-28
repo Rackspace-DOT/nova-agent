@@ -133,7 +133,7 @@ class ServerOS(DefaultOS):
             ifaces[iface] = utils.get_interface(mac, client)
 
         # Backup original configuration file
-        utils.backup_file(config_file)
+        utils.backup_file(self.netconfig_file)
 
         # Setup interfaces file
         self._setup_loopback()
