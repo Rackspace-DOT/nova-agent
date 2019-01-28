@@ -3,7 +3,6 @@
 # nova-agent
 #
 
-
 name="nova-agent"
 
 description="Agent for setting up clean servers on Xen"
@@ -11,7 +10,7 @@ description_reload="Restart nova-agent"
 
 command="/usr/bin/$name"
 
-pidfile="/var/run/nova-agent.pid"
+pidfile="/run/nova-agent.pid"
 lockfile="/var/lock/subsys/$name"
 logfile="/var/log/nova-agent.log"
 
@@ -24,10 +23,12 @@ start_pre() {
 }
 
 start() {
-  ebegin $"Starting $name"
+  ebegin "Starting $name"
   start-stop-daemon \
-    --signal HUP \
+    --background \
+    --start \
     --exec "$command" \
+    --make-pidfile \
     --pidfile "$pidfile" \
     -- \
       -o "$logfile" \
@@ -36,7 +37,7 @@ start() {
 }
 
 stop() {
-  ebegin $"Stopping $name"
+  ebegin "Stopping $name"
   start-stop-daemon \
     --stop \
     --exec "$command" \
@@ -51,9 +52,5 @@ restart() {
 }
 
 reload() {
-  restart
-}
-
-force_reload() {
   restart
 }
