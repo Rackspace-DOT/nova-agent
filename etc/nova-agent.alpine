@@ -19,34 +19,41 @@ loglevel="info"
 
 extra_started_commands="reload"
 
+start_pre() {
+  [ -x $command ] || exit 5
+}
+
 start() {
-    [ -x $command ] || exit 5
-    echo -n $"Starting $name: "
-    daemon $command -o $logfile -l $loglevel
-    retval=$?
-    echo
-    [ $retval -eq 0 ] && touch $lockfile
-    return $retval
+  ebegin $"Starting $name"
+  start-stop-daemon \
+    --signal HUP \
+    --exec "$command" \
+    --pidfile "$pidfile" \
+    -- \
+      -o "$logfile" \
+      -l "$loglevel"
+  eend $?
 }
 
 stop() {
-    echo -n $"Stopping $name: "
-    killproc $command
-    retval=$?
-    echo
-    [ $retval -eq 0 ] && rm -f $lockfile
-    return $retval
+  ebegin $"Stopping $name"
+  start-stop-daemon \
+    --stop \
+    --exec "$command" \
+    --pidfile "$pidfile" \
+    --quiet
+  eend $?
 }
 
 restart() {
-    stop
-    start
+  stop
+  start
 }
 
 reload() {
-    restart
+  restart
 }
 
 force_reload() {
-    restart
+  restart
 }
