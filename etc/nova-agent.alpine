@@ -10,16 +10,20 @@ description_reload="Restart nova-agent"
 
 command="/usr/bin/$name"
 
-pidfile="/run/nova-agent.pid"
+pidfile="/var/run/nova-agent.pid"
 lockfile="/var/lock/subsys/$name"
 logfile="/var/log/nova-agent.log"
 
-loglevel="info"
+loglevel="debug"
 
 extra_started_commands="reload"
 
+depend() {
+  after xenstored
+}
+
 start_pre() {
-  [ -x $command ] || exit 5
+  [ -x "$command" ] || exit 5
 }
 
 start() {
@@ -31,19 +35,27 @@ start() {
     --make-pidfile \
     --pidfile "$pidfile" \
     -- \
+      --no-fork true \
       -o "$logfile" \
       -l "$loglevel"
-  eend $?
+  RETVAL=$?
+  if [ "$RETVAL" = "0" ]; then
+    mkdir -p "${lockfile%/*}"
+    touch "$lockfile"
+  fi
+  eend $RETVAL
 }
 
 stop() {
   ebegin "Stopping $name"
   start-stop-daemon \
     --stop \
-    --exec "$command" \
-    --pidfile "$pidfile" \
-    --quiet
-  eend $?
+    --pidfile "$pidfile"
+  RETVAL=$?
+  if [ "$RETVAL" = "0" ]; then
+    rm -f "$lockfile"
+  fi
+  eend $RETVAL
 }
 
 restart() {
