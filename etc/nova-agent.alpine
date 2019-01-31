@@ -14,12 +14,12 @@ pidfile="/var/run/nova-agent.pid"
 lockfile="/var/lock/subsys/$name"
 logfile="/var/log/nova-agent.log"
 
-loglevel="debug"
+loglevel="info"
 
 extra_started_commands="reload"
 
 depend() {
-  after xenstored
+  after xe-guest-utilities
 }
 
 start_pre() {
