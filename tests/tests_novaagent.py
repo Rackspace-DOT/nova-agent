@@ -416,10 +416,27 @@ class TestHelpers(TestCase):
                                     'An unknown exception was thrown'
                                 )
 
+    def test_server_type_alpine(self):
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            True
+        ]
+        with mock.patch(
+            'novaagent.novaagent.os.path.exists',
+            side_effect=mock_response
+        ):
+            server_type = novaagent.novaagent.get_server_type()
+
+        self.assertEqual(
+            server_type.__name__,
+            'novaagent.libs.alpine',
+            'Did not get expected object for alpine'
+        )
+
     def test_server_type_debian(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, False, True
+            False, False, False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -436,7 +453,7 @@ class TestHelpers(TestCase):
     def test_server_type_redhat(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, False, True
+            False, False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
@@ -453,7 +470,7 @@ class TestHelpers(TestCase):
     def test_server_type_centos(self):
         mock_response = mock.Mock()
         mock_response.side_effect = [
-            False, True
+            False, False, True
         ]
         with mock.patch(
             'novaagent.novaagent.os.path.exists',
