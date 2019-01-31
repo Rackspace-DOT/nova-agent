@@ -26,9 +26,9 @@ def make_executable(path):
     os.chmod(path, mode)
 
 # https://stackoverflow.com/a/36902139
-class PostInstallCommand(install):
+class PostInstallCommand(setuptools.command.install):
     def run(self):
-        install.run(self)
+        setuptools.command.install.run(self)
         file_from = None
         file_to = None
         is_executable = True
