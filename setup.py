@@ -6,6 +6,7 @@ import sys
 import os
 import stat
 from shutil import copyfile
+from setuptools.command.install import install
 
 requirements = ['netifaces', 'pyxs', 'pycrypto', 'PyYaml', 'distro']
 if sys.version_info[:2] < (2, 7):
@@ -26,9 +27,9 @@ def make_executable(path):
     os.chmod(path, mode)
 
 # https://stackoverflow.com/a/36902139
-class PostInstallCommand(setuptools.command.install):
+class PostInstallCommand(install):
     def run(self):
-        setuptools.command.install.run(self)
+        install.run(self)
         file_from = None
         file_to = None
         is_executable = True
