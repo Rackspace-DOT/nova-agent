@@ -27,22 +27,22 @@ def make_executable(path):
 
 # https://stackoverflow.com/a/36902139
 class PostInstallCommand(install):
-  def run(self):
-    install.run(self)
-    file_from = None
-    file_to = None
-    is_executable = True
+    def run(self):
+        install.run(self)
+        file_from = None
+        file_to = None
+        is_executable = True
 
-    dirname = os.path.dirname(__file__)
+        dirname = os.path.dirname(__file__)
 
-    if os.path.exists('/etc/alpine-release'):
-      file_from = os.path.join(dirname, 'etc/nova-agent.alpine')
-      file_to = '/etc/init.d/nova-agent'
+        if os.path.exists('/etc/alpine-release'):
+            file_from = os.path.join(dirname, 'etc/nova-agent.alpine')
+            file_to = '/etc/init.d/nova-agent'
 
-    if file_from != None and file_to != None:
-      copyfile(file_from, file_to)
-      if is_executable:
-        make_executable(file_to)
+        if file_from != None and file_to != None:
+            copyfile(file_from, file_to)
+            if is_executable:
+                make_executable(file_to)
 
 setuptools.setup(
     name='novaagent',
@@ -56,6 +56,9 @@ setuptools.setup(
     install_requires=requirements,
     extras_require={
         'tests': test_requirements
+    },
+    cmdclass={
+        'install': PostInstallCommand
     },
     entry_points={
         'console_scripts': [
