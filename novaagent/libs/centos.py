@@ -154,11 +154,11 @@ class ServerOS(DefaultOS):
                 )
 
     @staticmethod
-    def version_tuple():
-        """Tuple representation of os version"""
-        version = distro.version().split('.')
-        version = map(int, version)
-        return tuple(version)
+    def version_float():
+        """Float of os version major.minor"""
+        version = "{0}.{1}".format(distro.major_version(),
+                                   distro.minor_version())
+        return float(version)
 
     @staticmethod
     def _os_defaults_network_manager():
@@ -167,13 +167,17 @@ class ServerOS(DefaultOS):
         :return: has network manager only, not network scripts
         """
         dist = distro.id()
-        server_os_version = ServerOS.version_tuple()
+        server_os_version = ServerOS.version_float()
 
         log.info("Linux Distribution Detected: {0} Version {1}".format(
-            dist, ServerOS.version_tuple()))
-        if dist in ['rhel', 'centos'] and server_os_version >= (8, 0):
+            dist, ServerOS.version_float()))
+        if dist == 'rhel' and server_os_version >= 8:
             return True
-        if dist == 'fedora' and server_os_version >= (29,):
+
+        if dist == 'centos' and server_os_version >= 8:
+            return True
+
+        if dist == 'fedora' and server_os_version >= 29:
             return True
 
         return False
