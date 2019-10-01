@@ -936,8 +936,7 @@ class TestHelpers(TestCase):
 
     @mock.patch('novaagent.libs.centos.distro.id', return_value='rhel')
     @mock.patch(
-        'novaagent.libs.centos.ServerOS.version_float',
-        return_value=float(7.5))
+        'novaagent.libs.centos.distro.major_version', return_value='7')
     def test_os_defaults_network_manager_rhel_pre_8(self, mock_id, mock_ver):
         temp = centos.ServerOS()
         results = temp._os_defaults_network_manager()
@@ -949,8 +948,7 @@ class TestHelpers(TestCase):
 
     @mock.patch('novaagent.libs.centos.distro.id', return_value='rhel')
     @mock.patch(
-        'novaagent.libs.centos.ServerOS.version_float',
-        return_value=float(8.0))
+        'novaagent.libs.centos.distro.major_version', return_value='8')
     def test_os_defaults_network_manager_rhel_8(self, mock_id, mock_ver):
         temp = centos.ServerOS()
         results = temp._os_defaults_network_manager()
@@ -962,8 +960,7 @@ class TestHelpers(TestCase):
 
     @mock.patch('novaagent.libs.centos.distro.id', return_value='fedora')
     @mock.patch(
-        'novaagent.libs.centos.ServerOS.version_float',
-        return_value=float(28))
+        'novaagent.libs.centos.distro.major_version', return_value='28')
     def test_os_defaults_network_manager_fedora_pre_29(self,
                                                        mock_id,
                                                        mock_ver):
@@ -978,7 +975,7 @@ class TestHelpers(TestCase):
     @mock.patch(
         'novaagent.libs.centos.distro.id', return_value='fedora')
     @mock.patch(
-        'novaagent.libs.centos.ServerOS.version_float', return_value=float(29))
+        'novaagent.libs.centos.distro.major_version', return_value='29')
     def test_os_defaults_network_manager_fedora_29(self, mock_id, mock_ver):
         temp = centos.ServerOS()
         results = temp._os_defaults_network_manager()

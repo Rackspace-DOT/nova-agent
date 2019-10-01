@@ -154,23 +154,16 @@ class ServerOS(DefaultOS):
                 )
 
     @staticmethod
-    def version_float():
-        """Float of os version major.minor"""
-        version = "{0}.{1}".format(distro.major_version(),
-                                   distro.minor_version())
-        return float(version)
-
-    @staticmethod
     def _os_defaults_network_manager():
         """
         :rtype: bool
         :return: has network manager only, not network scripts
         """
         dist = distro.id()
-        server_os_version = ServerOS.version_float()
+        server_os_version = int(distro.major_version())
 
         log.info("Linux Distribution Detected: {0} Version {1}".format(
-            dist, ServerOS.version_float()))
+            dist, server_os_version))
         if dist == 'rhel' and server_os_version >= 8:
             return True
 
