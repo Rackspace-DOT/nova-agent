@@ -1,0 +1,108 @@
+setup_template_1: &SETUP_TEMPLATE_1
+  setup_script:
+    # pip and mock are in EPEL
+    - yum -y install epel-release
+    # used to install other dependencies
+    - yum -y install python-pip
+    # needed to compile netifaces and pycrypto
+    - yum -y install gcc python-devel
+    # needed because PyPI mock is incompatible with Python 2.6
+    - yum -y install python-mock
+
+setup_template_2: &SETUP_TEMPLATE_2
+  setup_script:
+    # used to install other dependencies
+    - dnf -y install python3-pip
+    # needed to compile netifaces and pycrypto
+    - dnf -y install gcc redhat-rpm-config python3-devel
+    # add unversioned pip command for task_template
+    - ln -s /usr/bin/pip3 /usr/local/bin/pip
+
+setup_template_3: &SETUP_TEMPLATE_3
+  setup_script:
+    # refresh cache
+    - apt update
+    # used to install other dependencies
+    - apt -y install python3-pip
+    # add unversioned pip command for task_template
+    - ln -s /usr/bin/pip3 /usr/local/bin/pip
+
+task_template: &TASK_TEMPLATE
+  pip_script: pip install -e .[tests]
+  lint_script: flake8 .
+  test_script: nosetests -v
+
+el6_task:
+  container:
+    image: centos:6
+  << : *SETUP_TEMPLATE_1
+  << : *TASK_TEMPLATE
+
+el7_task:
+  container:
+    image: centos:7
+  << : *SETUP_TEMPLATE_1
+  << : *TASK_TEMPLATE
+
+el8_task:
+  container:
+    image: registry.access.redhat.com/ubi8/ubi
+  << : *SETUP_TEMPLATE_2
+  << : *TASK_TEMPLATE
+
+f29_task:
+  container:
+    image: fedora:29
+  << : *SETUP_TEMPLATE_2
+  << : *TASK_TEMPLATE
+
+f30_task:
+  container:
+    image: fedora:30
+  << : *SETUP_TEMPLATE_2
+  << : *TASK_TEMPLATE
+
+xenial_task:
+  env:
+    # pip on xenial exits with locale.Error unless this is set
+    LC_ALL: C
+  container:
+    image: ubuntu:16.04
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
+
+bionic_task:
+  container:
+    image: ubuntu:18.04
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
+
+disco_task:
+  container:
+    image: ubuntu:19.04
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
+
+eoan_task:
+  container:
+    image: ubuntu:19.10
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
+
+jessie_task:
+  container:
+    image: debian:8
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
+
+stretch_task:
+  container:
+    image: debian:9
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
+
+buster_task:
+  container:
+    image: debian:10
+  << : *SETUP_TEMPLATE_3
+  << : *TASK_TEMPLATE
