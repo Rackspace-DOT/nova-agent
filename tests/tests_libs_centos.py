@@ -935,7 +935,8 @@ class TestHelpers(TestCase):
         )
 
     @mock.patch('novaagent.libs.centos.distro.id', return_value='rhel')
-    @mock.patch('novaagent.libs.centos.distro.version', return_value='7.5')
+    @mock.patch(
+        'novaagent.libs.centos.distro.major_version', return_value='7')
     def test_os_defaults_network_manager_rhel_pre_8(self, mock_id, mock_ver):
         temp = centos.ServerOS()
         results = temp._os_defaults_network_manager()
@@ -946,7 +947,8 @@ class TestHelpers(TestCase):
         )
 
     @mock.patch('novaagent.libs.centos.distro.id', return_value='rhel')
-    @mock.patch('novaagent.libs.centos.distro.version', return_value='8.0')
+    @mock.patch(
+        'novaagent.libs.centos.distro.major_version', return_value='8')
     def test_os_defaults_network_manager_rhel_8(self, mock_id, mock_ver):
         temp = centos.ServerOS()
         results = temp._os_defaults_network_manager()
@@ -957,7 +959,8 @@ class TestHelpers(TestCase):
         )
 
     @mock.patch('novaagent.libs.centos.distro.id', return_value='fedora')
-    @mock.patch('novaagent.libs.centos.distro.version', return_value='28')
+    @mock.patch(
+        'novaagent.libs.centos.distro.major_version', return_value='28')
     def test_os_defaults_network_manager_fedora_pre_29(self,
                                                        mock_id,
                                                        mock_ver):
@@ -969,8 +972,10 @@ class TestHelpers(TestCase):
             'Should have returned False: {0}'.format(results)
         )
 
-    @mock.patch('novaagent.libs.centos.distro.id', return_value='fedora')
-    @mock.patch('novaagent.libs.centos.distro.version', return_value='29')
+    @mock.patch(
+        'novaagent.libs.centos.distro.id', return_value='fedora')
+    @mock.patch(
+        'novaagent.libs.centos.distro.major_version', return_value='29')
     def test_os_defaults_network_manager_fedora_29(self, mock_id, mock_ver):
         temp = centos.ServerOS()
         results = temp._os_defaults_network_manager()
