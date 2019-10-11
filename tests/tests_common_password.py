@@ -271,7 +271,7 @@ class TestHelpers(TestCase):
         except password.PasswordError as e:
             self.assertEqual(
                 str(e),
-                "500: Input strings must be a multiple of 16 in length",
+                '500: Data must be padded to 16 byte boundary in CBC mode',
                 'Incorrect message received generic password error'
             )
 
