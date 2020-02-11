@@ -8,3 +8,11 @@ __pycache__
 .DS_Store
 coverage.xml
 .scannerwork
+
+# Pycharm
+.idea/
+
+# Virtual Envs
+venv/
+env/
+.venv/
