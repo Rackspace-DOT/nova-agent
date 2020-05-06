@@ -40,23 +40,26 @@ class ServerOS(DefaultOS):
             iffile.write('# Label {0}\n'.format(iface['label']))
             iffile.write('BOOTPROTO=static\n')
             iffile.write('DEVICE={0}\n'.format(ifname))
-            for count, ip_info in enumerate(iface['ips']):
-                if count == 0:
-                    iffile.write('IPADDR={0}\n'.format(ip_info['ip']))
-                    iffile.write('NETMASK={0}\n'.format(ip_info['netmask']))
-                else:
-                    iffile.write(
-                        'IPADDR{0}={1}\n'.format(
-                            count,
-                            ip_info['ip']
+            if iface.get('ips'):
+                for count, ip_info in enumerate(iface['ips']):
+                    if count == 0:
+                        iffile.write('IPADDR={0}\n'.format(ip_info['ip']))
+                        iffile.write(
+                            'NETMASK={0}\n'.format(ip_info['netmask'])
                         )
-                    )
-                    iffile.write(
-                        'NETMASK{0}={1}\n'.format(
-                            count,
-                            ip_info['netmask']
+                    else:
+                        iffile.write(
+                            'IPADDR{0}={1}\n'.format(
+                                count,
+                                ip_info['ip']
+                            )
                         )
-                    )
+                        iffile.write(
+                            'NETMASK{0}={1}\n'.format(
+                                count,
+                                ip_info['netmask']
+                            )
+                        )
 
             if iface.get('gateway'):
                 iffile.write('GATEWAY={0}\n'.format(iface['gateway']))
