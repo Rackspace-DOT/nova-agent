@@ -110,7 +110,8 @@ class ServerOS(DefaultOS):
         known_settings = [  # noqa
             '^BOOTPROTO=', '^DEVICE=', '^GATEWAY=', '^IPV6INIT=', '^IPV6ADDR=',
             '^IPV6_DEFAULTGW=', '^ONBOOT=', '^NM_CONTROLLED=', '^HWADDR=',
-            '^DNS\d+?=', '^IPADDR\d?', '^NETMASK\d?', '^#', '^\s+'
+            '^DNS\d+?=', '^IPADDR\d?', '^NETMASK\d?', '^#',  # noqa: W605
+            '^\s+'  # noqa: W605
         ]
         log.debug('Checking for additional arguments for ifcfg')
         pattern = re.compile('|'.join(known_settings))
