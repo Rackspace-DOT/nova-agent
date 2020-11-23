@@ -29,7 +29,7 @@ import sys
 import os
 
 
-from Cryptodome.Cipher import AES
+import pyaes
 
 
 if sys.version_info > (3,):
@@ -106,7 +106,7 @@ class PasswordCommands(object):
         self._aes_iv = m.digest()
 
     def _decrypt_password(self, data):
-        aes = AES.new(self._aes_key, AES.MODE_CBC, self._aes_iv)
+        aes = pyaes.AESModeOfOperationCBC(self._aes_key, iv=self._aes_iv)
         decrypted_passwd = aes.decrypt(data)
         try:
             cut_off_sz = ord(decrypted_passwd[len(decrypted_passwd) - 1])
