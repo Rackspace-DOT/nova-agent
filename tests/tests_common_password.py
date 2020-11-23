@@ -271,7 +271,7 @@ class TestHelpers(TestCase):
         except password.PasswordError as e:
             self.assertEqual(
                 str(e),
-                '500: Data must be padded to 16 byte boundary in CBC mode',
+                '500: ciphertext block must be 16 bytes',
                 'Incorrect message received generic password error'
             )
 
@@ -283,7 +283,7 @@ class TestHelpers(TestCase):
             "6E6haX/YGRSEcR9X9+3nLOgD+ItDTv9/uOHms02Cos0sqI/k1uFIC3V/YNydHJOk"
         )
         self.assertEqual(
-            (500, 'Invalid password data received'),
+            (500, 'ciphertext block must be 16 bytes'),
             message,
             'Did not receive expected error on invalid password data'
         )
