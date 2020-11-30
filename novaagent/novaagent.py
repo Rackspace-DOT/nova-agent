@@ -13,6 +13,7 @@ from pyxs.connection import XenBusConnection
 from pyxs.client import Client
 
 
+from novaagent.xenstore.ProcXenBus import ProcXenBus
 from novaagent.xenbus import XenGuestRouter
 from novaagent.libs import centos
 from novaagent.libs import debian
@@ -80,6 +81,19 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
             check_provider(utils.get_provider(client=xenbus_client))
             while True:
                 notify_init = action(server_os, client=xenbus_client)
+                if send_notification and notify_init:
+                    log.info('Sending notification startup is complete')
+                    utils.send_notification(server_init, notify)
+                    send_notification = False
+
+                time.sleep(1)
+
+    elif os.path.exists('/proc/xen/xenbus'):
+        log.info('Using /proc/xen/xenbus')
+        with ProcXenBus() as proc_xenbus_client:
+            check_provider(utils.get_provider(client=proc_xenbus_client))
+            while True:
+                notify_init = action(server_os, client=proc_xenbus_client)
                 if send_notification and notify_init:
                     log.info('Sending notification startup is complete')
                     utils.send_notification(server_init, notify)
