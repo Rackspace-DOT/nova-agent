@@ -15,6 +15,7 @@ from pyxs.client import Client
 
 from novaagent.xenstore.ProcXenBus import ProcXenBus
 from novaagent.xenbus import XenGuestRouter
+from novaagent.libs import alpine
 from novaagent.libs import centos
 from novaagent.libs import debian
 from novaagent.libs import redhat
@@ -114,7 +115,9 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
 
 def get_server_type():
     server_type = None
-    if (
+    if os.path.exists('/etc/alpine-release'):
+        server_type = alpine
+    elif (
         os.path.exists('/etc/centos-release') or
         os.path.exists('/etc/fedora-release')
     ):

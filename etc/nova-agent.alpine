@@ -1,0 +1,68 @@
+#!/sbin/openrc-run
+#
+# nova-agent
+#
+
+name="nova-agent"
+
+description="Agent for setting up clean servers on Xen"
+description_reload="Restart nova-agent"
+
+command="/usr/bin/$name"
+
+pidfile="/var/run/nova-agent.pid"
+lockfile="/var/lock/subsys/$name"
+logfile="/var/log/nova-agent.log"
+
+loglevel="info"
+
+extra_started_commands="reload"
+
+depend() {
+    after xe-guest-utilities
+}
+
+start_pre() {
+    [ -x "$command" ] || exit 5
+}
+
+start() {
+    ebegin "Starting $name"
+    start-stop-daemon \
+        --background \
+        --start \
+        --exec "$command" \
+        --make-pidfile \
+        --pidfile "$pidfile" \
+        -- \
+          --no-fork true \
+          -o "$logfile" \
+          -l "$loglevel"
+    RETVAL=$?
+    if [ "$RETVAL" = "0" ]; then
+        mkdir -p "${lockfile%/*}"
+        touch "$lockfile"
+    fi
+    eend $RETVAL
+}
+
+stop() {
+    ebegin "Stopping $name"
+    start-stop-daemon \
+        --stop \
+        --pidfile "$pidfile"
+    RETVAL=$?
+    if [ "$RETVAL" = "0" ]; then
+        rm -f "$lockfile"
+    fi
+    eend $RETVAL
+}
+
+restart() {
+    stop
+    start
+}
+
+reload() {
+    restart
+}
