@@ -95,6 +95,7 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
@@ -178,6 +179,7 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
@@ -233,6 +235,7 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
@@ -292,6 +295,7 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
@@ -352,6 +356,7 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
