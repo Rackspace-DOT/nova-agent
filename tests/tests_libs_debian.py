@@ -92,6 +92,7 @@ class TestHelpers(TestCase):
     def test_reset_network_hostname_failure(self):
         self.setup_temp_hostname()
         self.setup_temp_interfaces()
+        self.setup_temp_netplan()
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
@@ -137,27 +138,42 @@ class TestHelpers(TestCase):
                                 'novaagent.libs.debian.Popen',
                                 side_effect=mock_popen
                             ):
-                                result = temp.resetnetwork(
-                                    'name',
-                                    'value',
-                                    'dummy_client'
-                                )
+                                mock_os_path_exists = mock.Mock()
+                                mock_os_path_exists.side_effect = [
+                                    # check to see if netplan bin exists
+                                    False,
+                                    # checks if network config file exists
+                                    True
+                                ]
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_os_path_exists):
+
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
             ('0', ''),
             'Result was not the expected value'
         )
-        interface_files = glob.glob('/tmp/interfaces*')
+
+        interface_files = glob.glob('{}*'.format(temp.netconfig_file))
         self.assertEqual(
             len(interface_files),
             2,
             'Incorrect number of interface files'
         )
-        with open('/tmp/interfaces') as f:
+        with open(temp.netconfig_file) as f:
             written_data = f.readlines()
 
-        update_config = copy.deepcopy(network.DEBIAN_INTERFACES_CONFIG)
+        network_config = network.DEBIAN_INTERFACES_CONFIG
+
+        update_config = copy.deepcopy(network_config)
+
         del update_config[0]
         loopback = [
             '# The loopback network interface\n',
@@ -165,6 +181,7 @@ class TestHelpers(TestCase):
             'iface lo inet loopback\n',
             '\n'
         ]
+
         check_success = loopback + update_config
         for index, line in enumerate(written_data):
             self.assertIn(
@@ -173,9 +190,163 @@ class TestHelpers(TestCase):
                 'Written file did not match expected value'
             )
 
+    def test_reset_network_hostname_failure_netplan(self):
+        self.setup_temp_hostname()
+        self.setup_temp_interfaces()
+        self.setup_temp_netplan()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 1, 'temp.hostname'
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E207572', 'BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth0', 'eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E207572',
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            network.ETH0_INTERFACE,
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            mock_popen = mock.Mock()
+                            mock_comm = mock.Mock()
+                            mock_comm.return_value = ('out', 'error')
+                            mock_popen.side_effect = [
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm)
+                            ]
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen',
+                                side_effect=mock_popen
+                            ):
+                                mock_os_path_exists = mock.Mock()
+                                mock_os_path_exists.side_effect = [
+                                    # check to see if netplan bin exists
+                                    True,
+                                    # checks if network config file exists
+                                    True
+                                ]
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_os_path_exists):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('0', ''),
+            'Result was not the expected value'
+        )
+
+        interface_files = glob.glob('{}*'.format(temp.netplan_file))
+        self.assertEqual(
+            len(interface_files),
+            2,
+            'Incorrect number of interface files'
+        )
+        with open(temp.netplan_file) as f:
+            written_data = f.readlines()
+
+        for index, line in enumerate(written_data):
+            self.assertIn(
+                line,
+                network.DEBIAN_NETPLAN_CONFIG,
+                'Written file did not match expected value'
+            )
+
     def test_reset_network_error_down(self):
         self.setup_temp_hostname()
         self.setup_temp_interfaces()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netconfig_file = '/tmp/interfaces'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0, 'temp.hostname'
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen'
+                            ) as p:
+                                p.return_value.communicate.return_value = (
+                                    'out', 'error'
+                                )
+                                p.return_value.returncode = 1
+                                mock_os_path_exists = mock.Mock()
+                                mock_os_path_exists.side_effect = [
+                                    # check to see if netplan bin exists
+                                    False,
+                                    # checks if network config file exists
+                                    True
+                                ]
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_os_path_exists):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('1', 'Error stopping network: eth1'),
+            'Result was not the expected value'
+        )
+        interface_files = glob.glob('{}*'.format(temp.netconfig_file))
+        self.assertEqual(
+            len(interface_files),
+            2,
+            'Incorrect number of interface files'
+        )
+
+    def test_reset_network_error_down_netplan(self):
+        self.setup_temp_hostname()
+        self.setup_temp_interfaces()
+        self.setup_temp_netplan()
+
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
@@ -211,18 +382,25 @@ class TestHelpers(TestCase):
                                     'out', 'error'
                                 )
                                 p.return_value.returncode = 1
-                                result = temp.resetnetwork(
-                                    'name',
-                                    'value',
-                                    'dummy_client'
-                                )
+                                mock_netplan = mock.Mock()
+                                mock_netplan.return_value = True
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_netplan):
+
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
-            ('1', 'Error stopping network: eth1'),
+            ('1', 'Error applying netplan: error'),
             'Result was not the expected value'
         )
-        interface_files = glob.glob('/tmp/interfaces*')
+
+        interface_files = glob.glob('{}*'.format(temp.netplan_file))
         self.assertEqual(
             len(interface_files),
             2,
@@ -232,10 +410,12 @@ class TestHelpers(TestCase):
     def test_reset_network_error_flush(self):
         self.setup_temp_hostname()
         self.setup_temp_interfaces()
+        self.setup_temp_netplan()
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
         temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+
         with mock.patch(
             'novaagent.libs.debian.ServerOS._setup_hostname'
         ) as hostname:
@@ -262,27 +442,106 @@ class TestHelpers(TestCase):
                         ):
                             mock_popen = mock.Mock()
                             mock_comm = mock.Mock()
-                            mock_comm.return_value = ('out', 'error')
+                            mock_comm.return_value = ('out', 'eth1')
+
                             mock_popen.side_effect = [
-                                mock.Mock(returncode=0, communicate=mock_comm),
-                                mock.Mock(returncode=1, communicate=mock_comm)
+                                mock.Mock(returncode=0,
+                                          communicate=mock_comm),
+                                mock.Mock(returncode=1,
+                                          communicate=mock_comm)
                             ]
                             with mock.patch(
                                 'novaagent.libs.debian.Popen',
                                 side_effect=mock_popen
                             ):
-                                result = temp.resetnetwork(
-                                    'name',
-                                    'value',
-                                    'dummy_client'
-                                )
+                                mock_netplan = mock.Mock()
+                                mock_netplan.return_value = False
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_netplan):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
             ('1', 'Error flushing network: eth1'),
             'Result was not the expected value'
         )
-        interface_files = glob.glob('/tmp/interfaces*')
+
+        interface_files = glob.glob('{}*'.format(temp.netconfig_file))
+        self.assertEqual(
+            len(interface_files),
+            1,
+            'Incorrect number of interface files'
+        )
+
+    def test_reset_network_error_flush_netplan(self):
+        self.setup_temp_hostname()
+        self.setup_temp_interfaces()
+        self.setup_temp_netplan()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0, 'temp.hostname'
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            mock_popen = mock.Mock()
+                            mock_comm = mock.Mock()
+                            mock_comm.return_value = ('out', 'eth1')
+
+                            mock_popen.side_effect = [
+                                mock.Mock(returncode=1,
+                                          communicate=mock_comm)
+                            ]
+
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen',
+                                side_effect=mock_popen
+                            ):
+                                mock_netplan = mock.Mock()
+                                mock_netplan.return_value = True
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_netplan):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('1', 'Error applying netplan: eth1'),
+            'Result was not the expected value'
+        )
+
+        interface_files = glob.glob('{}*'.format(temp.netplan_file))
         self.assertEqual(
             len(interface_files),
             2,
@@ -292,6 +551,7 @@ class TestHelpers(TestCase):
     def test_reset_network_error_up(self):
         self.setup_temp_hostname()
         self.setup_temp_interfaces()
+        self.setup_temp_netplan()
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
@@ -322,28 +582,111 @@ class TestHelpers(TestCase):
                         ):
                             mock_popen = mock.Mock()
                             mock_comm = mock.Mock()
+
                             mock_comm.return_value = ('out', 'error')
                             mock_popen.side_effect = [
-                                mock.Mock(returncode=0, communicate=mock_comm),
-                                mock.Mock(returncode=0, communicate=mock_comm),
-                                mock.Mock(returncode=1, communicate=mock_comm)
+                                mock.Mock(returncode=0,
+                                          communicate=mock_comm),
+                                mock.Mock(returncode=0,
+                                          communicate=mock_comm),
+                                mock.Mock(returncode=1,
+                                          communicate=mock_comm)
                             ]
                             with mock.patch(
                                 'novaagent.libs.debian.Popen',
                                 side_effect=mock_popen
                             ):
-                                result = temp.resetnetwork(
-                                    'name',
-                                    'value',
-                                    'dummy_client'
-                                )
+                                mock_os_path_exists = mock.Mock()
+                                mock_os_path_exists.side_effect = [
+                                    # check to see if netplan bin exists
+                                    False,
+                                    # checks if network config file exists
+                                    True
+                                ]
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_os_path_exists):
 
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
         self.assertEqual(
             result,
             ('1', 'Error starting network: eth1'),
             'Result was not the expected value'
         )
-        interface_files = glob.glob('/tmp/interfaces*')
+
+        interface_files = glob.glob('{}*'.format(temp.netplan_file))
+        self.assertEqual(
+            len(interface_files),
+            1,
+            'Incorrect number of interface files'
+        )
+
+    def test_reset_network_error_up_netplan(self):
+        self.setup_temp_hostname()
+        self.setup_temp_interfaces()
+        self.setup_temp_netplan()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netconfig_file = '/tmp/interfaces'
+        temp.netplan_file = '/tmp/rackspace-cloud.yaml'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0, 'temp.hostname'
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            mock_popen = mock.Mock()
+                            mock_comm = mock.Mock()
+
+                            mock_comm.return_value = ('out', 'error')
+                            mock_popen.side_effect = [
+                                mock.Mock(returncode=1,
+                                          communicate=mock_comm)
+                            ]
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen',
+                                side_effect=mock_popen
+                            ):
+                                mock_netplan = mock.Mock()
+                                mock_netplan.return_value = True
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_netplan):
+
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('1', 'Error applying netplan: error'),
+            'Result was not the expected value'
+        )
+        interface_files = glob.glob('{}*'.format(temp.netplan_file))
         self.assertEqual(
             len(interface_files),
             2,
@@ -353,6 +696,105 @@ class TestHelpers(TestCase):
     def test_reset_network_success(self):
         self.setup_temp_hostname()
         self.setup_temp_interfaces()
+        temp = debian.ServerOS()
+        temp.hostname_file = '/tmp/hostname'
+        temp.netconfig_file = '/tmp/interfaces'
+        with mock.patch(
+            'novaagent.libs.debian.ServerOS._setup_hostname'
+        ) as hostname:
+            hostname.return_value = 0, 'temp.hostname'
+            with mock.patch('novaagent.utils.list_xenstore_macaddrs') as mac:
+                mac.return_value = ['BC764E207572', 'BC764E206C5B']
+                with mock.patch('novaagent.utils.list_hw_interfaces') as hwint:
+                    hwint.return_value = ['eth0', 'eth1']
+                    mock_hw_address = mock.Mock()
+                    mock_hw_address.side_effect = [
+                        'BC764E207572',
+                        'BC764E206C5B'
+                    ]
+                    with mock.patch(
+                        'novaagent.utils.get_hw_addr',
+                        side_effect=mock_hw_address
+                    ):
+                        mock_interface = mock.Mock()
+                        mock_interface.side_effect = [
+                            network.ETH0_INTERFACE,
+                            xen_data.check_network_interface()
+                        ]
+                        with mock.patch(
+                            'novaagent.utils.get_interface',
+                            side_effect=mock_interface
+                        ):
+                            mock_popen = mock.Mock()
+                            mock_comm = mock.Mock()
+                            mock_comm.return_value = ('out', 'error')
+                            mock_popen.side_effect = [
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm),
+                                mock.Mock(returncode=0, communicate=mock_comm)
+                            ]
+                            with mock.patch(
+                                'novaagent.libs.debian.Popen',
+                                side_effect=mock_popen
+                            ):
+                                mock_os_path_exists = mock.Mock()
+                                mock_os_path_exists.side_effect = [
+                                    # check to see if netplan bin exists
+                                    False,
+                                    # checks if network config file exists
+                                    True
+                                ]
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_os_path_exists):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
+
+        self.assertEqual(
+            result,
+            ('0', ''),
+            'Result was not the expected value'
+        )
+
+        interface_files = glob.glob('{}*'.format(temp.netconfig_file))
+        self.assertEqual(
+            len(interface_files),
+            2,
+            'Incorrect number of interface files'
+        )
+        with open(temp.netconfig_file) as f:
+            written_data = f.readlines()
+
+        network_config = network.DEBIAN_INTERFACES_CONFIG
+
+        update_config = copy.deepcopy(network_config)
+
+        del update_config[0]
+        loopback = [
+            '# The loopback network interface\n',
+            'auto lo\n',
+            'iface lo inet loopback\n',
+            '\n'
+        ]
+
+        check_success = loopback + update_config
+        for index, line in enumerate(written_data):
+            self.assertIn(
+                line,
+                check_success,
+                'Written file did not match expected value'
+            )
+
+    def test_reset_network_success_netplan(self):
+        self.setup_temp_hostname()
+        self.setup_temp_interfaces()
+        self.setup_temp_netplan()
         temp = debian.ServerOS()
         temp.hostname_file = '/tmp/hostname'
         temp.netconfig_file = '/tmp/interfaces'
@@ -398,35 +840,40 @@ class TestHelpers(TestCase):
                                 'novaagent.libs.debian.Popen',
                                 side_effect=mock_popen
                             ):
-                                result = temp.resetnetwork(
-                                    'name',
-                                    'value',
-                                    'dummy_client'
-                                )
+                                mock_os_path_exists = mock.Mock()
+                                mock_os_path_exists.side_effect = [
+                                    # checks if network config file exists
+                                    True,
+                                    # check to see if netplan bin exists
+                                    True
+                                ]
+                                with mock.patch(
+                                        'novaagent.libs.debian.os.path.exists',
+                                        side_effect=mock_os_path_exists):
+                                    result = temp.resetnetwork(
+                                        'name',
+                                        'value',
+                                        'dummy_client'
+                                    )
 
         self.assertEqual(
             result,
             ('0', ''),
             'Result was not the expected value'
         )
-        interface_files = glob.glob('/tmp/interfaces*')
+
+        interface_files = glob.glob('{}*'.format(temp.netplan_file))
         self.assertEqual(
             len(interface_files),
             2,
             'Incorrect number of interface files'
         )
-        with open('/tmp/interfaces') as f:
+        with open(temp.netplan_file) as f:
             written_data = f.readlines()
 
-        update_config = copy.deepcopy(network.DEBIAN_INTERFACES_CONFIG)
-        del update_config[0]
-        loopback = [
-            '# The loopback network interface\n',
-            'auto lo\n',
-            'iface lo inet loopback\n',
-            '\n'
-        ]
-        check_success = loopback + update_config
+        update_config = copy.deepcopy(network.DEBIAN_NETPLAN_CONFIG)
+        check_success = update_config
+
         for index, line in enumerate(written_data):
             self.assertIn(
                 line,
