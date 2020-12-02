@@ -1,0 +1,57 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build_ubuntu_1604:
+    name: Ubuntu 16.04 Unit Tests
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        python-version: [ '3.6', '3.7', '3.8' ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade setuptools pip
+          python -m pip install -e .[tests]
+      - name: pep8 with flake8
+        run: |
+          flake8 .
+      - name: Unit tests
+        run: |
+          nosetests -v
+
+
+  build_ubuntu_1804:
+    name: Ubuntu 18.04 Unit Tests
+    runs-on: ubuntu-18.04
+    strategy:
+      matrix:
+        python-version: [ '3.6', '3.7', '3.8' ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade setuptools pip
+          python -m pip install -e .[tests]
+      - name: pep8 with flake8
+        run: |
+          flake8 .
+      - name: Unit tests
+        run: |
+          nosetests -v
