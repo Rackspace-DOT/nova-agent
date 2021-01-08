@@ -2,18 +2,16 @@ name: Tests
 
 on:
   push:
+    branches:
+      - main
   pull_request:
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 jobs:
   build_ubuntu_1604:
     name: Ubuntu 16.04 Unit Tests
     runs-on: ubuntu-16.04
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
-
+        python-version: ['3.6', '3.7', '3.8']
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python ${{ matrix.python-version }}
@@ -30,15 +28,12 @@ jobs:
       - name: Unit tests
         run: |
           nosetests -v
-
-
   build_ubuntu_1804:
     name: Ubuntu 18.04 Unit Tests
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
-
+        python-version: ['3.6', '3.7', '3.8']
     steps:
       - uses: actions/checkout@v2
       - name: Setup Python ${{ matrix.python-version }}
