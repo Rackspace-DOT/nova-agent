@@ -270,8 +270,9 @@ class TestHelpers(TestCase):
             assert False, 'Exception was not caught'
         except password.PasswordError as e:
             self.assertEqual(
+                '500: The length of the provided data is not a multiple '
+                'of the block length.',
                 str(e),
-                '500: ciphertext block must be 16 bytes',
                 'Incorrect message received generic password error'
             )
 
@@ -283,7 +284,7 @@ class TestHelpers(TestCase):
             "6E6haX/YGRSEcR9X9+3nLOgD+ItDTv9/uOHms02Cos0sqI/k1uFIC3V/YNydHJOk"
         )
         self.assertEqual(
-            (500, 'ciphertext block must be 16 bytes'),
+            (500, 'Invalid password data received'),
             message,
             'Did not receive expected error on invalid password data'
         )
