@@ -29,7 +29,8 @@ import sys
 import os
 
 
-import pyaes
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends.openssl.backend import backend
 
 
 if sys.version_info > (3,):
@@ -106,8 +107,21 @@ class PasswordCommands(object):
         self._aes_iv = m.digest()
 
     def _decrypt_password(self, data):
-        aes = pyaes.AESModeOfOperationCBC(self._aes_key, iv=self._aes_iv)
-        decrypted_passwd = aes.decrypt(data)
+        try:
+            # Version 3 or later
+            cipher = Cipher(algorithms.AES(self._aes_key),
+                            modes.CBC(self._aes_iv),
+                            backend=backend)
+        except Exception:
+            # Previous to version 3
+            cipher = Cipher(algorithms.AES(self._aes_key),
+                            modes.CBC(self._aes_iv),
+                            backend)
+
+        decryptor = cipher.decryptor()
+        decrypted_passwd = decryptor.update(data) + decryptor.finalize()
+        # aes = pyaes.AESModeOfOperationCBC(self._aes_key, iv=self._aes_iv)
+        # decrypted_passwd = aes.decrypt(data)
         try:
             cut_off_sz = ord(decrypted_passwd[len(decrypted_passwd) - 1])
         except Exception:

@@ -31,55 +31,56 @@ class ServerOS(DefaultOS):
     def _setup_interfaces(self, ifname, iface):
         with open(self.netconfig_file, 'a') as iffile:
             iffile.write('# Label {0}\n'.format(iface['label']))
-            for count, x in enumerate(iface['ips']):
-                if count == 0:
-                    iffile.write('\nauto {0}\n'.format(ifname))
-                    iffile.write('iface {0} inet static\n'.format(ifname))
-                    iffile.write('\taddress {0}\n'.format(x['ip']))
-                    iffile.write('\tnetmask {0}\n'.format(x['netmask']))
-                    if iface.get('gateway'):
-                        iffile.write(
-                            '\tgateway {0}\n'.format(
-                                iface['gateway']
-                            )
-                        )
-
-                    if iface.get('dns'):
-                        iffile.write(
-                            '\tdns-nameservers {0}\n'.format(
-                                ' '.join(iface['dns'])
-                            )
-                        )
-
-                    if 'routes' in iface:
-                        for route in iface['routes']:
+            if iface.get('ips'):
+                for count, x in enumerate(iface['ips']):
+                    if count == 0:
+                        iffile.write('\nauto {0}\n'.format(ifname))
+                        iffile.write('iface {0} inet static\n'.format(ifname))
+                        iffile.write('\taddress {0}\n'.format(x['ip']))
+                        iffile.write('\tnetmask {0}\n'.format(x['netmask']))
+                        if iface.get('gateway'):
                             iffile.write(
-                                '\tpost-up route add -net {0} netmask '
-                                '{1} gw {2} || true\n'.format(
-                                    route['route'],
-                                    route['netmask'],
-                                    route['gateway']
-                                )
-                            )
-                            iffile.write(
-                                '\tpost-down route add -net {0} netmask '
-                                '{1} gw {2} || true\n'.format(
-                                    route['route'],
-                                    route['netmask'],
-                                    route['gateway']
+                                '\tgateway {0}\n'.format(
+                                    iface['gateway']
                                 )
                             )
 
-                else:
-                    iffile.write('\nauto {0}:{1}\n'.format(ifname, count))
-                    iffile.write(
-                        'iface {0}:{1} inet static\n'.format(
-                            ifname,
-                            count
+                        if iface.get('dns'):
+                            iffile.write(
+                                '\tdns-nameservers {0}\n'.format(
+                                    ' '.join(iface['dns'])
+                                )
+                            )
+
+                        if 'routes' in iface:
+                            for route in iface['routes']:
+                                iffile.write(
+                                    '\tpost-up route add -net {0} netmask '
+                                    '{1} gw {2} || true\n'.format(
+                                        route['route'],
+                                        route['netmask'],
+                                        route['gateway']
+                                    )
+                                )
+                                iffile.write(
+                                    '\tpost-down route add -net {0} netmask '
+                                    '{1} gw {2} || true\n'.format(
+                                        route['route'],
+                                        route['netmask'],
+                                        route['gateway']
+                                    )
+                                )
+
+                    else:
+                        iffile.write('\nauto {0}:{1}\n'.format(ifname, count))
+                        iffile.write(
+                            'iface {0}:{1} inet static\n'.format(
+                                ifname,
+                                count
+                            )
                         )
-                    )
-                    iffile.write('\taddress {0}\n'.format(x['ip']))
-                    iffile.write('\tnetmask {0}\n'.format(x['netmask']))
+                        iffile.write('\taddress {0}\n'.format(x['ip']))
+                        iffile.write('\tnetmask {0}\n'.format(x['netmask']))
 
             if iface.get('ip6s'):
                 for count, ip_info in enumerate(iface['ip6s']):
