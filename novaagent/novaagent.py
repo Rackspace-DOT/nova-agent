@@ -87,7 +87,7 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
                     utils.send_notification(server_init, notify)
                     send_notification = False
 
-                time.sleep(1)
+                time.sleep(10)
 
     elif os.path.exists('/proc/xen/xenbus'):
         log.info('Using /proc/xen/xenbus')
@@ -100,7 +100,7 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
                     utils.send_notification(server_init, notify)
                     send_notification = False
 
-                time.sleep(1)
+                time.sleep(10)
     else:
         check_provider(utils.get_provider())
         while True:
@@ -110,7 +110,7 @@ def nova_agent_listen(server_type, server_os, notify, server_init):
                 utils.send_notification(server_init, notify)
                 send_notification = False
 
-            time.sleep(1)
+            time.sleep(10)
 
 
 def get_server_type():
