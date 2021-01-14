@@ -20,6 +20,7 @@ from novaagent.libs import centos
 from novaagent.libs import debian
 from novaagent.libs import redhat
 from novaagent import utils
+from novaagent import __version__
 
 
 log = logging.getLogger(__name__)
@@ -177,6 +178,12 @@ def create_parser():
         type=bool,
         help='Perform os.fork when starting agent'
     )
+    parser.add_argument(
+        '--version',
+        default=False,
+        action='store_true',
+        help='Display version and exit'
+    )
     return parser
 
 
@@ -193,6 +200,11 @@ def main():
     args = parser.parse_args()
     loglevel = getattr(logging, args.loglevel.upper())
     log_format = "%(asctime)s [%(levelname)-5.5s] %(message)s"
+
+    if args.version:
+        print(__version__)
+        return
+
     if args.logfile == '-':
         logging.basicConfig(
             stream=sys.stdout,
