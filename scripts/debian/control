@@ -1,0 +1,19 @@
+Source: nova-agent
+Section: misc
+Priority: optional
+Maintainer: Brian Metzler <brian.metzler@rackspace.com>
+Homepage: https://github.com/Rackspace-DOT/nova-agent
+Build-Depends: debhelper (>=9.0.0),
+               dh-systemd (>= 1.5),
+               python3-all,
+               python3-setuptools
+Standards-Version: 4.0.0
+
+Package: python3-nova-agent
+Architecture: all
+Depends: python3, python3-cryptography, python3-pkg-resources
+Conflicts: python-nova-agent, python3-nova-agent, rax-nova-agent
+Replaces: python-nova-agent, python3-nova-agent, rax-nova-agent
+Description: Python nova-agent (Python 3)
+ Python xenstore agent for Rackspace cloud servers
+ This package installs the Python 3 version

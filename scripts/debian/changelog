@@ -1,0 +1,95 @@
+nova-agent (2.1.23) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Brian Metzler <brian.metzler@rackspace.com>  Sun, 12 Jan 2020 09:42:00 +0000
+
+nova-agent (2.1.22-1) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Brian Metzler <brian.metzler@rackspace.com>  Tue, 08 Dec 2020 21:56:29 +0000
+
+nova-agent (2.1.21-1) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Brian Metzler <brian.metzler@rackspace.com>  Sat, 28 Nov 2020 21:56:29 +0000
+
+nova-agent (2.1.20-1) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Brian Metzler <brian.metzler@rackspace.com>  Tue, 11 Dec 2018 10:30:00 +0000
+
+nova-agent (2.1.19-1) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Brian Metzler <brian.metzler@rackspace.com>  Sat, 18 Nov 2018 10:30:00 +0000
+
+nova-agent (2.1.18-1) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Thu, 13 Sep 2018 14:23:10 +0000
+
+nova-agent (2.1.17-1) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Mon, 10 Sep 2018 12:23:10 +0000
+
+nova-agent (2.1.16-1) unstable; urgency=low
+
+    * Fix hostnamectl fallback for hostname set to persist through reboots
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Fri, 31 Aug 2018 15:41:20 +0000
+
+nova-agent (2.1.14-1) unstable; urgency=low
+
+    * Add startup notifications for systemd and upstart based systems
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Mon, 28 Jun 2018 14:55:00 +0000
+
+nova-agent (2.1.13-1) unstable; urgency=low
+
+    * Add netplan configuration checks for Ubuntu systems
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Wed, 28 Mar 2018 16:25:21 +0000
+
+nova-agent (2.1.12-1) unstable; urgency=low
+
+    * Ensure old IP information is not retained after image and rebuild
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Fri, 5 Feb 2018 14:23:00 +0000
+
+nova-agent (2.1.10-1) unstable; urgency=low
+
+    * Rework hostname set for debian based servers
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Fri, 29 Nov 2017 20:10:00 +0000
+
+nova-agent (2.1.9-1) unstable; urgency=low
+
+    * Fix bug where if hostname failed then networking was not setup
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Fri, 29 Nov 2017 18:30:00 +0000
+
+nova-agent (2.1.8-1) unstable; urgency=low
+
+    * Rework how passwords are set
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Fri, 20 Oct 2017 12:10:07 +0000
+
+nova-agent (2.1.7-1) unstable; urgency=low
+
+    * Ensure all files written are flushed and closed
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Wed, 18 Oct 2017 20:30:05 +0000
+
+nova-agent (2.1.6-1) unstable; urgency=low
+
+    * primary release of nova-agent
+
+ -- Dave Kludt <david.kludt@rackspace.com>  Wed, 23 Aug 2017 20:30:05 +0000
