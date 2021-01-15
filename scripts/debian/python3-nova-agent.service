@@ -1,0 +1,14 @@
+[Unit]
+Description=Nova Agent for xenstore
+DefaultDependencies=no
+Wants=cloud-init-local.service
+Before=network-online.target
+Before=cloud-init.service
+
+[Service]
+Type=notify
+TimeoutStartSec=360
+ExecStart=/usr/bin/nova-agent --no-fork True -o /var/log/nova-agent.log -l info
+
+[Install]
+WantedBy=multi-user.target
