@@ -1,0 +1,69 @@
+name: Build Packages
+
+on:
+  release:
+    types:
+      - published
+    tags:
+      - '!*rc*'
+jobs:
+  build_rpm_7:
+    name: Build CentOS 7 RPM
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get Tag name
+        id: tag_name
+        shell: python
+        run: |
+          import os
+          tag_name=os.environ['GITHUB_REF'].replace("refs/tags/", "")
+          print("::set-output name=TAGNAME::{}".format(tag_name))
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+
+      - run: |
+          python3 setup.py pyz
+
+      - uses: naveenrajm7/rpmbuild@master
+        id: rpm
+        with:
+          spec_file: "scripts/nova-agent.spec"
+
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file: ${{ steps.rpm.outputs.rpm_dir_path }}/nova-agent-${{ steps.tag_name.outputs.TAGNAME }}-1.el7.x86_64.rpm
+          asset_name: nova-agent-${{ steps.tag_name.outputs.TAGNAME }}-1.el7.x86_64.rpm
+
+##  build_rpm_8:
+##    name: Build CentOS 8 RPM
+##    runs-on: ubuntu-20.04
+##    steps:
+##      - name: Get Tag name
+##        id: tag_name
+##        shell: python
+##        run: |
+##          import os
+##          tag_name=os.environ['GITHUB_REF'].replace("refs/tags/", "")
+##          print("::set-output name=TAGNAME::{}".format(tag_name))
+##
+##      - uses: actions/checkout@v2
+##
+##      - uses: naveenrajm7/rpmbuild@master
+##        id: rpm
+##        with:
+##          spec_file: "scripts/nova-agent.spec"
+##
+##      - uses: svenstaro/upload-release-action@v2
+##        with:
+##          repo_token: ${{ secrets.GITHUB_TOKEN }}
+##          tag: ${{ github.ref }}
+##          overwrite: true
+##          file: ${{ steps.rpm.outputs.rpm_dir_path }}/nova-agent-${{ steps.tag_name.outputs.TAGNAME }}-1.el8.x86_64.rpm
+##          asset_name: nova-agent-${{ steps.tag_name.outputs.TAGNAME }}-1.el8.x86_64.rpm
