@@ -1,0 +1,24 @@
+name: Build Packages
+on:
+  release:
+    types:
+      - published
+    tags:
+      - '!*rc*'
+jobs:
+  build_pyz:
+    name: Build Pyz
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - run: python3 setup.py pyz
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file: usr/nova-agent.pyz
+          asset_name: nova-agent.pyz
