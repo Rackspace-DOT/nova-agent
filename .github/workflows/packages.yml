@@ -33,8 +33,7 @@ jobs:
         with:
           image: debian:10
           options: -v ${{github.workspace}}:/source
-          run: |
-            bash /source/scripts/deb_build.sh ${{ steps.tag_name.outputs.tag }}
+          run: bash /source/scripts/deb_build.sh ${{ steps.tag_name.outputs.tag }}
       - uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
@@ -42,3 +41,41 @@ jobs:
           overwrite: true
           file: dist/deb/python3-nova-agent_${{ steps.tag_name.outputs.tag }}_all.deb
           asset_name: python3-nova-agent_${{ steps.tag_name.outputs.tag }}_all.deb
+  build_rpm_7:
+    name: Build CentOS 7 RPM
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: olegtarasov/get-tag@v2.1
+        id: tag_name
+      - uses: actions/checkout@v2
+      - uses: addnab/docker-run-action@v1
+        with:
+          image: centos:7
+          options: -v ${{github.workspace}}:/source
+          run: bash /source/scripts/rpm_build.sh ${{ steps.tag_name.outputs.tag }}
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file: rpmbuild/RPMS/x86_64/nova-agent-${{ steps.tag_name.outputs.tag }}-1.el7.x86_64.rpm
+          asset_name: nova-agent-${{ steps.tag_name.outputs.tag }}-1.el7.x86_64.rpm
+  build_rpm_8:
+    name: Build CentOS 8 RPM
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: olegtarasov/get-tag@v2.1
+        id: tag_name
+      - uses: actions/checkout@v2
+      - uses: addnab/docker-run-action@v1
+        with:
+          image: centos:8
+          options: -v ${{github.workspace}}:/source
+          run: bash /source/scripts/rpm_build.sh ${{ steps.tag_name.outputs.tag }}
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref }}
+          overwrite: true
+          file: rpmbuild/RPMS/x86_64/nova-agent-${{ steps.tag_name.outputs.tag }}-1.el8.x86_64.rpm
+          asset_name: nova-agent-${{ steps.tag_name.outputs.tag }}-1.el8.x86_64.rpm
