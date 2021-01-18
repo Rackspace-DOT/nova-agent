@@ -16,3 +16,7 @@ coverage.xml
 venv/
 env/
 .venv/
+
+# Build directories
+/rpmbuild
+/usr
