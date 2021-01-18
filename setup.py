@@ -34,13 +34,15 @@ else:
 
 class BuildPyz(Command):
     """https://docs.python.org/3/library/zipapp.html#zipapp.create_archive ."""
-    description, user_options = "Creates a zipapp.", []
+    description = "Creates a zipapp."
+    user_options = [
+        ('version=', None, "Specify the version to build")
+    ]
+    version = None
 
-    #
     def initialize_options(self):
         pass  # Dont needed, but required.
 
-    #
     def finalize_options(self):
         pass  # Dont needed, but required.
 
@@ -58,6 +60,12 @@ class BuildPyz(Command):
             pass
         copytree("{}/novaagent".format(cur_dir),
                  os.path.join(src_pyz, "novaagent"))
+
+        target_ver = '{}/__init__.py'.format(
+            os.path.join(src_pyz, "novaagent"))
+        with open(target_ver, 'w') as f:
+            f.write('__version__ = "{}"'.format(sys.argv[3]))
+
         try:
             os.remove("{}/novaagent/nova-agent".format(dist_pyz))
         except Exception:

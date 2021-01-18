@@ -9,6 +9,11 @@ if [ ! -f /.dockerenv ]; then
     error_and_exit "This should be run inside docker"
 fi
 
+if [ $# -ne 1 ]; then
+  echo "syntax:  $0 <git_tag_id>"
+  exit 1
+fi
+
 apt-get update
 
 # Build essentials and Build requirements
@@ -29,7 +34,7 @@ cd /source
 python3 -m pip install -e .[tests]
 
 # Build pyz(zipapp) version to $(pwd)/usr/nova-agent.pyz
-python3 setup.py pyz
+python3 setup.py pyz --version $1
 
 cp /source/usr/nova-agent.pyz /source/scripts/nova-agent
 chmod 755 /source/scripts/nova-agent
