@@ -21,7 +21,7 @@ Python xenstore agent for Rackspace cloud servers
 %setup -q
 %install
 rm -rf $RPM_BUILD_ROOT
-%{__python3} setup.py pyz
+%{__python3} setup.py pyz --version %{version}
 mkdir -p $RPM_BUILD_ROOT/usr/bin/
 cp usr/nova-agent.pyz $RPM_BUILD_ROOT/usr/bin/nova-agent
 mkdir -p $RPM_BUILD_ROOT/%{_unitdir}
