@@ -60,7 +60,7 @@ class TestHelpers(TestCase):
         temp = debian.ServerOS()
         self.assertEqual(
             temp.netplan_file,
-            '/etc/netplan/rackspace-cloud.yaml',
+            '/etc/netplan/50-rackspace-cloud.yaml',
             'Initialized netplan file value does not match expected value'
         )
         self.assertEqual(
