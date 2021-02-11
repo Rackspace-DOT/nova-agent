@@ -1,5 +1,5 @@
 
-[![Travis Status](https://travis-ci.org/Rackspace-DOT/nova-agent.svg?branch=master)](https://travis-ci.org/Rackspace-DOT/nova-agent.svg?branch=master)
+[![Github Tests Status](https://github.com/Rackspace-DOT/nova-agent/workflows/Tests/badge.svg)](https://github.com/Rackspace-DOT/nova-agent/workflows/Tests/badge.svg)
 
 # Rackspace nova-agent
 
