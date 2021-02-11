@@ -22,7 +22,8 @@ log = logging.getLogger(__name__)
 class ServerOS(DefaultOS):
     def __init__(self):
         super(ServerOS, self).__init__()
-        self.netplan_file = '/etc/netplan/rackspace-cloud.yaml'
+        # netplan file needs to be lexicographically after 50-cloud-init.yaml
+        self.netplan_file = '/etc/netplan/50-rackspace-cloud.yaml'
         self.netconfig_file = '/etc/network/interfaces'
 
     def _setup_loopback(self):
