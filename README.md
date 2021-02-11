@@ -20,7 +20,7 @@ The agent will also look and see if `/dev/xen/xenbus` is available, and if so wi
 
   * Debian based systems use the `/etc/network/interfaces` file and sets them up accordingly.
 
-  * Ubuntu based systems that utilize netplan will have networking setup in the following location: `/etc/netplan/rackspace-cloud.yaml`
+  * Ubuntu based systems that utilize netplan will have networking setup in the following location: `/etc/netplan/50-rackspace-cloud.yaml`
 
   You can learn more about netplan here [https://netplan.io/](https://netplan.io/) and is available on Rackspace cloud in the Ubuntu 18.04 base image.
 
