@@ -174,7 +174,7 @@ class TestHelpers(TestCase):
                 self.logfile = '/tmp/log'
                 self.loglevel = 'info'
                 self.no_fork = False
-                self.version = '2.1.22'
+                self.version = '2.1.23'
 
         test_args = Test()
         mock_response = mock.Mock()
@@ -228,7 +228,7 @@ class TestHelpers(TestCase):
                 self.logfile = '-'
                 self.loglevel = 'info'
                 self.no_fork = True
-                self.version = '2.1.22'
+                self.version = '2.1.23'
 
         test_args = Test()
         mock_response = mock.Mock()
@@ -280,7 +280,7 @@ class TestHelpers(TestCase):
                 self.logfile = '-'
                 self.loglevel = 'info'
                 self.no_fork = False
-                self.version = '2.1.22'
+                self.version = '2.1.23'
 
         test_args = Test()
         mock_response = mock.Mock()
@@ -383,7 +383,7 @@ class TestHelpers(TestCase):
                 self.logfile = '-'
                 self.loglevel = 'info'
                 self.no_fork = True
-                self.version = '2.1.22'
+                self.version = '2.1.23'
 
         test_args = Test()
         mock_response = mock.Mock()
