@@ -41,6 +41,9 @@ def action(server_os, client=None):
 
     for uuid in xen_events:
         event = utils.get_xen_event(uuid, client)
+        if 'name' not in event:
+            log.error('Event Not Supported: {0} -> {1}'.format(uuid, event))
+            continue
         log.info('Event: {0} -> {1}'.format(uuid, event['name']))
         command_return = ('', '')
         if hasattr(server_os, event['name']):
