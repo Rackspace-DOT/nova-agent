@@ -171,7 +171,13 @@ class ServerOS(DefaultOS):
         if dist == 'rhel' and server_os_version >= 8:
             return True
 
+        if dist == 'almalinux' and server_os_version >= 8:
+            return True
+
         if dist == 'centos' and server_os_version >= 8:
+            return True
+
+        if dist == 'rocky' and server_os_version >= 8:
             return True
 
         if dist == 'fedora' and server_os_version >= 29:
