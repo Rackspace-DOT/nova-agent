@@ -185,6 +185,28 @@ class ServerOS(DefaultOS):
 
         return False
 
+    def _restart_network_manager(self):
+        """ Restart Network Manager via cli
+        https://access.redhat.com/solutions/5943031
+
+        :rtype: Popen
+        :return: Popen of 'nmcli connection on'
+        """
+        # We really don't care if we can't bring it down
+        try:
+            p = Popen(['nmcli', 'connection', 'off'])
+            p.wait()
+        except Exception:
+            pass
+
+        p = Popen(
+            ['nmcli', 'connection', 'on'],
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE
+        )
+        return p
+
     def is_network_manager(self):
         """ Is using NetworkManager over network scripts
 
@@ -269,12 +291,7 @@ class ServerOS(DefaultOS):
                 # Log error and continue to restart network
                 log.error('Error flushing interface: {0}'.format(ifname))
         if self.use_network_manager:
-            p = Popen(
-                ['systemctl', 'restart', 'NetworkManager.service'],
-                stdout=PIPE,
-                stderr=PIPE,
-                stdin=PIPE
-            )
+            p = self._restart_network_manager()
         else:
             if os.path.exists('/usr/bin/systemctl'):
                 p = Popen(
