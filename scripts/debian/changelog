@@ -1,3 +1,9 @@
+nova-agent (2.1.25) unstable; urgency=low
+
+    * Latest upstream release
+
+ -- Brian Metzler <brian.metzler@rackspace.com>  Tue, 17 May 2022 18:00:00 +0000
+
 nova-agent (2.1.24) unstable; urgency=low
 
     * Latest upstream release
