@@ -194,13 +194,13 @@ class ServerOS(DefaultOS):
         """
         # We really don't care if we can't bring it down
         try:
-            p = Popen(['nmcli', 'connection', 'off'])
+            p = Popen(['nmcli', 'networking', 'off'])
             p.wait()
         except Exception:
             pass
 
         p = Popen(
-            ['nmcli', 'connection', 'on'],
+            ['nmcli', 'networking', 'on'],
             stdout=PIPE,
             stderr=PIPE,
             stdin=PIPE
