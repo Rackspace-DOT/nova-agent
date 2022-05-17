@@ -10,7 +10,7 @@ jobs:
   test:
     strategy:
       matrix:
-        python-version: ['3.6', '3.7', '3.8']
+        python-version: ['3.6', '3.7', '3.8', '3.9']
         os: ['ubuntu-18.04', 'ubuntu-latest']
     name: ${{ matrix.os }} Unit Tests
     runs-on: ${{ matrix.os }}
