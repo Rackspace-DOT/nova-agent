@@ -31,7 +31,7 @@ jobs:
       - uses: olegtarasov/get-tag@v2.1
         id: tag_name
       - uses: actions/checkout@v2
-      - uses: addnab/docker-run-action@v1
+      - uses: addnab/docker-run-action@v3
         with:
           image: debian:10
           options: -v ${{github.workspace}}:/source
@@ -50,7 +50,7 @@ jobs:
       - uses: olegtarasov/get-tag@v2.1
         id: tag_name
       - uses: actions/checkout@v2
-      - uses: addnab/docker-run-action@v1
+      - uses: addnab/docker-run-action@v3
         with:
           image: centos:7
           options: -v ${{github.workspace}}:/source
@@ -69,9 +69,9 @@ jobs:
       - uses: olegtarasov/get-tag@v2.1
         id: tag_name
       - uses: actions/checkout@v2
-      - uses: addnab/docker-run-action@v1
+      - uses: addnab/docker-run-action@v3
         with:
-          image: centos:8
+          image: rockylinux:8
           options: -v ${{github.workspace}}:/source
           run: bash /source/scripts/rpm_build.sh ${{ steps.tag_name.outputs.tag }}
       - uses: svenstaro/upload-release-action@v2
