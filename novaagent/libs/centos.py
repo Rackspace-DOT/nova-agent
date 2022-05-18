@@ -192,12 +192,33 @@ class ServerOS(DefaultOS):
         :rtype: Popen
         :return: Popen of 'nmcli connection on'
         """
-        # We really don't care if we can't bring it down
-        try:
-            p = Popen(['nmcli', 'networking', 'off'])
-            p.wait()
-        except Exception:
-            pass
+        p = Popen(
+            ['nmcli', 'connection', 'reload'],
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE
+        )
+        p.wait()
+        if p.returncode != 0:
+            log.error(
+                "Unable to reload network configurations from ifcfg "
+                "files with 'nmcli connection reload'"
+            )
+            return p
+
+        p = Popen(
+            ['nmcli', 'networking', 'off'],
+            stdout=PIPE,
+            stderr=PIPE,
+            stdin=PIPE
+        )
+        p.wait()
+        if p.returncode != 0:
+            log.error(
+                "Unable to bring down networking with "
+                "'nmcli networking off'"
+            )
+            return p
 
         p = Popen(
             ['nmcli', 'networking', 'on'],
